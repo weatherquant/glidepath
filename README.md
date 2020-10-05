@@ -29,6 +29,7 @@
 1. Open Git bash
 2. Change directory to project location using cd e.g. for me I would have cd Documents/fyp/
 3. Use Git commands (listed below)
+4. New stuff
 
 
 ## Git Commands
