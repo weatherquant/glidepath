@@ -1,10 +1,9 @@
 # FYP_MS4090
 ## Members
 1. Tommy Cornally
-2. Jimmy version2
+2. Jimmy Costello
 3. Conor Lucey
 4. Grace Mc Sweeney
-5. Padraig McAulliffe
 
 ## Getting Started
 1. Install Git on your PC 
@@ -32,12 +31,12 @@
 3. Use Git commands (listed below)
 4. New stuff
 
-
 ## Git Commands
-
 1. git close
 2. git status
 3. git diff
 4. git add
 5. git commit
 6. git push
+7. git checkout branchname
+   git merge origin/main
