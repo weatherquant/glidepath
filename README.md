@@ -25,6 +25,17 @@
 4. Click SSH and the copy emblem
 5. Type git clone project URL (copyied part from step 4) eg git clone git@github.com:Jimzo123/FYP_Test.git
 
+## Resolving conflicts
+if after pull you get a conflict then:
+1. Edit the files with the conflicts
+2. Choose desired text/code
+3. Make sure to remove all of the diff markup
+4. Save
+5. Click the more drop down(right hand side) and then shell
+6. Type - git add <file name of files requiring edits> [click enter]
+7. Type - git commit <file name of files requiring edits> -m"(reason for change)" [click enter]
+8. Type - git push [click enter]
+
 ## Using Git
 1. Open Git bash
 2. Change directory to project location using cd e.g. for me I would have cd Documents/fyp/
