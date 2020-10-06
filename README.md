@@ -2,7 +2,6 @@
 ## Members
 1. Tommy Cornally
 2. Jimmy Costello
-3. Conor Lucey
 4. Grace Mc Sweeney
 
 ## Getting Started
