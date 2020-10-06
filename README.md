@@ -4,6 +4,7 @@
 2. JJ Costello
 3. Conor Lucey
 4. Grace Mc Sweeney
+5. Padraig McAulliffe
 
 ## Getting Started
 1. Install Git on your PC 
