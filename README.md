@@ -1,7 +1,7 @@
 # FYP_MS4090
 ## Members
 1. Tommy Cornally
-2. Jimmy J
+2. Jimmy C
 3. Conor Lucey
 4. Grace Mc Sweeney
 
