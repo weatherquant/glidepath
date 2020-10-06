@@ -25,7 +25,7 @@
 4. Click SSH and the copy emblem
 5. Type git clone project URL (copyied part from step 4) eg git clone git@github.com:Jimzo123/FYP_Test.git
 
-## Resolving conflicts
+## Resolving Conflicts
 if after pull you get a conflict then:
 1. Edit the files with the conflicts
 2. Choose desired text/code
@@ -33,7 +33,7 @@ if after pull you get a conflict then:
 4. Save
 5. Click the more drop down(right hand side) and then shell
 6. Type - git add \<file name of files requiring edits\> [click enter]
-7. Type - git commit \<file name of files requiring edits\> -m "(reason for change)" [click enter]
+7. Type - git commit -i \<file name of files requiring edits\> -m "(reason for change)" [click enter]
 8. Type - git push [click enter]
 
 ## Using Git
