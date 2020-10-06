@@ -2,7 +2,7 @@
 ## Members
 1. Tommy Cornally
 2. JJ Costello
-4. Grace Mc Sweeney
+3. Grace Mc Sweeney
 
 ## Getting Started
 1. Install Git on your PC 
