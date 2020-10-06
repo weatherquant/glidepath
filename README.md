@@ -1,7 +1,7 @@
 # FYP_MS4090
 ## Members
 1. Tommy Cornally
-2. Jimmy Costello
+2. Jimmy Costello 123
 3. Conor Lucey
 4. Grace Mc Sweeney
 
@@ -33,7 +33,7 @@ if after pull you get a conflict then:
 4. Save
 5. Click the more drop down(right hand side) and then shell
 6. Type - git add \<file name of files requiring edits\> [click enter]
-7. Type - git commit \<file name of files requiring edits\> -m"(reason for change)" [click enter]
+7. Type - git commit \<file name of files requiring edits\> -m "(reason for change)" [click enter]
 8. Type - git push [click enter]
 
 ## Using Git
