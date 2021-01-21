@@ -192,7 +192,7 @@ ui <- dashboardPage(
                             ),
                             
                             mainPanel(
-                                box(title = "Drawdown Simulations", status = "primary", solidHeader = T, plotOutput("drawdown_sim_plot"))
+                                box(title = "Drawdown Simulations", status = "primary", width = 12, solidHeader = T, plotOutput("drawdown_sim_plot"))
                                 
                             ),
                             
