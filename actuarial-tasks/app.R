@@ -1,10 +1,8 @@
 library(shiny)
 library(shinydashboard)
 library(shinyjs)
-library(shinythemes)
 library(shinyWidgets)
 library(DT)
-library(ggplot2)
 library(tidyverse)
 library(readxl)
 
@@ -122,7 +120,6 @@ ui <- dashboardPage(
                                                      selectInput("PostK", "Annuity Payment Frequency:", freq_list),
                                                      numericInputIcon(inputId = "emp_contri", label = "Employee Contribution Percentage:", value = 5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
                                                      numericInputIcon(inputId = "empr_contri", label = "Employer Contribution Percentage:", value = 5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
-                                                     numericInputIcon(inputId = "guaranteed", label = "Guaranteed Period (in Years):", value = 5, min = 0, max = 39, icon = list(NULL, "Years"))
                                             ),
                                             
                                             tabPanel("Assumptions",
@@ -131,8 +128,10 @@ ui <- dashboardPage(
                                                      numericInputIcon(inputId = "discountRate", label = "Discount Rate from FV to CV:", value = 2.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
                                                      numericInputIcon(inputId = "iPost", label = "Interest Rate for Annuity:", value = 2, min = 0, max = 100, icon = list(NULL, icon("percent"))),
                                                      numericInputIcon(inputId = "annEsc", label = "Annunity Escalation:", value = 1.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
+                                                     numericInputIcon(inputId = "guaranteed", label = "Guaranteed Period (in Years):", value = 5, min = 0, max = 39, icon = list(NULL, "Years")),
+                                                     h4(strong("Percentage of Fund Held In:")),
                                                      sliderInput("equity", "Equity/Property:", min = 0, max = 100, value = 40, step = 1),
-                                                     sliderInput("fixed", "Fixed Interest:", min = 0, max = 60, value = 30, step = 1),
+                                                     sliderInput("fixed", "Fixed Interest Securities:", min = 0, max = 60, value = 30, step = 1),
                                                      sliderInput("cash", "Cash/Other:", min = 0, max = 100, value = 30, step = 1),
                                                      numericInputIcon(inputId = "investCharge", label = "Investment Charges:", value = 0.5, min = 0, max = 100, icon = list(NULL, icon("percent")))
                                             )
@@ -296,39 +295,36 @@ server <- function(input, output, session) {
         iPreK = effective2Convertible(i=iPre, k=preK)
         iPostK = effective2Convertible(i=(input$iPost/100), k=postK)
         
-        fundValueX = numeric((input$age[2] - input$age[1])*preK)
-        ages = numeric((input$age[2] - input$age[1])*preK)
-        ages_exact = numeric((input$age[2] - input$age[1])*preK)
-        periods = numeric((input$age[2] - input$age[1])*preK)
-        EEContribution = numeric((input$age[2] - input$age[1])*preK)
-        ERContribution = numeric((input$age[2] - input$age[1])*preK)
-        totalContribution = numeric((input$age[2] - input$age[1])*preK)
-        sorp_vector = numeric((input$age[2] - input$age[1])*preK)
+        fundValueX = numeric((input$age[2] - input$age[1])*preK + 2)
+        ages = numeric((input$age[2] - input$age[1])*preK + 2)
+        ages_exact = numeric((input$age[2] - input$age[1])*preK + 2)
+        periods = numeric((input$age[2] - input$age[1])*preK + 2)
+        EEContribution = numeric((input$age[2] - input$age[1])*preK + 2)
+        ERContribution = numeric((input$age[2] - input$age[1])*preK + 2)
+        totalContribution = numeric((input$age[2] - input$age[1])*preK + 2)
+        sorp_vector = numeric((input$age[2] - input$age[1])*preK + 2)
         
-        fundValueX[1] = input$fundvalue
         sal = input$sal
-        ages[1] = ages_exact[1] = input$age[1]
-        periods[1] = 1
-        EEContribution[1] = sal*(input$emp_contri/100)*1/preK
-        ERContribution[1] = sal*(input$empr_contri/100)*1/preK
-        totalContribution[1] = EEContribution[1] + ERContribution[1]
-        fundValueX[1] = input$fundvalue*(1+iPreK/preK) + totalContribution[1]
+        ages[1] = input$age[1] - 1
+        ages_exact[1] = input$age[1] - 1/preK
+        periods[1] = preK - 1
+        fundValueX[1] = input$fundvalue
         
-        for (m in 2:((input$age[2] - input$age[1])*preK)){
+        for (m in 2:((input$age[2] - input$age[1])*preK + 2)){
             ages[m] = ages[m-1]
             ages_exact[m] = ages_exact[m - 1] + 1/preK
-            periods[m] = periods[m-1] + 1
+            periods[m] = periods[m - 1] + 1
             EEContribution[m] = sal*(input$emp_contri/100)*1/preK
             ERContribution[m] = sal*(input$empr_contri/100)*1/preK
             totalContribution[m] = EEContribution[m] + ERContribution[m]
             fundValueX[m] = fundValueX[m-1]*(1+iPreK/preK) + totalContribution[m]
             
-            if((m)%%preK == 0){
-                sal = sal*(1+(input$salEsc/100))
+            if((m - 1)%%preK == 0){
+                sal = sal * (1 + (input$salEsc/100))
             }
             
-            if((m-1)%%preK == 0){
-                periods[m] = 1
+            if((m - 2)%%preK == 0){
+                periods[m] = 0
                 ages[m] = ages[m - 1] + 1
             }
         }
@@ -371,7 +367,7 @@ server <- function(input, output, session) {
         sorp <- SORP()
         preK = p_list[match(input$PreK, freq_list)]
         fundvalue_at_retirement <- sorp %>% select(FundValue)
-        fund_FV <- fundvalue_at_retirement[(input$age[2] - input$age[1])*preK,1]
+        fund_FV <- fundvalue_at_retirement[(input$age[2] - input$age[1])*preK + 1, 1]
         return(c("€", format(round(as.numeric(fund_FV), 2), nsmall = 2, big.mark = ",", scientific=FALSE)))
     })
     
@@ -380,7 +376,7 @@ server <- function(input, output, session) {
         preK = p_list[match(input$PreK, freq_list)]
         postK = p_list[match(input$PostK, freq_list)]
         fundvalue_at_retirement <- sorp %>% select(FundValue)
-        periodic_payment_FV = (fundvalue_at_retirement[(input$age[2] - input$age[1])*preK,1]/sorp[1, 8])/postK
+        periodic_payment_FV = (fundvalue_at_retirement[(input$age[2] - input$age[1])*preK + 1, 1]/sorp[1, 8])/postK
         return(c("€", format(round(as.numeric(periodic_payment_FV), 2), nsmall = 2, big.mark = ",", scientific=FALSE)))
     })
     
@@ -389,7 +385,7 @@ server <- function(input, output, session) {
         preK = p_list[match(input$PreK, freq_list)]
         fundvalue_at_retirement <- sorp %>% select(FundValue)
         discount_factor = 1/((1 + input$discountRate/100)^(input$age[2] - input$age[1]))
-        fund_CV = fundvalue_at_retirement[(input$age[2] - input$age[1])*preK,1] * discount_factor
+        fund_CV = fundvalue_at_retirement[(input$age[2] - input$age[1])*preK + 1, 1] * discount_factor
         return(c("€", format(round(as.numeric(fund_CV), 2), nsmall = 2, big.mark = ",", scientific=FALSE)))
     })
     
@@ -399,7 +395,7 @@ server <- function(input, output, session) {
         postK = p_list[match(input$PostK, freq_list)]
         fundvalue_at_retirement <- sorp %>% select(FundValue)
         discount_factor = 1/((1 + input$discountRate/100)^(input$age[2] - input$age[1]))
-        periodic_payment_CV = discount_factor * (fundvalue_at_retirement[(input$age[2] - input$age[1])*preK,1]/sorp[1, 8])/postK
+        periodic_payment_CV = discount_factor * (fundvalue_at_retirement[(input$age[2] - input$age[1])*preK + 1, 1]/sorp[1, 8])/postK
         return(c("€", format(round(as.numeric(periodic_payment_CV), 2), nsmall = 2, big.mark = ",", scientific=FALSE)))
     })
     
