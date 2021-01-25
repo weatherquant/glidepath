@@ -103,7 +103,6 @@ ui <- dashboardPage(
                                             #Note: any inputs here must be included in the server code for the reset button
                                             tabPanel("Assumptions",
                                                      style = "margin-top:1em",
-                                                     actionButton(inputId = "default", label = "Reset to Default"),
                                                      numericInputIcon(inputId = "salEsc", label = "Salary Escalation:", value = 2.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
                                                      numericInputIcon(inputId = "discountRate", label = "Discount Rate from FV to CV:", value = 2.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
                                                      numericInputIcon(inputId = "iPost", label = "Interest Rate for Annuity:", value = 2, min = 0, max = 100, icon = list(NULL, icon("percent"))),
@@ -113,7 +112,8 @@ ui <- dashboardPage(
                                                      sliderInput("equity", "Equity/Property:", min = 0, max = 100, value = 40, step = 1),
                                                      sliderInput("fixed", "Fixed Interest Securities:", min = 0, max = 60, value = 30, step = 1),
                                                      sliderInput("cash", "Cash/Other:", min = 0, max = 100, value = 30, step = 1),
-                                                     numericInputIcon(inputId = "investCharge", label = "Investment Charges:", value = 0.5, min = 0, max = 100, icon = list(NULL, icon("percent")))
+                                                     numericInputIcon(inputId = "investCharge", label = "Investment Charges:", value = 0.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
+                                                     actionButton(inputId = "default", label = "Reset to Default", style = "background-color: white")
                                             )
                                 ),
                             ),
