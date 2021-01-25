@@ -1,10 +1,10 @@
 # FYP_MS4090
 ## Members
 1. Tommy Cornally
-2. Jimmy Costello
+2. Jimmy Costello 
 3. Conor Lucey
 4. Grace Mc Sweeney
-
+5. Finbarr 
 ## Getting Started
 1. Install Git on your PC 
  (See link here https://git-scm.com/downloads)
@@ -24,6 +24,17 @@
 3. Go to the project on Github, see the green code button and hit the drop down
 4. Click SSH and the copy emblem
 5. Type git clone project URL (copyied part from step 4) eg git clone git@github.com:Jimzo123/FYP_Test.git
+
+## Resolving Conflicts
+if after pull you get a conflict then:
+1. Edit the files with the conflicts
+2. Choose desired text/code
+3. Make sure to remove all of the diff markup
+4. Save
+5. Click the more drop down(right hand side) and then shell
+6. Type - git add \<file name of files requiring edits\> [click enter]
+7. Type - git commit -i \<file name of files requiring edits\> -m "(reason for change)" [click enter]
+8. Type - git push [click enter]
 
 ## Using Git
 1. Open Git bash
