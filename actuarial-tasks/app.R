@@ -1,10 +1,8 @@
 library(shiny)
 library(shinydashboard)
 library(shinyjs)
-library(shinythemes)
 library(shinyWidgets)
 library(DT)
-library(ggplot2)
 library(tidyverse)
 library(readxl)
 
@@ -21,34 +19,12 @@ life_table_female <- read_xlsx("data/ILT15.xlsx", sheet = 1, skip=1, col_names =
 life_table_male <- read_xlsx("data/ILT15.xlsx", sheet = 2, skip=1, col_names = cnames) %>% 
     drop_na()
 
-life_table_female_reduced <- life_table_female %>% 
-    select(qx1) %>% 
-    transmute(qxnew = qx1 * 0.5)
-
-life_table_male_reduced <- life_table_male %>% 
-    select(qx1) %>% 
-    transmute(qxnew = qx1 * 0.42)
-
-df_female <- data.frame(x = life_table_female[,1],
-                        lx = life_table_female[,2],
-                        qx = life_table_female_reduced[,1])
-
-df_male <- data.frame(x = life_table_male[,1],
-                      lx = life_table_male[,2],
-                      qx = life_table_male_reduced[,1])
-
-x1_female <- df_female[,1]
-lx1_female <- df_female[,2]
-qx_female <- df_female[,3]
-
-x1_male <- df_male[,1]
-lx1_male <- df_male[,2]
-qx_male <- df_male[,3]
+qx_female <- unlist(life_table_female[,5] * 0.5)
+qx_male <- unlist(life_table_male[,5] * 0.42)
 
 ILT15_female_reduced <- probs2lifetable(probs=qx_female,radix=100000,"qx",name="ILT15_female_reduced")
 ILT15_male_reduced <- probs2lifetable(probs=qx_male,radix=100000,"qx",name="ILT15_male_reduced")
 listOfTables <- list(ILT15_female_reduced, ILT15_male_reduced)
-
 
 # Frequencies -------------------------------------------------------------
 freq_list = c("Annually", "Semi-Annually", "Quarterly", "Bi-Monthly", "Monthly", "Fortnightly", "Weekly", "Daily")
@@ -122,19 +98,22 @@ ui <- dashboardPage(
                                                      selectInput("PostK", "Annuity Payment Frequency:", freq_list),
                                                      numericInputIcon(inputId = "emp_contri", label = "Employee Contribution Percentage:", value = 5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
                                                      numericInputIcon(inputId = "empr_contri", label = "Employer Contribution Percentage:", value = 5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
-                                                     numericInputIcon(inputId = "guaranteed", label = "Guaranteed Period (in Years):", value = 5, min = 0, max = 39, icon = list(NULL, "Years"))
                                             ),
                                             
+                                            #Note: any inputs here must be included in the server code for the reset button
                                             tabPanel("Assumptions",
                                                      style = "margin-top:1em",
                                                      numericInputIcon(inputId = "salEsc", label = "Salary Escalation:", value = 2.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
                                                      numericInputIcon(inputId = "discountRate", label = "Discount Rate from FV to CV:", value = 2.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
                                                      numericInputIcon(inputId = "iPost", label = "Interest Rate for Annuity:", value = 2, min = 0, max = 100, icon = list(NULL, icon("percent"))),
                                                      numericInputIcon(inputId = "annEsc", label = "Annunity Escalation:", value = 1.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
+                                                     numericInputIcon(inputId = "guaranteed", label = "Guarantee Period:", value = 5, min = 0, max = 39, icon = list(NULL, "Years")),
+                                                     h4(strong("Percentage of Fund Held In:")),
                                                      sliderInput("equity", "Equity/Property:", min = 0, max = 100, value = 40, step = 1),
-                                                     sliderInput("fixed", "Fixed Interest:", min = 0, max = 60, value = 30, step = 1),
+                                                     sliderInput("fixed", "Fixed Interest Securities:", min = 0, max = 60, value = 30, step = 1),
                                                      sliderInput("cash", "Cash/Other:", min = 0, max = 100, value = 30, step = 1),
-                                                     numericInputIcon(inputId = "investCharge", label = "Investment Charges:", value = 0.5, min = 0, max = 100, icon = list(NULL, icon("percent")))
+                                                     numericInputIcon(inputId = "investCharge", label = "Investment Charges:", value = 0.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
+                                                     actionButton(inputId = "default", label = "Reset to Default", style = "background-color: white")
                                             )
                                 ),
                             ),
@@ -296,39 +275,40 @@ server <- function(input, output, session) {
         iPreK = effective2Convertible(i=iPre, k=preK)
         iPostK = effective2Convertible(i=(input$iPost/100), k=postK)
         
-        fundValueX = numeric((input$age[2] - input$age[1])*preK)
-        ages = numeric((input$age[2] - input$age[1])*preK)
-        ages_exact = numeric((input$age[2] - input$age[1])*preK)
-        periods = numeric((input$age[2] - input$age[1])*preK)
-        EEContribution = numeric((input$age[2] - input$age[1])*preK)
-        ERContribution = numeric((input$age[2] - input$age[1])*preK)
-        totalContribution = numeric((input$age[2] - input$age[1])*preK)
-        sorp_vector = numeric((input$age[2] - input$age[1])*preK)
+        fundValueX = numeric((input$age[2] - input$age[1])*preK + 2)
+        ages = numeric((input$age[2] - input$age[1])*preK + 2)
+        ages_exact = numeric((input$age[2] - input$age[1])*preK + 2)
+        periods = numeric((input$age[2] - input$age[1])*preK + 2)
+        EEContribution = numeric((input$age[2] - input$age[1])*preK + 2)
+        ERContribution = numeric((input$age[2] - input$age[1])*preK + 2)
+        totalContribution = numeric((input$age[2] - input$age[1])*preK + 2)
+        sorp_vector = numeric((input$age[2] - input$age[1])*preK + 2)
         
-        fundValueX[1] = input$fundvalue
+        #annuities will increase by 0.33% per annum compound
+        retire_year = as.numeric(format(Sys.Date(), "%Y")) + (input$age[2] - input$age[1])
+        ann_inc_rate = 1.0033^(retire_year - 2013)
+        
         sal = input$sal
-        ages[1] = ages_exact[1] = input$age[1]
-        periods[1] = 1
-        EEContribution[1] = sal*(input$emp_contri/100)*1/preK
-        ERContribution[1] = sal*(input$empr_contri/100)*1/preK
-        totalContribution[1] = EEContribution[1] + ERContribution[1]
-        fundValueX[1] = input$fundvalue*(1+iPreK/preK) + totalContribution[1]
+        ages[1] = input$age[1] - 1
+        ages_exact[1] = input$age[1] - 1/preK
+        periods[1] = preK - 1
+        fundValueX[1] = input$fundvalue
         
-        for (m in 2:((input$age[2] - input$age[1])*preK)){
+        for (m in 2:((input$age[2] - input$age[1])*preK + 2)){
             ages[m] = ages[m-1]
             ages_exact[m] = ages_exact[m - 1] + 1/preK
-            periods[m] = periods[m-1] + 1
+            periods[m] = periods[m - 1] + 1
             EEContribution[m] = sal*(input$emp_contri/100)*1/preK
             ERContribution[m] = sal*(input$empr_contri/100)*1/preK
             totalContribution[m] = EEContribution[m] + ERContribution[m]
             fundValueX[m] = fundValueX[m-1]*(1+iPreK/preK) + totalContribution[m]
             
-            if((m)%%preK == 0){
-                sal = sal*(1+(input$salEsc/100))
+            if((m - 1)%%preK == 0){
+                sal = sal * (1 + (input$salEsc/100))
             }
             
-            if((m-1)%%preK == 0){
-                periods[m] = 1
+            if((m - 2)%%preK == 0){
+                periods[m] = 0
                 ages[m] = ages[m - 1] + 1
             }
         }
@@ -336,9 +316,9 @@ server <- function(input, output, session) {
         guar_ann = annuity(i = netiPost, n = input$guaranteed, k = postK, type = "advance")
         
         if (input$relationship == 1) {
-            SORP_Annuity = guar_ann + axn(ILT15_female_reduced, x = input$age[2], i = netiPost, k = postK, m = input$guaranteed, payment = "advance")
+            SORP_Annuity = (guar_ann + axn(ILT15_female_reduced, x = input$age[2], i = netiPost, k = postK, m = input$guaranteed, payment = "advance"))*ann_inc_rate
         } else {
-            SORP_Annuity = guar_ann + axyzn(listOfTables, x = c(input$age[2], input$age[2]), i = netiPost, m = input$guaranteed, k = postK, status = "last", payment = "advance")
+            SORP_Annuity = (guar_ann + axyzn(listOfTables, x = c(input$age[2], input$age[2]), i = netiPost, m = input$guaranteed, k = postK, status = "last", payment = "advance"))*ann_inc_rate
         }
         
         sorp_vector[1] = SORP_Annuity
@@ -352,6 +332,18 @@ server <- function(input, output, session) {
         )
         
         return(df_fund)
+    })
+    
+    observeEvent(input$default, {
+        updateNumericInputIcon(session, "salEsc", value = 2.5)
+        updateNumericInputIcon(session, "discountRate", value = 2.5)
+        updateNumericInputIcon(session, "iPost", value = 2)
+        updateNumericInputIcon(session, "annEsc", value = 1.5)
+        updateNumericInputIcon(session, "guaranteed", value = 5)
+        updateSliderInput(session, "equity", value = 40)
+        updateSliderInput(session, "fixed", value = 30)
+        updateSliderInput(session, "cash", value = 30)
+        updateNumericInputIcon(session, "investCharge", value = 0.5)
     })
     
     output$plot <- renderPlot({
@@ -371,7 +363,7 @@ server <- function(input, output, session) {
         sorp <- SORP()
         preK = p_list[match(input$PreK, freq_list)]
         fundvalue_at_retirement <- sorp %>% select(FundValue)
-        fund_FV <- fundvalue_at_retirement[(input$age[2] - input$age[1])*preK,1]
+        fund_FV <- fundvalue_at_retirement[(input$age[2] - input$age[1])*preK + 1, 1]
         return(c("€", format(round(as.numeric(fund_FV), 2), nsmall = 2, big.mark = ",", scientific=FALSE)))
     })
     
@@ -380,7 +372,7 @@ server <- function(input, output, session) {
         preK = p_list[match(input$PreK, freq_list)]
         postK = p_list[match(input$PostK, freq_list)]
         fundvalue_at_retirement <- sorp %>% select(FundValue)
-        periodic_payment_FV = (fundvalue_at_retirement[(input$age[2] - input$age[1])*preK,1]/sorp[1, 8])/postK
+        periodic_payment_FV = (fundvalue_at_retirement[(input$age[2] - input$age[1])*preK + 1, 1]/sorp[1, 8])/postK
         return(c("€", format(round(as.numeric(periodic_payment_FV), 2), nsmall = 2, big.mark = ",", scientific=FALSE)))
     })
     
@@ -389,7 +381,7 @@ server <- function(input, output, session) {
         preK = p_list[match(input$PreK, freq_list)]
         fundvalue_at_retirement <- sorp %>% select(FundValue)
         discount_factor = 1/((1 + input$discountRate/100)^(input$age[2] - input$age[1]))
-        fund_CV = fundvalue_at_retirement[(input$age[2] - input$age[1])*preK,1] * discount_factor
+        fund_CV = fundvalue_at_retirement[(input$age[2] - input$age[1])*preK + 1, 1] * discount_factor
         return(c("€", format(round(as.numeric(fund_CV), 2), nsmall = 2, big.mark = ",", scientific=FALSE)))
     })
     
@@ -399,7 +391,7 @@ server <- function(input, output, session) {
         postK = p_list[match(input$PostK, freq_list)]
         fundvalue_at_retirement <- sorp %>% select(FundValue)
         discount_factor = 1/((1 + input$discountRate/100)^(input$age[2] - input$age[1]))
-        periodic_payment_CV = discount_factor * (fundvalue_at_retirement[(input$age[2] - input$age[1])*preK,1]/sorp[1, 8])/postK
+        periodic_payment_CV = discount_factor * (fundvalue_at_retirement[(input$age[2] - input$age[1])*preK + 1, 1]/sorp[1, 8])/postK
         return(c("€", format(round(as.numeric(periodic_payment_CV), 2), nsmall = 2, big.mark = ",", scientific=FALSE)))
     })
     
