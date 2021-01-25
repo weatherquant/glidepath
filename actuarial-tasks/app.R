@@ -19,34 +19,12 @@ life_table_female <- read_xlsx("data/ILT15.xlsx", sheet = 1, skip=1, col_names =
 life_table_male <- read_xlsx("data/ILT15.xlsx", sheet = 2, skip=1, col_names = cnames) %>% 
     drop_na()
 
-life_table_female_reduced <- life_table_female %>% 
-    select(qx1) %>% 
-    transmute(qxnew = qx1 * 0.5)
-
-life_table_male_reduced <- life_table_male %>% 
-    select(qx1) %>% 
-    transmute(qxnew = qx1 * 0.42)
-
-df_female <- data.frame(x = life_table_female[,1],
-                        lx = life_table_female[,2],
-                        qx = life_table_female_reduced[,1])
-
-df_male <- data.frame(x = life_table_male[,1],
-                      lx = life_table_male[,2],
-                      qx = life_table_male_reduced[,1])
-
-x1_female <- df_female[,1]
-lx1_female <- df_female[,2]
-qx_female <- df_female[,3]
-
-x1_male <- df_male[,1]
-lx1_male <- df_male[,2]
-qx_male <- df_male[,3]
+qx_female <- unlist(life_table_female[,5] * 0.5)
+qx_male <- unlist(life_table_male[,5] * 0.42)
 
 ILT15_female_reduced <- probs2lifetable(probs=qx_female,radix=100000,"qx",name="ILT15_female_reduced")
 ILT15_male_reduced <- probs2lifetable(probs=qx_male,radix=100000,"qx",name="ILT15_male_reduced")
 listOfTables <- list(ILT15_female_reduced, ILT15_male_reduced)
-
 
 # Frequencies -------------------------------------------------------------
 freq_list = c("Annually", "Semi-Annually", "Quarterly", "Bi-Monthly", "Monthly", "Fortnightly", "Weekly", "Daily")
@@ -122,18 +100,20 @@ ui <- dashboardPage(
                                                      numericInputIcon(inputId = "empr_contri", label = "Employer Contribution Percentage:", value = 5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
                                             ),
                                             
+                                            #Note: any inputs here must be included in the server code for the reset button
                                             tabPanel("Assumptions",
                                                      style = "margin-top:1em",
                                                      numericInputIcon(inputId = "salEsc", label = "Salary Escalation:", value = 2.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
                                                      numericInputIcon(inputId = "discountRate", label = "Discount Rate from FV to CV:", value = 2.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
                                                      numericInputIcon(inputId = "iPost", label = "Interest Rate for Annuity:", value = 2, min = 0, max = 100, icon = list(NULL, icon("percent"))),
                                                      numericInputIcon(inputId = "annEsc", label = "Annunity Escalation:", value = 1.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
-                                                     numericInputIcon(inputId = "guaranteed", label = "Guaranteed Period (in Years):", value = 5, min = 0, max = 39, icon = list(NULL, "Years")),
+                                                     numericInputIcon(inputId = "guaranteed", label = "Guarantee Period:", value = 5, min = 0, max = 39, icon = list(NULL, "Years")),
                                                      h4(strong("Percentage of Fund Held In:")),
                                                      sliderInput("equity", "Equity/Property:", min = 0, max = 100, value = 40, step = 1),
                                                      sliderInput("fixed", "Fixed Interest Securities:", min = 0, max = 60, value = 30, step = 1),
                                                      sliderInput("cash", "Cash/Other:", min = 0, max = 100, value = 30, step = 1),
-                                                     numericInputIcon(inputId = "investCharge", label = "Investment Charges:", value = 0.5, min = 0, max = 100, icon = list(NULL, icon("percent")))
+                                                     numericInputIcon(inputId = "investCharge", label = "Investment Charges:", value = 0.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
+                                                     actionButton(inputId = "default", label = "Reset to Default", style = "background-color: white")
                                             )
                                 ),
                             ),
@@ -304,6 +284,10 @@ server <- function(input, output, session) {
         totalContribution = numeric((input$age[2] - input$age[1])*preK + 2)
         sorp_vector = numeric((input$age[2] - input$age[1])*preK + 2)
         
+        #annuities will increase by 0.33% per annum compound
+        retire_year = as.numeric(format(Sys.Date(), "%Y")) + (input$age[2] - input$age[1])
+        ann_inc_rate = 1.0033^(retire_year - 2013)
+        
         sal = input$sal
         ages[1] = input$age[1] - 1
         ages_exact[1] = input$age[1] - 1/preK
@@ -332,9 +316,9 @@ server <- function(input, output, session) {
         guar_ann = annuity(i = netiPost, n = input$guaranteed, k = postK, type = "advance")
         
         if (input$relationship == 1) {
-            SORP_Annuity = guar_ann + axn(ILT15_female_reduced, x = input$age[2], i = netiPost, k = postK, m = input$guaranteed, payment = "advance")
+            SORP_Annuity = (guar_ann + axn(ILT15_female_reduced, x = input$age[2], i = netiPost, k = postK, m = input$guaranteed, payment = "advance"))*ann_inc_rate
         } else {
-            SORP_Annuity = guar_ann + axyzn(listOfTables, x = c(input$age[2], input$age[2]), i = netiPost, m = input$guaranteed, k = postK, status = "last", payment = "advance")
+            SORP_Annuity = (guar_ann + axyzn(listOfTables, x = c(input$age[2], input$age[2]), i = netiPost, m = input$guaranteed, k = postK, status = "last", payment = "advance"))*ann_inc_rate
         }
         
         sorp_vector[1] = SORP_Annuity
@@ -348,6 +332,18 @@ server <- function(input, output, session) {
         )
         
         return(df_fund)
+    })
+    
+    observeEvent(input$default, {
+        updateNumericInputIcon(session, "salEsc", value = 2.5)
+        updateNumericInputIcon(session, "discountRate", value = 2.5)
+        updateNumericInputIcon(session, "iPost", value = 2)
+        updateNumericInputIcon(session, "annEsc", value = 1.5)
+        updateNumericInputIcon(session, "guaranteed", value = 5)
+        updateSliderInput(session, "equity", value = 40)
+        updateSliderInput(session, "fixed", value = 30)
+        updateSliderInput(session, "cash", value = 30)
+        updateNumericInputIcon(session, "investCharge", value = 0.5)
     })
     
     output$plot <- renderPlot({
