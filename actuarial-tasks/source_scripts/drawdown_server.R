@@ -66,8 +66,23 @@ list(
     return(Spaths)
   }),
   
+  output$drawdown_ruin_prob <- renderText({
+    Spaths <- Drawdown_Sim()
+    p = p_list[match(input$withdraw_freq, freq_list)]
+    n.obs =  p * input$n_years
+    ruin = (length(which(Spaths[, n.obs] == 0)) * 100) / input$n_sim
+    return(c(format(round(as.numeric(ruin), 2), nsmall = 2, big.mark = ",", scientific=FALSE), "%"))
+  }),
+  
+  output$drawdown_average_fund <- renderText({
+    Spaths <- Drawdown_Sim()
+    p = p_list[match(input$withdraw_freq, freq_list)]
+    n.obs =  p * input$n_years
+    average = mean(Spaths[, n.obs])
+    return(c("€", format(round(as.numeric(average), 2), nsmall = 2, big.mark = ",", scientific=FALSE)))
+  }),
+  
   output$drawdown_sim_plot <- renderPlot({
-    
     Spaths <- Drawdown_Sim()
     dat <- vector("list", input$n_sim)
     p <- ggplot()
@@ -76,6 +91,10 @@ list(
       p <- p + geom_line(data = dat[[i]], mapping = aes(x = time, y = capital), col = i)
     } 
     return(p)
-    
+  }),
+  
+  observeEvent(input$resim, {
+    updateNumericInputIcon(session, "start_capital", value = input$start_capital + 1)
+    updateNumericInputIcon(session, "start_capital", value = input$start_capital)
   })
 )
