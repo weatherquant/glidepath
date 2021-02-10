@@ -21,10 +21,10 @@ list(
                   #Note: any inputs here must be included in the server code for the reset button
                   tabPanel("Assumptions",
                            style = "margin-top:1em",
-                           numericInputIcon(inputId = "salEsc", label = "Salary Escalation:", value = 2.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
+                           numericInputIcon(inputId = "salEsc", label = "Salary Escalation:", value = 1.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
                            numericInputIcon(inputId = "discountRate", label = "Discount Rate from FV to CV:", value = 2.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
-                           numericInputIcon(inputId = "iPost", label = "Interest Rate for Annuity:", value = 2, min = 0, max = 100, icon = list(NULL, icon("percent"))),
-                           numericInputIcon(inputId = "annEsc", label = "Annunity Escalation:", value = 1.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
+                           numericInputIcon(inputId = "iPost", label = "Interest Rate for Annuity:", value = 0.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
+                           numericInputIcon(inputId = "annEsc", label = "Annunity Escalation:", value = 1, min = 0, max = 100, icon = list(NULL, icon("percent"))),
                            numericInputIcon(inputId = "guaranteed", label = "Guarantee Period:", value = 5, min = 0, max = 39, icon = list(NULL, "Years")),
                            h4(strong("Percentage of Fund Held In:")),
                            sliderInput("equity", "Equity/Property:", min = 0, max = 100, value = 40, step = 1),

@@ -4,10 +4,10 @@ list(
   }),
   
   observeEvent(input$default_sd, {
-    updateNumericInputIcon(session, "salEsc_sd", value = 2.5)
+    updateNumericInputIcon(session, "salEsc_sd", value = 1.5)
     updateNumericInputIcon(session, "discountRate_sd", value = 2.5)
-    updateNumericInputIcon(session, "iPost_sd", value = 2)
-    updateNumericInputIcon(session, "annEsc_sd", value = 1.5)
+    updateNumericInputIcon(session, "iPost_sd", value = 0.5)
+    updateNumericInputIcon(session, "annEsc_sd", value = 1)
     updateNumericInputIcon(session, "guaranteed_sd", value = 5)
     updateSliderInput(session, "equity_sd", value = 40)
     updateSliderInput(session, "fixed_sd", value = 30)
@@ -99,6 +99,7 @@ list(
   }),
   
   output$drawdown_ruin_prob_sd <- renderText({
+    ILT15_female_reduced = ILT15_female_reduced()
     Spaths <- drawdown_react_sd()
     p = p_list[match(input$withdraw_freq_sd, freq_list)]
     n.obs =  p * exn(ILT15_female_reduced, input$age_sd[2])
@@ -107,6 +108,7 @@ list(
   }),
   
   output$drawdown_average_fund_sd <- renderText({
+    ILT15_female_reduced = ILT15_female_reduced()
     Spaths <- drawdown_react_sd()
     p = p_list[match(input$withdraw_freq_sd, freq_list)]
     n.obs =  p * exn(ILT15_female_reduced, input$age_sd[2])
@@ -115,6 +117,7 @@ list(
   }),
   
   output$drawdown_sim_plot_sd <- renderPlot({
+    ILT15_female_reduced = ILT15_female_reduced()
     Spaths <- drawdown_react_sd()
     dat <- vector("list", input$n_sim_sd)
     p <- ggplot()
@@ -126,8 +129,9 @@ list(
   }),
   
   output$life_ex_sd <- renderText({
+    ILT15_female_reduced = ILT15_female_reduced()
     ex = exn(ILT15_female_reduced, input$age_sd[2])
-    return(format(round(as.numeric(ex), 2), nsmall = 2, big.mark = ",", scientific=FALSE))
+    return(c(format(round(as.numeric(ex), 2), nsmall = 2, big.mark = ",", scientific=FALSE), " Years"))
   }),
   
   observeEvent(input$resim_sd, {

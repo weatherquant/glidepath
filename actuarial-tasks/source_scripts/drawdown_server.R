@@ -5,6 +5,7 @@ list(
   
   output$drawdown_ruin_prob <- renderText({
     Spaths <- drawdown_react()
+    ILT15_female_reduced = ILT15_female_reduced()
     p = p_list[match(input$withdraw_freq, freq_list)]
     n.obs =  p * exn(ILT15_female_reduced, input$retire_age)
     ruin = (length(which(Spaths[, n.obs] == 0)) * 100) / input$n_sim
@@ -13,6 +14,7 @@ list(
   
   output$drawdown_average_fund <- renderText({
     Spaths <- drawdown_react()
+    ILT15_female_reduced = ILT15_female_reduced()
     p = p_list[match(input$withdraw_freq, freq_list)]
     n.obs =  p * exn(ILT15_female_reduced, input$retire_age)
     average = mean(Spaths[, n.obs])
@@ -21,6 +23,7 @@ list(
   
   output$drawdown_sim_plot <- renderPlot({
     Spaths <- drawdown_react()
+    ILT15_female_reduced = ILT15_female_reduced()
     dat <- vector("list", input$n_sim)
     p <- ggplot()
     for (i in seq(input$n_sim)) {
@@ -31,8 +34,9 @@ list(
   }),
   
   output$life_ex <- renderText({
+    ILT15_female_reduced = ILT15_female_reduced()
     ex = exn(ILT15_female_reduced, input$retire_age)
-    return(format(round(as.numeric(ex), 2), nsmall = 2, big.mark = ",", scientific=FALSE))
+    return(c(format(round(as.numeric(ex), 2), nsmall = 2, big.mark = ",", scientific=FALSE), " Years"))
   }),
   
   observeEvent(input$resim, {

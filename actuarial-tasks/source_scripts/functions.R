@@ -1,9 +1,49 @@
 list(
-  SORP <- function(age_1, age_2, relationship, sal, fundvalue, PreK, PostK, emp_contri, empr_contri, salEsc, iPost, annEsc, guaranteed, equity, fixed, cash, investCharge){
+  ILT15_female_reduced <- function(relationship = 1, widowed = NA){
+    cnames <- read_excel("data/ILT15.xlsx", sheet = 1, n_max = 0) %>%
+      names()
+    
+    life_table_female <- read_xlsx("data/ILT15.xlsx", sheet = 1, skip=1, col_names = cnames) %>% 
+      drop_na()
+    
+    qx_female <- unlist(life_table_female[,5] * 0.5)
+    
+    if(relationship == 2){
+      if(is.na(widowed) == F){
+        percent_diff_bh = c(4.472805, 0.5530933, 0.1864749, 0.6302159, 0.7439571)
+        for(i in widowed:(widowed + 4)){
+          qx_female[i] = qx_female[i] * (1+percent_diff_bh[i+1-widowed])
+        }
+      }
+    }
+    
+    ILT15_female_reduced <- probs2lifetable(probs=qx_female,radix=100000,"qx",name="ILT15_female_reduced")
+    return(ILT15_female_reduced)
+  },
+  
+  listOfTables <- function(relationship = 1, widowed = NA){
+    # ILT15 Life Tables -------------------------------------------------------
+    cnames <- read_excel("data/ILT15.xlsx", sheet = 1, n_max = 0) %>%
+      names()
+    
+    life_table_male <- read_xlsx("data/ILT15.xlsx", sheet = 2, skip=1, col_names = cnames) %>% 
+      drop_na()
+    
+    qx_male <- unlist(life_table_male[,5] * 0.42)
+    
+    ILT15_female_reduced <- ILT15_female_reduced(relationship, widowed)
+    ILT15_male_reduced <- probs2lifetable(probs=qx_male,radix=100000,"qx",name="ILT15_male_reduced")
+    listOfTables <- list(ILT15_female_reduced, ILT15_male_reduced)
+    return(listOfTables)
+  },
+  
+  SORP <- function(age_1, age_2, relationship, sal, fundvalue, PreK, PostK, emp_contri, empr_contri, salEsc, iPost, annEsc, guaranteed, equity, fixed, cash, investCharge, widowed = NA){
+    ILT15_female_reduced = ILT15_female_reduced(relationship, widowed)
+    listOfTables = listOfTables(relationship, widowed)
     preK = p_list[match(PreK, freq_list)]
     postK = p_list[match(PostK, freq_list)]
     
-    iPre = ((equity/100) * 0.05) + ((fixed/100) * 0.025) + ((cash/100) * 0.01) - (investCharge/100)
+    iPre = ((equity/100) * 0.045) + ((fixed/100) * 0.01) + ((cash/100) * 0.00) - (investCharge/100)
     netiPost = ((1 + (iPost/100))/(1 + (annEsc/100))) - 1
     
     iPreK = effective2Convertible(i=iPre, k=preK)
@@ -67,7 +107,9 @@ list(
     return(df_fund)
   },
   
-  Drawdown_Sim <- function(retire_age, start_capital, annual_withdrawals, withdraw_freq, annual_mean_return, annual_ret_std_dev, annual_inflation, annual_inf_std_dev, n_sim){
+  Drawdown_Sim <- function(retire_age, start_capital, annual_withdrawals, withdraw_freq, annual_mean_return, annual_ret_std_dev, annual_inflation, annual_inf_std_dev, n_sim, relationship, widowed = NA){
+    ILT15_female_reduced = ILT15_female_reduced(relationship, widowed)
+    listOfTables = listOfTables(relationship, widowed)
     
     #-------------------------------------
     #Assignment

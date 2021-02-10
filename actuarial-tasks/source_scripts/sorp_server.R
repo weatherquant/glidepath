@@ -4,10 +4,10 @@ list(
     }),
   
   observeEvent(input$default, {
-    updateNumericInputIcon(session, "salEsc", value = 2.5)
+    updateNumericInputIcon(session, "salEsc", value = 1.5)
     updateNumericInputIcon(session, "discountRate", value = 2.5)
-    updateNumericInputIcon(session, "iPost", value = 2)
-    updateNumericInputIcon(session, "annEsc", value = 1.5)
+    updateNumericInputIcon(session, "iPost", value = 0.5)
+    updateNumericInputIcon(session, "annEsc", value = 1)
     updateNumericInputIcon(session, "guaranteed", value = 5)
     updateSliderInput(session, "equity", value = 40)
     updateSliderInput(session, "fixed", value = 30)
