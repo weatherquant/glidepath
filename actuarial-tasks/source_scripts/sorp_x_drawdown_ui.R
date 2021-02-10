@@ -21,6 +21,7 @@ list(
                   #Note: any inputs here must be included in the server code for the reset button
                   tabPanel("Drawdown Parameters",
                            style = "margin-top:1em",
+                           numericInputIcon(inputId = "retire_age_sd", label = "Age at Retirement:", value = 66, min = 55, max = 105, icon = list(NULL, "Years")),
                            numericInputIcon(inputId = "annual_withdrawals_sd", label = "Total Withdrawals per Annum:", value = 28000, min = 0, icon = icon("euro")),
                            selectInput("withdraw_freq_sd", "Withdrawal Frequency:", freq_list),
                            numericInputIcon(inputId = "annual_mean_return_sd", label = "Mean Annual Return:", value = 5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
@@ -28,7 +29,6 @@ list(
                            numericInputIcon(inputId = "annual_inflation_sd", label = "Mean Annual Inflation:", value = 2.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
                            numericInputIcon(inputId = "annual_inf_std_dev_sd", label = "Standard Inflation of Annual Inflation:", value = 1.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
                            numericInputIcon(inputId = "n_sim_sd", label = "Number of Simulations:", value = 25, min = 0, icon = list(NULL, "Simulations")),
-                           numericInputIcon(inputId = "n_years_sd", label = "Time to Run (in Years):", value = 25, min = 0, max = 39, icon = list(NULL, "Years")),
                            actionButton(inputId = "resim_sd", label = "Re-Run Simulation", style = "background-color: white", icon("random"))
                   ), 
                   
@@ -82,6 +82,8 @@ list(
                                h3(textOutput("drawdown_ruin_prob_sd"))),
                            box(title = "Average Fund Value", status = "primary", width = 6, solidHeader = T,
                                h3(textOutput("drawdown_average_fund_sd"))),
+                           box(title = "Life Expectancy", status = 'primary', width = 6, solidHeader = T,
+                               h3(textOutput('life_ex_sd'))),
                            box(title = "Drawdown Simulations", status = "primary", width = 12, solidHeader = T, plotOutput("drawdown_sim_plot_sd")))
       )
     )

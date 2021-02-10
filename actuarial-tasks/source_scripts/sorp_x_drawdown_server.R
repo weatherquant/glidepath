@@ -95,13 +95,13 @@ list(
   drawdown_react_sd <- reactive({
     sorp <- SORP_react_sd()
     start_capital_sd = sorp[length(sorp[, 7]), 7]
-    return(Drawdown_Sim(start_capital_sd, input$annual_withdrawals_sd, input$withdraw_freq_sd, input$annual_mean_return_sd, input$annual_ret_std_dev_sd, input$annual_inflation_sd, input$annual_inf_std_dev_sd, input$n_sim_sd, input$n_years_sd))
+    return(Drawdown_Sim(input$age_sd[2], start_capital_sd, input$annual_withdrawals_sd, input$withdraw_freq_sd, input$annual_mean_return_sd, input$annual_ret_std_dev_sd, input$annual_inflation_sd, input$annual_inf_std_dev_sd, input$n_sim_sd))
   }),
   
   output$drawdown_ruin_prob_sd <- renderText({
     Spaths <- drawdown_react_sd()
     p = p_list[match(input$withdraw_freq_sd, freq_list)]
-    n.obs =  p * input$n_years_sd
+    n.obs =  p * exn(ILT15_female_reduced, input$age_sd[2])
     ruin = (length(which(Spaths[, n.obs] == 0)) * 100) / input$n_sim_sd
     return(c(format(round(as.numeric(ruin), 2), nsmall = 2, big.mark = ",", scientific=FALSE), "%"))
   }),
@@ -109,7 +109,7 @@ list(
   output$drawdown_average_fund_sd <- renderText({
     Spaths <- drawdown_react_sd()
     p = p_list[match(input$withdraw_freq_sd, freq_list)]
-    n.obs =  p * input$n_years_sd
+    n.obs =  p * exn(ILT15_female_reduced, input$age_sd[2])
     average = mean(Spaths[, n.obs])
     return(c("€", format(round(as.numeric(average), 2), nsmall = 2, big.mark = ",", scientific=FALSE)))
   }),
@@ -119,10 +119,15 @@ list(
     dat <- vector("list", input$n_sim_sd)
     p <- ggplot()
     for (i in seq(input$n_sim_sd)) {
-      dat[[i]] <- data.frame(time = (1:((p_list[match(input$withdraw_freq_sd, freq_list)] * input$n_years_sd) +1)), capital = Spaths[i,])
+      dat[[i]] <- data.frame(time = (1:((p_list[match(input$withdraw_freq_sd, freq_list)] * exn(ILT15_female_reduced, input$age_sd[2])) +1)), capital = Spaths[i,])
       p <- p + geom_line(data = dat[[i]], mapping = aes(x = time, y = capital), col = i)
     } 
     return(p)
+  }),
+  
+  output$life_ex_sd <- renderText({
+    ex = exn(ILT15_female_reduced, input$age_sd[2])
+    return(format(round(as.numeric(ex), 2), nsmall = 2, big.mark = ",", scientific=FALSE))
   }),
   
   observeEvent(input$resim_sd, {

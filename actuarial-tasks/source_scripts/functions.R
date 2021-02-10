@@ -67,7 +67,7 @@ list(
     return(df_fund)
   },
   
-  Drawdown_Sim <- function(start_capital, annual_withdrawals, withdraw_freq, annual_mean_return, annual_ret_std_dev, annual_inflation, annual_inf_std_dev, n_sim, n_years){
+  Drawdown_Sim <- function(retire_age, start_capital, annual_withdrawals, withdraw_freq, annual_mean_return, annual_ret_std_dev, annual_inflation, annual_inf_std_dev, n_sim){
     
     #-------------------------------------
     #Assignment
@@ -86,6 +86,9 @@ list(
     
     # Withdrawals
     periodic.withdrawls = annual_withdrawals / p
+    
+    # Life Expectancy
+    n_years = exn(ILT15_female_reduced, retire_age)
     
     # number of periods to simulate
     n_obs = p * n_years
