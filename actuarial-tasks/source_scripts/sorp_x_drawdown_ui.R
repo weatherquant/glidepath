@@ -1,5 +1,5 @@
 list(
-  box(h1("SORP Calculator"), width = 12, background = "light-blue"),
+  box(h1("SORP Calculator & Drawdown Simulation"), width = 12, background = "light-blue"),
   
   sidebarLayout(
     

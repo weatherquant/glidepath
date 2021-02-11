@@ -107,7 +107,7 @@ list(
     return(df_fund)
   },
   
-  Drawdown_Sim <- function(retire_age, start_capital, annual_withdrawals, withdraw_freq, annual_mean_return, annual_ret_std_dev, annual_inflation, annual_inf_std_dev, n_sim, relationship, widowed = NA){
+  Drawdown_Sim <- function(retire_age, start_capital, annual_withdrawals, withdraw_freq, annual_mean_return, annual_ret_std_dev, annual_inflation, annual_inf_std_dev, n_sim, relationship = 1, widowed = NA){
     ILT15_female_reduced = ILT15_female_reduced(relationship, widowed)
     listOfTables = listOfTables(relationship, widowed)
     
