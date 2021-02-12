@@ -68,7 +68,7 @@ list(
     loan_summary = loanSummary()
     loan_summary_tidy <- data.frame(select(loan_summary, -repay_no, -repay_vect), row.names = loan_summary[,1])
     colnames(loan_summary_tidy) = c("Balance", "% Interest", "% Capital", "Interest Paid", "Capital Paid")
-    ls <- datatable(loan_summary_tidy, options = list(paging = FALSE)) 
+    ls <- datatable(loan_summary_tidy, options = list(paging = FALSE, searching = FALSE)) 
     ls <- formatCurrency(ls, columns = c(1, 4, 5), currency = "€")
     ls <- formatPercentage(ls, columns = c(2, 3), digits = 2)
     return(ls)

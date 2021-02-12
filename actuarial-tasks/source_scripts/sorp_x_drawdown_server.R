@@ -95,11 +95,10 @@ list(
   drawdown_react_sd <- reactive({
     sorp <- SORP_react_sd()
     start_capital_sd = sorp[length(sorp[, 7]), 7]
-    return(Drawdown_Sim(input$age_sd[2], start_capital_sd, input$annual_withdrawals_sd, input$withdraw_freq_sd, input$annual_mean_return_sd, input$annual_ret_std_dev_sd, input$annual_inflation_sd, input$annual_inf_std_dev_sd, input$n_sim_sd))
+    return(Drawdown_Sim(input$age_sd[2], start_capital_sd, input$withdraw_freq_sd, input$annual_mean_return_sd, input$annual_ret_std_dev_sd, input$annual_inflation_sd, input$annual_inf_std_dev_sd, input$n_sim_sd, annual_withdrawals = input$annual_withdrawals_sd))
   }),
   
   output$drawdown_ruin_prob_sd <- renderText({
-    ILT15_female_reduced = ILT15_female_reduced()
     Spaths <- drawdown_react_sd()
     p = p_list[match(input$withdraw_freq_sd, freq_list)]
     n.obs =  p * exn(ILT15_female_reduced, input$age_sd[2])
@@ -108,7 +107,6 @@ list(
   }),
   
   output$drawdown_average_fund_sd <- renderText({
-    ILT15_female_reduced = ILT15_female_reduced()
     Spaths <- drawdown_react_sd()
     p = p_list[match(input$withdraw_freq_sd, freq_list)]
     n.obs =  p * exn(ILT15_female_reduced, input$age_sd[2])
@@ -117,7 +115,6 @@ list(
   }),
   
   output$drawdown_sim_plot_sd <- renderPlot({
-    ILT15_female_reduced = ILT15_female_reduced()
     Spaths <- drawdown_react_sd()
     dat <- vector("list", input$n_sim_sd)
     p <- ggplot()
@@ -129,7 +126,6 @@ list(
   }),
   
   output$life_ex_sd <- renderText({
-    ILT15_female_reduced = ILT15_female_reduced()
     ex = exn(ILT15_female_reduced, input$age_sd[2])
     return(c(format(round(as.numeric(ex), 2), nsmall = 2, big.mark = ",", scientific=FALSE), " Years"))
   }),

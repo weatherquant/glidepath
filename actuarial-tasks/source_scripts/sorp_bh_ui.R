@@ -9,8 +9,8 @@ list(
                   tabPanel("SORP Parameters",
                            style = "margin-top:1em",
                            sliderInput("age_bh", "Current Age and Retirement Age:", value = c(45,66), min = 16, max = 105),
-                           radioButtons("relationship_bh", "Relationship Status:", choices = list("Single" = 1, "Married" = 2)),
-                           numericInputIcon(inputId = "widowed_bh", label = "Age Widowed:", value = NA, min = 16, max = 105, icon = list(NULL, " Years Old")),
+                           radioButtons("relationship_bh", "Relationship Status:", choices = list("Single" = 1, "Married" = 2, "Widowed" = 3)),
+                           numericInputIcon(inputId = "widowed_bh", label = "Age Widowed:", value = 70, min = 16, max = 105, icon = list(NULL, " Years Old")),
                            numericInputIcon(inputId = "sal_bh", label = "Current Salary:", value = 50000, min = 0, icon = icon("euro")),
                            numericInputIcon(inputId = "fundvalue_bh", label = "Current Fund Value:", value = 100000, min = 0, icon = icon("euro")),
                            selectInput("PreK_bh", "Contribution Frequency:", freq_list),
@@ -22,8 +22,9 @@ list(
                   #Note: any inputs here must be included in the server code for the reset button
                   tabPanel("Drawdown Parameters",
                            style = "margin-top:1em",
-                           numericInputIcon(inputId = "retire_age_bh", label = "Age at Retirement:", value = 66, min = 55, max = 105, icon = list(NULL, "Years")),
-                           numericInputIcon(inputId = "annual_withdrawals_bh", label = "Total Withdrawals per Annum:", value = 28000, min = 0, icon = icon("euro")),
+                           radioButtons("percent_yn_bh", "Withdrawal Type:", choices = list("Fixed" = F, "Percentage" = T)),
+                           numericInputIcon(inputId = "annual_withdrawals_bh", label = "Total Withdrawals per Annum:", value = 15000, min = 0, icon = icon("euro")),
+                           numericInputIcon(inputId = "percent_withdrawal_bh", label = "Percentage Withdrawn per Annum:", value = 4, min = 0, max = 100, icon = list(NULL, icon("percent"))),
                            selectInput("withdraw_freq_bh", "Withdrawal Frequency:", freq_list),
                            numericInputIcon(inputId = "annual_mean_return_bh", label = "Mean Annual Return:", value = 5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
                            numericInputIcon(inputId = "annual_ret_std_dev_bh", label = "Standard Deviation of Annual Return:", value = 7, min = 0, max = 100, icon = list(NULL, icon("percent"))),
@@ -40,11 +41,16 @@ list(
                            numericInputIcon(inputId = "iPost_bh", label = "Interest Rate for Annuity:", value = 0.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
                            numericInputIcon(inputId = "annEsc_bh", label = "Annunity Escalation:", value = 1, min = 0, max = 100, icon = list(NULL, icon("percent"))),
                            numericInputIcon(inputId = "guaranteed_bh", label = "Guarantee Period:", value = 5, min = 0, max = 39, icon = list(NULL, "Years")),
-                           h4(strong("Percentage of Fund Held In:")),
-                           sliderInput("equity_bh", "Equity/Property:", min = 0, max = 100, value = 40, step = 1),
-                           sliderInput("fixed_bh", "Fixed Interest Securities:", min = 0, max = 60, value = 30, step = 1),
-                           sliderInput("cash_bh", "Cash/Other:", min = 0, max = 100, value = 30, step = 1),
                            numericInputIcon(inputId = "investCharge_bh", label = "Investment Charges:", value = 0.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
+                           h4(strong("Equity/Property:")),
+                           numericInputIcon(inputId = "equity_p_bh", label = "Rate:", value = 4.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
+                           sliderInput("equity_bh", label = "Proportion:", min = 0, max = 100, value = 40, step = 1),
+                           h4(strong("Fixed Interest Securities:")),
+                           numericInputIcon(inputId = "fixed_p_bh", label = "Rate:", value = 1, min = 0, max = 100, icon = list(NULL, icon("percent"))),
+                           sliderInput("fixed_bh", label = "Proportion:", min = 0, max = 60, value = 30, step = 1),
+                           h4(strong("Cash/Other:")),
+                           numericInputIcon(inputId = "cash_p_bh", label = "Rate:", value = 0, min = 0, max = 100, icon = list(NULL, icon("percent"))),
+                           sliderInput("cash_bh", label = "Proportion:", min = 0, max = 100, value = 30, step = 1),
                            actionButton(inputId = "default_bh", label = "Reset to Default", style = "background-color: white")
                   )
       ),
@@ -69,22 +75,32 @@ list(
                                h4("Periodic Pension Payment:"),
                                h3(textOutput("pensionPaymentCV_bh"))
                            ),
-                           box(title = "Accumulated Wealth", width = 12, status = "primary", solidHeader = T, plotOutput("plot_bh"))
+                           tabsetPanel(type = "tabs",
+                                       tabPanel("Accumulated Wealth",
+                                                style = "margin-top:1em",
+                                                box(title = "Accumulated Wealth", width = 12, status = "primary", solidHeader = T, plotOutput("plot_bh")),                                       
+                                                ),
+                                       tabPanel("SORP Table",
+                                                style = "margin-top:1em",
+                                                box(title = "Contributions and Fund Value over Time", width = 12, status = "primary", solidHeader = T, DT::dataTableOutput("table_bh"),rownames= FALSE, style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
+                                                )
+                                       )
                   ),
                   
-                  tabPanel("SORP Table",
+                  tabPanel("Drawdown Simulations",
                            style = "margin-top:1em",
-                           box(title = "Contributions and Fund Value over Time", width = 12, status = "primary", solidHeader = T, DT::dataTableOutput("table_bh"),rownames= FALSE, style = "height:750px; overflow-y: scroll;overflow-x: scroll;")
-                  ),
-                  
-                  tabPanel("Drawdown Simulations", 
-                           style = "margin-top:1em",
-                           box(title = "Probability of Ruin", status = "primary", width = 6, solidHeader = T,
-                               h3(textOutput("drawdown_ruin_prob_bh"))),
-                           box(title = "Average Fund Value", status = "primary", width = 6, solidHeader = T,
-                               h3(textOutput("drawdown_average_fund_bh"))),
-                           box(title = "Life Expectancy", status = 'primary', width = 6, solidHeader = T,
-                               h3(textOutput('life_ex_bh'))),
+                           div(id = "life_ex_box_bh",box(
+                             title = "Life Expectancy", status = 'primary', solidHeader = T, width = 4,
+                             h3(textOutput('life_ex_bh')))
+                           ),
+                           div(id = "average_fund_box_bh",box(
+                               title = "Average Fund Value", status = "primary", solidHeader = T, width = 4,
+                               h3(textOutput("drawdown_average_fund_bh")))
+                               ),
+                           div(id = "prob_ruin_box_bh", box(
+                             title = "Probability of Ruin", status = "primary", solidHeader = T, width = 4,
+                             h3(textOutput("drawdown_ruin_prob_bh")))
+                           ),
                            box(title = "Drawdown Simulations", status = "primary", width = 12, solidHeader = T, plotOutput("drawdown_sim_plot_bh")))
       )
     )

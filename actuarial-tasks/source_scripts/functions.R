@@ -1,5 +1,5 @@
 list(
-  ILT15_female_reduced <- function(relationship = 1, widowed = NA){
+  ILT15_female_reduced_widowed <- function(relationship = 1, widowed = NA){
     cnames <- read_excel("data/ILT15.xlsx", sheet = 1, n_max = 0) %>%
       names()
     
@@ -8,12 +8,10 @@ list(
     
     qx_female <- unlist(life_table_female[,5] * 0.5)
     
-    if(relationship == 2){
-      if(is.na(widowed) == F){
+    if(relationship == 3){
         percent_diff_bh = c(4.472805, 0.5530933, 0.1864749, 0.6302159, 0.7439571)
         for(i in widowed:(widowed + 4)){
           qx_female[i] = qx_female[i] * (1+percent_diff_bh[i+1-widowed])
-        }
       }
     }
     
@@ -21,29 +19,12 @@ list(
     return(ILT15_female_reduced)
   },
   
-  listOfTables <- function(relationship = 1, widowed = NA){
-    # ILT15 Life Tables -------------------------------------------------------
-    cnames <- read_excel("data/ILT15.xlsx", sheet = 1, n_max = 0) %>%
-      names()
+  SORP <- function(age_1, age_2, relationship, sal, fundvalue, PreK, PostK, emp_contri, empr_contri, salEsc, iPost, annEsc, guaranteed, equity, fixed, cash, investCharge, equity_p = 4.5, fixed_p = 1, cash_p = 0){
     
-    life_table_male <- read_xlsx("data/ILT15.xlsx", sheet = 2, skip=1, col_names = cnames) %>% 
-      drop_na()
-    
-    qx_male <- unlist(life_table_male[,5] * 0.42)
-    
-    ILT15_female_reduced <- ILT15_female_reduced(relationship, widowed)
-    ILT15_male_reduced <- probs2lifetable(probs=qx_male,radix=100000,"qx",name="ILT15_male_reduced")
-    listOfTables <- list(ILT15_female_reduced, ILT15_male_reduced)
-    return(listOfTables)
-  },
-  
-  SORP <- function(age_1, age_2, relationship, sal, fundvalue, PreK, PostK, emp_contri, empr_contri, salEsc, iPost, annEsc, guaranteed, equity, fixed, cash, investCharge, widowed = NA){
-    ILT15_female_reduced = ILT15_female_reduced(relationship, widowed)
-    listOfTables = listOfTables(relationship, widowed)
     preK = p_list[match(PreK, freq_list)]
     postK = p_list[match(PostK, freq_list)]
     
-    iPre = ((equity/100) * 0.045) + ((fixed/100) * 0.01) + ((cash/100) * 0.00) - (investCharge/100)
+    iPre = ((equity/100) * (equity_p/100)) + ((fixed/100) * (fixed_p/100)) + ((cash/100) * (cash_p/100)) - (investCharge/100)
     netiPost = ((1 + (iPost/100))/(1 + (annEsc/100))) - 1
     
     iPreK = effective2Convertible(i=iPre, k=preK)
@@ -107,9 +88,8 @@ list(
     return(df_fund)
   },
   
-  Drawdown_Sim <- function(retire_age, start_capital, annual_withdrawals, withdraw_freq, annual_mean_return, annual_ret_std_dev, annual_inflation, annual_inf_std_dev, n_sim, relationship = 1, widowed = NA){
-    ILT15_female_reduced = ILT15_female_reduced(relationship, widowed)
-    listOfTables = listOfTables(relationship, widowed)
+  Drawdown_Sim <- function(retire_age, start_capital, withdraw_freq, annual_mean_return, annual_ret_std_dev, annual_inflation, annual_inf_std_dev, n_sim, percent_yn = F, annual_withdrawals = 28000, percent_withdrawal = 4, relationship = 1, widowed = NA){
+    ILT15_female_reduced = ILT15_female_reduced_widowed(relationship, widowed)
     
     #-------------------------------------
     #Assignment
@@ -127,7 +107,11 @@ list(
     annual.inf.std.dev = annual_inf_std_dev / 100
     
     # Withdrawals
-    periodic.withdrawls = annual_withdrawals / p
+    if (percent_yn == F) {
+      periodic.withdrawals = annual_withdrawals / p
+    } else {
+      periodic.percent.withdrawal = effective2Convertible(i=percent_withdrawal/100,k=p)/p
+    }
     
     # Life Expectancy
     n_years = exn(ILT15_female_reduced, retire_age)
@@ -147,6 +131,7 @@ list(
     #-------------------------------------
     
     Spaths = matrix(0, n_sim, n_obs+1)
+    periodic_withdrawals = matrix(0, n_sim, n_obs)
     Spaths[,1] = start.capital
     
     periodic.invest.returns = numeric(n_obs)
@@ -156,20 +141,38 @@ list(
       
       periodic.invest.returns = rnorm(n_obs, mean = periodic.mean.return, sd = periodic.ret.std.dev)
       periodic.inflation.returns = rnorm(n_obs, mean = periodic.inflation, sd = periodic.inf.std.dev)
-      if (Spaths[i,1]*(1+periodic.invest.returns[1]-periodic.inflation.returns[1])-periodic.withdrawls <= 0) {break}
-      Spaths[i,2] = Spaths[i,1]*(1+periodic.invest.returns[1]-periodic.inflation.returns[1])-periodic.withdrawls
+      if (percent_yn == F) {
+        if (Spaths[i,1]*(1+periodic.invest.returns[1]-periodic.inflation.returns[1])-periodic.withdrawals <= 0) {break}
+        Spaths[i,2] = Spaths[i,1]*(1+periodic.invest.returns[1]-periodic.inflation.returns[1])-periodic.withdrawals
+        periodic_withdrawals[i, 1] = periodic.withdrawals
+      } else {
+        if (Spaths[i,1]*(1+periodic.invest.returns[1]-periodic.inflation.returns[1]) * (1 - periodic.percent.withdrawal) <= 0) {break}
+        Spaths[i,2] = Spaths[i,1]*(1+periodic.invest.returns[1]-periodic.inflation.returns[1]) * (1 - periodic.percent.withdrawal)
+        periodic_withdrawals[i, 1] = Spaths[i,1]*(1+periodic.invest.returns[1]-periodic.inflation.returns[1]) * (periodic.percent.withdrawal)
+      }
       
       for(j in 2:n_obs){
-        if (Spaths[i,j] <= 0) {
-          break
-        } else if (Spaths[i,j]*(1+periodic.invest.returns[j]-periodic.inflation.returns[j])-periodic.withdrawls <= 0) {
-          break
+        if (percent_yn == F) {
+          if (Spaths[i,j] <= 0) {
+            break
+          } else if (Spaths[i,j]*(1+periodic.invest.returns[j]-periodic.inflation.returns[j])-periodic.withdrawals <= 0) {
+            break
+          } else {
+            Spaths[i,j+1] = Spaths[i,j]*(1+periodic.invest.returns[j]-periodic.inflation.returns[j])-periodic.withdrawals
+            periodic_withdrawals[i, j] = periodic.withdrawals
+          }
         } else {
-          Spaths[i,j+1] = Spaths[i,j]*(1+periodic.invest.returns[j]-periodic.inflation.returns[j])-periodic.withdrawls
+          if (Spaths[i,j] <= 0) {
+            break
+          } else if (Spaths[i,j]*(1+periodic.invest.returns[j]-periodic.inflation.returns[j])*(1 - (periodic.percent.withdrawal * prod(1 + periodic.inflation.returns[1:j-1]))) <= 0) {
+            break
+          } else {
+            Spaths[i,j+1] = Spaths[i,j]*(1+periodic.invest.returns[j]-periodic.inflation.returns[j])*(1 - (periodic.percent.withdrawal * prod(1 + periodic.inflation.returns[1:j-1])))
+            periodic_withdrawals[i, j] = Spaths[i,j]*(1+periodic.invest.returns[j]-periodic.inflation.returns[j])*(periodic.percent.withdrawal * prod(1 + periodic.inflation.returns[1:j-1]))
+          }
         }
       }
     }
-    
     return(Spaths)
   }
 )
