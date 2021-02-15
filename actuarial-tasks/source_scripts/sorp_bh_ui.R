@@ -19,6 +19,17 @@ list(
                            numericInputIcon(inputId = "empr_contri_bh", label = "Employer Contribution Percentage:", value = 5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
                   ),
                   
+                  tabPanel(div(id = 'spouse_sorp_parameters', "Spouse SORP Parameters"),
+                           style = "margin-top:1em",
+                           sliderInput("age_bh_s", "Current Age and Retirement Age:", value = c(45,66), min = 16, max = 105),
+                           numericInputIcon(inputId = "sal_bh_s", label = "Current Salary:", value = 50000, min = 0, icon = icon("euro")),
+                           numericInputIcon(inputId = "fundvalue_bh_s", label = "Current Fund Value:", value = 100000, min = 0, icon = icon("euro")),
+                           selectInput("PreK_bh_s", "Contribution Frequency:", freq_list),
+                           selectInput("PostK_bh_s", "Annuity Payment Frequency:", freq_list),
+                           numericInputIcon(inputId = "emp_contri_bh_s", label = "Employee Contribution Percentage:", value = 5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
+                           numericInputIcon(inputId = "empr_contri_bh_s", label = "Employer Contribution Percentage:", value = 5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
+                  ),
+                  
                   #Note: any inputs here must be included in the server code for the reset button
                   tabPanel("Drawdown Parameters",
                            style = "margin-top:1em",
@@ -85,6 +96,34 @@ list(
                                                 box(title = "Contributions and Fund Value over Time", width = 12, status = "primary", solidHeader = T, DT::dataTableOutput("table_bh"),rownames= FALSE, style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
                                                 )
                                        )
+                  ),
+                  
+                  tabPanel(div(id = 'spouse_sorp_summary', "Spouse SORP Summary"),
+                           style = "margin-top:1em",
+                           box(title = "Future Values", status = "primary", solidHeader = T,
+                               h4("Fund Value At Retirement:"),
+                               h3(textOutput("fundFV_bh_s")),
+                               hr(),
+                               h4("Periodic Pension Payment:"),
+                               h3(textOutput("pensionPaymentFV_bh_s"))
+                           ),
+                           box(title = "Current Values", status = "primary", solidHeader = T,
+                               h4("Fund Value At Retirement:"),
+                               h3(textOutput("fundCV_bh_s")),
+                               hr(),
+                               h4("Periodic Pension Payment:"),
+                               h3(textOutput("pensionPaymentCV_bh_s"))
+                           ),
+                           tabsetPanel(type = "tabs",
+                                       tabPanel("Accumulated Wealth",
+                                                style = "margin-top:1em",
+                                                box(title = "Accumulated Wealth", width = 12, status = "primary", solidHeader = T, plotOutput("plot_bh_s")),                                       
+                                       ),
+                                       tabPanel("SORP Table",
+                                                style = "margin-top:1em",
+                                                box(title = "Contributions and Fund Value over Time", width = 12, status = "primary", solidHeader = T, DT::dataTableOutput("table_bh_s"),rownames= FALSE, style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
+                                       )
+                           )
                   ),
                   
                   tabPanel("Drawdown Simulations",

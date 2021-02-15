@@ -42,7 +42,8 @@ ui <- dashboardPage(
             menuItem("SORP Calculator", tabName = "sorp"),
             menuItem("Drawdown Simulator", tabName = "drawdown"),
             # menuItem("SORP & Drawdown", tabName = "sorp_x_drawdown"),
-            menuItem("SORP & Drawdown", tabName = "sorp_bh")
+            menuItem("SORP & Drawdown", tabName = "sorp_bh"),
+            menuItem("SORP Import", tabName = "sorp_import")
         )
     ),
 
@@ -54,7 +55,8 @@ ui <- dashboardPage(
                 tabItem(tabName = 'sorp', source("source_scripts/sorp_ui.R", local = TRUE)[1]),
                 tabItem(tabName = 'drawdown', source("source_scripts/drawdown_ui.R", local = TRUE)[1]),
                 # tabItem(tabName = 'sorp_x_drawdown', source("source_scripts/sorp_x_drawdown_ui.R", local = TRUE)[1]),
-                tabItem(tabName = 'sorp_bh', source("source_scripts/sorp_bh_ui.R", local = TRUE)[1])
+                tabItem(tabName = 'sorp_bh', source("source_scripts/sorp_bh_ui.R", local = TRUE)[1]),
+                tabItem(tabName = 'sorp_import', source("source_scripts/sorp_import_ui.R", local = TRUE)[1])
             )
         )
     )
@@ -68,6 +70,7 @@ server <- function(input, output, session) {
     source("source_scripts/drawdown_server.R", local = TRUE)[1]
     # source("source_scripts/sorp_x_drawdown_server.R", local = TRUE)[1]
     source("source_scripts/sorp_bh_server.R", local = TRUE)[1]
+    source("source_scripts/sorp_import_server.R", local = TRUE)[1]
 }
 
 # Run the application 

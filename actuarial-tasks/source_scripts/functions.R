@@ -88,7 +88,7 @@ list(
     return(df_fund)
   },
   
-  Drawdown_Sim <- function(retire_age, start_capital, withdraw_freq, annual_mean_return, annual_ret_std_dev, annual_inflation, annual_inf_std_dev, n_sim, percent_yn = F, annual_withdrawals = 28000, percent_withdrawal = 4, relationship = 1, widowed = NA){
+  Drawdown_Sim <- function(retire_age, start_capital, withdraw_freq, annual_mean_return, annual_ret_std_dev, annual_inflation, annual_inf_std_dev, n_sim = 10000, percent_yn = F, annual_withdrawals = 28000, percent_withdrawal = 4, relationship = 1, widowed = NA, retire_age_spouse = retire_age){
     ILT15_female_reduced = ILT15_female_reduced_widowed(relationship, widowed)
     
     #-------------------------------------
@@ -110,11 +110,11 @@ list(
     if (percent_yn == F) {
       periodic.withdrawals = annual_withdrawals / p
     } else {
-      periodic.percent.withdrawal = effective2Convertible(i=percent_withdrawal/100,k=p)/p
+      periodic.percent.withdrawal = start.capital * effective2Convertible(i=percent_withdrawal/100,k=p)/p
     }
     
     # Life Expectancy
-    n_years = exn(ILT15_female_reduced, retire_age)
+    n_years = max(exn(ILT15_female_reduced, retire_age), exn(ILT15_male_reduced, retire_age_spouse))
     
     # number of periods to simulate
     n_obs = p * n_years
@@ -146,9 +146,9 @@ list(
         Spaths[i,2] = Spaths[i,1]*(1+periodic.invest.returns[1]-periodic.inflation.returns[1])-periodic.withdrawals
         periodic_withdrawals[i, 1] = periodic.withdrawals
       } else {
-        if (Spaths[i,1]*(1+periodic.invest.returns[1]-periodic.inflation.returns[1]) * (1 - periodic.percent.withdrawal) <= 0) {break}
-        Spaths[i,2] = Spaths[i,1]*(1+periodic.invest.returns[1]-periodic.inflation.returns[1]) * (1 - periodic.percent.withdrawal)
-        periodic_withdrawals[i, 1] = Spaths[i,1]*(1+periodic.invest.returns[1]-periodic.inflation.returns[1]) * (periodic.percent.withdrawal)
+        if (Spaths[i,1]*(1+periodic.invest.returns[1]-periodic.inflation.returns[1]) - (periodic.percent.withdrawal) <= 0) {break}
+        Spaths[i,2] = Spaths[i,1]*(1+periodic.invest.returns[1]-periodic.inflation.returns[1]) - (periodic.percent.withdrawal)
+        periodic_withdrawals[i, 1] = (periodic.percent.withdrawal)
       }
       
       for(j in 2:n_obs){
@@ -164,11 +164,11 @@ list(
         } else {
           if (Spaths[i,j] <= 0) {
             break
-          } else if (Spaths[i,j]*(1+periodic.invest.returns[j]-periodic.inflation.returns[j])*(1 - (periodic.percent.withdrawal * prod(1 + periodic.inflation.returns[1:j-1]))) <= 0) {
+          } else if (Spaths[i,j]*(1+periodic.invest.returns[j]-periodic.inflation.returns[j]) - (periodic.percent.withdrawal * prod(1 + periodic.inflation.returns[1:j-1])) <= 0) {
             break
           } else {
-            Spaths[i,j+1] = Spaths[i,j]*(1+periodic.invest.returns[j]-periodic.inflation.returns[j])*(1 - (periodic.percent.withdrawal * prod(1 + periodic.inflation.returns[1:j-1])))
-            periodic_withdrawals[i, j] = Spaths[i,j]*(1+periodic.invest.returns[j]-periodic.inflation.returns[j])*(periodic.percent.withdrawal * prod(1 + periodic.inflation.returns[1:j-1]))
+            Spaths[i,j+1] = Spaths[i,j]*(1+periodic.invest.returns[j]-periodic.inflation.returns[j]) - (periodic.percent.withdrawal * prod(1 + periodic.inflation.returns[1:j-1]))
+            periodic_withdrawals[i, j] = (periodic.percent.withdrawal * prod(1 + periodic.inflation.returns[1:j-1]))
           }
         }
       }
