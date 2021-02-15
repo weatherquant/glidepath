@@ -9,7 +9,7 @@ list(
     qx_female <- unlist(life_table_female[,5] * 0.5)
     
     if(relationship == 3){
-        percent_diff_bh = c(4.472805, 0.5530933, 0.1864749, 0.6302159, 0.7439571)
+        percent_diff_bh = c(0.8355487, 0.581945, 0.4840192, 0.3420086, 0.701824)
         for(i in widowed:(widowed + 4)){
           qx_female[i] = qx_female[i] * (1+percent_diff_bh[i+1-widowed])
       }
