@@ -2,10 +2,11 @@ list(
   box(h1("SORP Import Tool"), width = 12, background = "light-blue"),
   box(title = "SORP File Upload", status = "primary", solidHeader = T, width = 12,
       fileInput("sorp_database", "Choose Database File", accept = c(".xls", ".xlsx", ".xlsm")),
+      textOutput("test"),
+      downloadButton("download_template_import", label = "Download Template")
   ),
   
-  tabPanel("SORP Assumptions",
-           style = "margin-top:1em",
+  box(title = "SORP Assumptions", status = "primary", solidHeader = T, width = 12, collapsible = T, collapsed = T,
            numericInputIcon(inputId = "salEsc_import", label = "Salary Escalation:", value = 1.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
            numericInputIcon(inputId = "discountRate_import", label = "Discount Rate from FV to CV:", value = 2.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
            numericInputIcon(inputId = "iPost_import", label = "Interest Rate for Annuity:", value = 0.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
@@ -23,9 +24,9 @@ list(
            sliderInput("cash_import", label = "Proportion:", min = 0, max = 100, value = 30, step = 1),
            actionButton(inputId = "default_import", label = "Reset to Default", style = "background-color: white")
   ),
-  
+
   box(
-    title = "SORP Output", status = "primary", solidHeader = T, width = 12,
+    title = p("SORP Output", hidden(div(id = "export_button", downloadButton("download_template_export", label = "Download Data")))), status = "primary", solidHeader = T, width = 12,
     DT::dataTableOutput("sorp_export_table"), style = "height:430px; overflow-y: scroll;overflow-x: scroll;"
   )
 )

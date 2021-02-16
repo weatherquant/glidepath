@@ -5,6 +5,7 @@ library(shinyWidgets)
 library(DT)
 library(tidyverse)
 library(readxl)
+library(writexl)
 
 library(lifecontingencies)
 options(scipen=999)

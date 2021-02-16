@@ -184,8 +184,12 @@ list(
   
   drawdown_react_bh <- reactive({
     sorp <- SORP_react_bh()
-    sorp_s <- SORP_react_bh_s()
-    start_capital_bh = sorp[length(sorp[, 7]), 7] + sorp_s[length(sorp[, 7]), 7]
+    if(input$relationship_bh != 1){
+      sorp_s <- SORP_react_bh_s()
+      start_capital_bh = sorp[length(sorp[, 7]), 7] + sorp_s[length(sorp[, 7]), 7]
+    } else {
+      start_capital_bh = sorp[length(sorp[, 7]), 7]
+    }
     return(Drawdown_Sim(input$age_bh[2], start_capital_bh, input$withdraw_freq_bh, input$annual_mean_return_bh, input$annual_ret_std_dev_bh, input$annual_inflation_bh, input$annual_inf_std_dev_bh, percent_yn = input$percent_yn_bh, annual_withdrawals = input$annual_withdrawals_bh, percent_withdrawal = input$percent_withdrawal_bh, relationship = input$relationship_bh, widowed = input$widowed_bh, input$age_bh_s[2]))
   }),
   
@@ -193,7 +197,11 @@ list(
     ILT15_female_reduced = ILT15_female_reduced_widowed(input$relationship_bh, input$widowed_bh)
     Spaths <- drawdown_react_bh()
     p = p_list[match(input$withdraw_freq_bh, freq_list)]
-    n.obs =  p * max(exn(ILT15_female_reduced, input$age_bh[2]), exn(ILT15_male_reduced, input$age_bh_s[2]))
+    if(input$relationship_bh != 1){
+      n.obs =  p * max(exn(ILT15_female_reduced, input$age_bh[2]), exn(ILT15_male_reduced, input$age_bh_s[2]))
+    } else {
+      n.obs =  p * exn(ILT15_female_reduced, input$age_bh[2])
+    }
     ruin = (length(which(Spaths[, n.obs] == 0)) * 100) / 10000
     return(c(format(round(as.numeric(ruin), 2), nsmall = 2, big.mark = ",", scientific=FALSE), "%"))
   }),
@@ -202,7 +210,11 @@ list(
     Spaths <- drawdown_react_bh()
     ILT15_female_reduced = ILT15_female_reduced_widowed(input$relationship_bh, input$widowed_bh)
     p = p_list[match(input$withdraw_freq_bh, freq_list)]
-    n.obs =  p * max(exn(ILT15_female_reduced, input$age_bh[2]), exn(ILT15_male_reduced, input$age_bh_s[2]))
+    if(input$relationship_bh != 1){
+      n.obs =  p * max(exn(ILT15_female_reduced, input$age_bh[2]), exn(ILT15_male_reduced, input$age_bh_s[2]))
+    } else {
+      n.obs =  p * exn(ILT15_female_reduced, input$age_bh[2])
+    }
     average = mean(Spaths[, n.obs])
     return(c("€", format(round(as.numeric(average), 2), nsmall = 2, big.mark = ",", scientific=FALSE)))
   }),
@@ -212,15 +224,27 @@ list(
     ILT15_female_reduced = ILT15_female_reduced_widowed(input$relationship_bh, input$widowed_bh)
     dat <- vector("list", input$n_sim_bh)
     p <- ggplot()
-    for (i in seq(input$n_sim_bh)) {
-      dat[[i]] <- data.frame(time = (0:((p_list[match(input$withdraw_freq_bh, freq_list)] * max(exn(ILT15_female_reduced, input$age_bh[2]), exn(ILT15_male_reduced, input$age_bh_s[2]))))), capital = Spaths[i,])
-      p <- p + geom_line(data = dat[[i]], mapping = aes(x = time, y = capital), col = i)
-    } 
+    if(input$relationship_bh != 1){
+      for (i in seq(input$n_sim_bh)){
+        dat[[i]] <- data.frame(time = (0:((p_list[match(input$withdraw_freq_bh, freq_list)] * max(exn(ILT15_female_reduced, input$age_bh[2]), exn(ILT15_male_reduced, input$age_bh_s[2]))))), capital = Spaths[i,])
+        p <- p + geom_line(data = dat[[i]], mapping = aes(x = time, y = capital), col = i)
+      }
+    } else {
+      for (i in seq(input$n_sim_bh)){
+        dat[[i]] <- data.frame(time = (0:((p_list[match(input$withdraw_freq_bh, freq_list)] * exn(ILT15_female_reduced, input$age_bh[2])))), capital = Spaths[i,])
+        p <- p + geom_line(data = dat[[i]], mapping = aes(x = time, y = capital), col = i)
+      }
+    }
     return(p)
   }),
   
   output$life_ex_bh <- renderText({
     ILT15_female_reduced = ILT15_female_reduced_widowed(input$relationship_bh, input$widowed_bh)
+    if(input$relationship_bh != 1){
+      ex = max(exn(ILT15_female_reduced, input$age_bh[2]), exn(ILT15_male_reduced, input$age_bh_s[2]))
+    } else {
+      ex = exn(ILT15_female_reduced, input$age_bh[2])
+    }
     ex = max(exn(ILT15_female_reduced, input$age_bh[2]), exn(ILT15_male_reduced, input$age_bh_s[2]))
     return(c(format(round(as.numeric(ex), 2), nsmall = 2, big.mark = ",", scientific=FALSE), " Years"))
   }),
