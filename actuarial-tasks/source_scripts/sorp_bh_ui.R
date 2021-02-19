@@ -140,6 +140,7 @@ list(
                              title = "Probability of Ruin", status = "primary", solidHeader = T, width = 4,
                              h3(textOutput("drawdown_ruin_prob_bh")))
                            ),
+                           box(title = "Table", width = 12, status = "primary", solidHeader = T, DT::dataTableOutput("table_d_bh"),rownames= FALSE, style = "height:400px; overflow-y: scroll;overflow-x: scroll;"),
                            box(title = "Drawdown Simulations", status = "primary", width = 12, solidHeader = T, plotOutput("drawdown_sim_plot_bh")))
       )
     )

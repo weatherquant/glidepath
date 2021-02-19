@@ -113,8 +113,8 @@ list(
       periodic.percent.withdrawal = start.capital * effective2Convertible(i=percent_withdrawal/100,k=p)/p
     }
     
-    # Life Expectancy
-    n_years = max(exn(ILT15_female_reduced, retire_age), exn(ILT15_male_reduced, retire_age_spouse))
+    # Time to Run
+    n_years = 105 - retire_age
     
     # number of periods to simulate
     n_obs = p * n_years

@@ -190,20 +190,17 @@ list(
     } else {
       start_capital_bh = sorp[length(sorp[, 7]), 7]
     }
-    return(Drawdown_Sim(input$age_bh[2], start_capital_bh, input$withdraw_freq_bh, input$annual_mean_return_bh, input$annual_ret_std_dev_bh, input$annual_inflation_bh, input$annual_inf_std_dev_bh, percent_yn = input$percent_yn_bh, annual_withdrawals = input$annual_withdrawals_bh, percent_withdrawal = input$percent_withdrawal_bh, relationship = input$relationship_bh, widowed = input$widowed_bh, input$age_bh_s[2]))
+    return(Drawdown_Sim(input$age_bh[2], start_capital_bh, input$withdraw_freq_bh, input$annual_mean_return_bh, input$annual_ret_std_dev_bh, input$annual_inflation_bh, input$annual_inf_std_dev_bh, percent_yn = input$percent_yn_bh, annual_withdrawals = input$annual_withdrawals_bh, percent_withdrawal = input$percent_withdrawal_bh, relationship = input$relationship_bh, widowed = input$widowed_bh, retire_age_spouse = input$age_bh_s[2]))
   }),
   
-  output$drawdown_ruin_prob_bh <- renderText({
+  output$life_ex_bh <- renderText({
     ILT15_female_reduced = ILT15_female_reduced_widowed(input$relationship_bh, input$widowed_bh)
-    Spaths <- drawdown_react_bh()
-    p = p_list[match(input$withdraw_freq_bh, freq_list)]
     if(input$relationship_bh != 1){
-      n.obs =  p * max(exn(ILT15_female_reduced, input$age_bh[2]), exn(ILT15_male_reduced, input$age_bh_s[2]))
+      ex = max(exn(ILT15_female_reduced, input$age_bh[2]), exn(ILT15_male_reduced, input$age_bh_s[2]))
     } else {
-      n.obs =  p * exn(ILT15_female_reduced, input$age_bh[2])
+      ex = exn(ILT15_female_reduced, input$age_bh[2])
     }
-    ruin = (length(which(Spaths[, n.obs] == 0)) * 100) / 10000
-    return(c(format(round(as.numeric(ruin), 2), nsmall = 2, big.mark = ",", scientific=FALSE), "%"))
+    return(c(format(round(as.numeric(ex), 2), nsmall = 2, big.mark = ",", scientific=FALSE), " Years"))
   }),
   
   output$drawdown_average_fund_bh <- renderText({
@@ -219,6 +216,40 @@ list(
     return(c("€", format(round(as.numeric(average), 2), nsmall = 2, big.mark = ",", scientific=FALSE)))
   }),
   
+  output$drawdown_ruin_prob_bh <- renderText({
+    ILT15_female_reduced = ILT15_female_reduced_widowed(input$relationship_bh, input$widowed_bh)
+    Spaths <- drawdown_react_bh()
+    p = p_list[match(input$withdraw_freq_bh, freq_list)]
+    if(input$relationship_bh != 1){
+      n.obs =  p * max(exn(ILT15_female_reduced, input$age_bh[2]), exn(ILT15_male_reduced, input$age_bh_s[2]))
+    } else {
+      n.obs =  p * exn(ILT15_female_reduced, input$age_bh[2])
+    }
+    ruin = (length(which(Spaths[, n.obs] == 0)) * 100) / 10000
+    return(c(format(round(as.numeric(ruin), 2), nsmall = 2, big.mark = ",", scientific=FALSE), "%"))
+  }),
+  
+  output$table_d_bh <- renderDataTable({
+    Spaths <- drawdown_react_bh()
+    p = p_list[match(input$withdraw_freq_bh, freq_list)]
+    average = as.numeric(p * (105 - input$age_bh[2]))
+    prob_ruin = as.numeric(p * (105 - input$age_bh[2]))
+    years = rep(1:(105 - input$age_bh[2]), each = p)
+    for(i in 1:(p * (105 - input$age_bh[2]))){
+      average[i] = mean(Spaths[, i])
+      prob_ruin[i] = (length(which(Spaths[, i] == 0))) / 10000
+    }
+    important_years = c(5, 10, 15, 20, 25, 30, 35, 40, 45, 50)
+    points = p * important_years
+    table_df = data.frame(years, average, prob_ruin)
+    table_df = table_df[points, ]
+    colnames(table_df) = c("Years", "Final Average Fund Value", "Probability of Ruin")
+    table <- datatable(table_df, options = list(paging = FALSE, searching = FALSE), rownames= FALSE)
+    table <- formatCurrency(table, columns = "Final Average Fund Value", currency = "€")
+    table <- formatPercentage(table, columns = "Probability of Ruin", digits = 2)
+    return(table)
+  }),
+  
   output$drawdown_sim_plot_bh <- renderPlot({
     Spaths <- drawdown_react_bh()
     ILT15_female_reduced = ILT15_female_reduced_widowed(input$relationship_bh, input$widowed_bh)
@@ -226,27 +257,16 @@ list(
     p <- ggplot()
     if(input$relationship_bh != 1){
       for (i in seq(input$n_sim_bh)){
-        dat[[i]] <- data.frame(time = (0:((p_list[match(input$withdraw_freq_bh, freq_list)] * max(exn(ILT15_female_reduced, input$age_bh[2]), exn(ILT15_male_reduced, input$age_bh_s[2]))))), capital = Spaths[i,])
+        dat[[i]] <- data.frame(time = (0:((p_list[match(input$withdraw_freq_bh, freq_list)] * (105 - input$age_bh[2])))), capital = Spaths[i,])
         p <- p + geom_line(data = dat[[i]], mapping = aes(x = time, y = capital), col = i)
       }
     } else {
       for (i in seq(input$n_sim_bh)){
-        dat[[i]] <- data.frame(time = (0:((p_list[match(input$withdraw_freq_bh, freq_list)] * exn(ILT15_female_reduced, input$age_bh[2])))), capital = Spaths[i,])
+        dat[[i]] <- data.frame(time = (0:((p_list[match(input$withdraw_freq_bh, freq_list)] * (105 - input$age_bh[2])))), capital = Spaths[i,])
         p <- p + geom_line(data = dat[[i]], mapping = aes(x = time, y = capital), col = i)
       }
     }
     return(p)
-  }),
-  
-  output$life_ex_bh <- renderText({
-    ILT15_female_reduced = ILT15_female_reduced_widowed(input$relationship_bh, input$widowed_bh)
-    if(input$relationship_bh != 1){
-      ex = max(exn(ILT15_female_reduced, input$age_bh[2]), exn(ILT15_male_reduced, input$age_bh_s[2]))
-    } else {
-      ex = exn(ILT15_female_reduced, input$age_bh[2])
-    }
-    ex = max(exn(ILT15_female_reduced, input$age_bh[2]), exn(ILT15_male_reduced, input$age_bh_s[2]))
-    return(c(format(round(as.numeric(ex), 2), nsmall = 2, big.mark = ",", scientific=FALSE), " Years"))
   }),
   
   observeEvent(input$resim_bh, {
