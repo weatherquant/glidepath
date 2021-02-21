@@ -174,5 +174,9 @@ list(
       }
     }
     return(Spaths)
+  },
+  
+  tommy_round <- function(x){
+    return(format(round(as.numeric(x), 2), nsmall = 2, big.mark = ",", scientific=FALSE))
   }
 )
