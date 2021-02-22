@@ -45,8 +45,9 @@ ui <- dashboardPage(
             menuItem("Loan Calculator", tabName = "loan_calc"),
             menuItem("SORP Calculator", tabName = "sorp"),
             menuItem("Drawdown Simulator", tabName = "drawdown"),
-            # menuItem("SORP & Drawdown", tabName = "sorp_x_drawdown"),
-            menuItem("SORP & Drawdown", tabName = "sorp_bh"),
+            menuItem("SORP & Drawdown", tabName = "sorp_x_drawdown"),
+            # menuItem("SORP & Drawdown", tabName = "sorp_bh"),
+            menuItem("Broken Heart", tabName = "broken_heart"),
             menuItem("SORP Import", tabName = "sorp_import"),
             menuItem("Life Expectancy Visualisation", tabName = 'life_ex')
         )
@@ -59,8 +60,9 @@ ui <- dashboardPage(
                 tabItem(tabName = 'loan_calc', source("source_scripts/loan_calc_ui.R", local = TRUE)[1]),
                 tabItem(tabName = 'sorp', source("source_scripts/sorp_ui.R", local = TRUE)[1]),
                 tabItem(tabName = 'drawdown', source("source_scripts/drawdown_ui.R", local = TRUE)[1]),
-                # tabItem(tabName = 'sorp_x_drawdown', source("source_scripts/sorp_x_drawdown_ui.R", local = TRUE)[1]),
-                tabItem(tabName = 'sorp_bh', source("source_scripts/sorp_bh_ui.R", local = TRUE)[1]),
+                tabItem(tabName = 'sorp_x_drawdown', source("source_scripts/sorp_x_drawdown_ui.R", local = TRUE)[1]),
+                # tabItem(tabName = 'sorp_bh', source("source_scripts/sorp_bh_ui.R", local = TRUE)[1]),
+                tabItem(tabName = 'broken_heart', source("source_scripts/broken_heart_ui.R", local = TRUE)[1]),
                 tabItem(tabName = 'sorp_import', source("source_scripts/sorp_import_ui.R", local = TRUE)[1]),
                 tabItem(tabName = 'life_ex', source("source_scripts/life_ex_ui.R", local = TRUE)[1])
             )
@@ -74,8 +76,9 @@ server <- function(input, output, session) {
     source("source_scripts/loan_calc_server.R", local = TRUE)[1]
     source("source_scripts/sorp_server.R", local = TRUE)[1]
     source("source_scripts/drawdown_server.R", local = TRUE)[1]
-    # source("source_scripts/sorp_x_drawdown_server.R", local = TRUE)[1]
-    source("source_scripts/sorp_bh_server.R", local = TRUE)[1]
+    source("source_scripts/sorp_x_drawdown_server.R", local = TRUE)[1]
+    # source("source_scripts/sorp_bh_server.R", local = TRUE)[1]
+    source("source_scripts/broken_heart_server.R", local = TRUE)[1]
     source("source_scripts/sorp_import_server.R", local = TRUE)[1]
     source("source_scripts/life_ex_server.R", local = TRUE)[1]
 }

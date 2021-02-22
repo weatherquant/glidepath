@@ -1,22 +1,37 @@
 list(
-  ILT15_female_reduced_widowed <- function(relationship = 1, widowed = NA){
-    cnames <- read_excel("data/ILT15.xlsx", sheet = 1, n_max = 0) %>%
+  broken_heart_life_table <- function(status = T, widowed = NA, gender = 1){
+    cnames <- read_excel("data/Broken Heart Life Table.xlsx", sheet = 1, n_max = 0) %>%
       names()
     
-    life_table_female <- read_xlsx("data/ILT15.xlsx", sheet = 1, skip=1, col_names = cnames) %>% 
-      drop_na()
-    
-    qx_female <- unlist(life_table_female[,5] * 0.5)
-    
-    if(relationship == 3){
-        percent_diff_bh = c(0.8355487, 0.581945, 0.4840192, 0.3420086, 0.701824)
-        for(i in widowed:(widowed + 4)){
-          qx_female[i] = qx_female[i] * (1+percent_diff_bh[i+1-widowed])
-      }
+    if(gender == 1){
+        life_table <- read_xlsx("data/Broken Heart Life Table.xlsx", sheet = 2, skip=1, col_names = cnames) %>% 
+          drop_na()
+        band_1 = c(0.0295, 0.0321, 0.0223, 0.0163, 0.0226)
+        band_2 = c(0.1221, 0.0146, 0.0653, 0.0351, 0.0000)
+        band_3 = c(0.1954, 0.1713, 0.0688, 0.0806, 0.0000)
+    } else {
+        life_table <- read_xlsx("data/Broken Heart Life Table.xlsx", sheet = 1, skip=1, col_names = cnames) %>% 
+            drop_na()
+        band_1 = c(0.1835, 0.0695, 0.0254, 0.0556, 0.0000)
+        band_2 = c(0.4699, 0.0923, 0.0461, 0.0000, 0.2322)
+        band_3 = c(0.5097, 0.1452, 0.0888, 0.2150, 0.3785)
     }
     
-    ILT15_female_reduced <- probs2lifetable(probs=qx_female,radix=100000,"qx",name="ILT15_female_reduced")
-    return(ILT15_female_reduced)
+    qx <- unlist(life_table[,2])
+    
+    if(status == T){
+      for(i in widowed:(widowed + 4))
+        if(i <= 75){
+          qx[i + 1] = band_1[i + 1 - widowed]
+        } else if (76 <= i && i <= 85){
+          qx[i + 1] = band_2[i + 1 - widowed]
+        } else {
+          qx[i + 1] = band_3[i + 1 - widowed]
+        }
+    }
+    
+    broken_heart_lifetable <- probs2lifetable(probs=qx,radix=11454,"qx",name="broken_heart_lifetable")
+    return(broken_heart_lifetable)
   },
   
   SORP <- function(age_1, age_2, relationship, sal, fundvalue, PreK, PostK, emp_contri, empr_contri, salEsc, iPost, annEsc, guaranteed, equity, fixed, cash, investCharge, equity_p = 4.5, fixed_p = 1, cash_p = 0){
@@ -88,8 +103,7 @@ list(
     return(df_fund)
   },
   
-  Drawdown_Sim <- function(retire_age, start_capital, withdraw_freq, annual_mean_return, annual_ret_std_dev, annual_inflation, annual_inf_std_dev, n_sim = 10000, percent_yn = F, annual_withdrawals = 28000, percent_withdrawal = 4, relationship = 1, widowed = NA, retire_age_spouse = retire_age){
-    ILT15_female_reduced = ILT15_female_reduced_widowed(relationship, widowed)
+  Drawdown_Sim <- function(retire_age, start_capital, withdraw_freq, annual_mean_return, annual_ret_std_dev, annual_inflation, annual_inf_std_dev, n_sim = 10000, percent_yn = F, annual_withdrawals = 28000, percent_withdrawal = 4, retire_age_spouse = retire_age, life_table = ILT15_female_reduced){
     
     #-------------------------------------
     #Assignment
@@ -114,7 +128,7 @@ list(
     }
     
     # Time to Run
-    n_years = 105 - retire_age
+    n_years = getOmega(life_table) - retire_age
     
     # number of periods to simulate
     n_obs = p * n_years

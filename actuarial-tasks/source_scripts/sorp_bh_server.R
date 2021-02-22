@@ -160,7 +160,7 @@ list(
   }),
   
   observeEvent(input$age_bh[2],{
-    updateNumericInputIcon(session, "guaranteed_bh", max = 105 - input$age_bh[2])
+    updateNumericInputIcon(session, "guaranteed_bh", max = getOmega(ILT15_female_reduced) - input$age_bh[2])
   }),
   
   observeEvent(input$relationship_bh,{
@@ -190,7 +190,7 @@ list(
     } else {
       start_capital_bh = sorp[length(sorp[, 7]), 7]
     }
-    return(Drawdown_Sim(input$age_bh[2], start_capital_bh, input$withdraw_freq_bh, input$annual_mean_return_bh, input$annual_ret_std_dev_bh, input$annual_inflation_bh, input$annual_inf_std_dev_bh, percent_yn = input$percent_yn_bh, annual_withdrawals = input$annual_withdrawals_bh, percent_withdrawal = input$percent_withdrawal_bh, relationship = input$relationship_bh, widowed = input$widowed_bh, retire_age_spouse = input$age_bh_s[2]))
+    return(Drawdown_Sim(input$age_bh[2], start_capital_bh, input$withdraw_freq_bh, input$annual_mean_return_bh, input$annual_ret_std_dev_bh, input$annual_inflation_bh, input$annual_inf_std_dev_bh, percent_yn = input$percent_yn_bh, annual_withdrawals = input$annual_withdrawals_bh, percent_withdrawal = input$percent_withdrawal_bh, retire_age_spouse = input$age_bh_s[2]))
   }),
   
   output$life_ex_bh <- renderText({
@@ -232,14 +232,14 @@ list(
   output$table_d_bh <- renderDataTable({
     Spaths <- drawdown_react_bh()
     p = p_list[match(input$withdraw_freq_bh, freq_list)]
-    average = as.numeric(p * (105 - input$age_bh[2]))
-    prob_ruin = as.numeric(p * (105 - input$age_bh[2]))
-    years = rep(1:(105 - input$age_bh[2]), each = p)
-    for(i in 1:(p * (105 - input$age_bh[2]))){
+    average = as.numeric(p * (getOmega(ILT15_female_reduced) - input$age_bh[2]))
+    prob_ruin = as.numeric(p * (getOmega(ILT15_female_reduced) - input$age_bh[2]))
+    years = rep(1:(getOmega(ILT15_female_reduced) - input$age_bh[2]), each = p)
+    for(i in 1:(p * (getOmega(ILT15_female_reduced) - input$age_bh[2]))){
       average[i] = mean(Spaths[, i])
       prob_ruin[i] = (length(which(Spaths[, i] == 0))) / 10000
     }
-    important_years = c(5, 10, 15, 20, 25, 30, 35, 40, 45, 50)
+    important_years = seq(5, getOmega(ILT15_female_reduced) - input$age_bh[2], 5)
     points = p * important_years
     table_df = data.frame(years, average, prob_ruin)
     table_df = table_df[points, ]
@@ -257,12 +257,12 @@ list(
     p <- ggplot()
     if(input$relationship_bh != 1){
       for (i in seq(input$n_sim_bh)){
-        dat[[i]] <- data.frame(time = (0:((p_list[match(input$withdraw_freq_bh, freq_list)] * (105 - input$age_bh[2])))), capital = Spaths[i,])
+        dat[[i]] <- data.frame(time = (0:((p_list[match(input$withdraw_freq_bh, freq_list)] * (getOmega(ILT15_female_reduced) - input$age_bh[2])))), capital = Spaths[i,])
         p <- p + geom_line(data = dat[[i]], mapping = aes(x = time, y = capital), col = i)
       }
     } else {
       for (i in seq(input$n_sim_bh)){
-        dat[[i]] <- data.frame(time = (0:((p_list[match(input$withdraw_freq_bh, freq_list)] * (105 - input$age_bh[2])))), capital = Spaths[i,])
+        dat[[i]] <- data.frame(time = (0:((p_list[match(input$withdraw_freq_bh, freq_list)] * (getOmega(ILT15_female_reduced) - input$age_bh[2])))), capital = Spaths[i,])
         p <- p + geom_line(data = dat[[i]], mapping = aes(x = time, y = capital), col = i)
       }
     }

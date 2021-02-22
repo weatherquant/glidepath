@@ -89,6 +89,6 @@ list(
   }),
   
   observeEvent(input$age[2],{
-    updateNumericInputIcon(session, "guaranteed", max = 105 - input$age[2])
+    updateNumericInputIcon(session, "guaranteed", max = getOmega(ILT15_female_reduced) - input$age[2])
   })
 )
