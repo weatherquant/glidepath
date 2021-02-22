@@ -83,7 +83,7 @@ list(
     bh_w_m = broken_heart_life_table(T, input$widowed_bh, 2)
     bh_no_m = broken_heart_life_table(F, input$widowed_bh, 2)
     bh_w_f_qx = bh_no_f_qx = bh_w_m_qx = bh_no_m_qx = as.numeric(getOmega(bh_w_f))
-    for(i in 1:getOmega(broken_heart_lifetable_widow) + 1){
+    for(i in 1:getOmega(bh_w_f) + 1){
       bh_w_f_qx[i] = (bh_w_f@lx[i] - bh_w_f@lx[i + 1])/bh_w_f@lx[i]
       bh_no_f_qx[i] = (bh_no_f@lx[i] - bh_no_f@lx[i + 1])/bh_no_f@lx[i]
       bh_w_m_qx[i] = (bh_w_m@lx[i] - bh_w_m@lx[i + 1])/bh_w_m@lx[i]
