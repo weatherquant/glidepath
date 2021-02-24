@@ -63,7 +63,7 @@ list(
                            sliderInput("cash_sd", label = "Proportion:", min = 0, max = 100, value = 30, step = 1),
                            actionButton(inputId = "default_sd", label = "Reset to Default", style = "background-color: white")
                   )
-      ),
+      )
     ),
     
     mainPanel(

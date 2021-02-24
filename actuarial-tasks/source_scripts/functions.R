@@ -34,13 +34,39 @@ list(
     return(broken_heart_lifetable)
   },
   
-  SORP <- function(age_1, age_2, relationship, sal, fundvalue, PreK, PostK, emp_contri, empr_contri, salEsc, iPost, annEsc, guaranteed, equity, fixed, cash, investCharge, equity_p = 4.5, fixed_p = 1, cash_p = 0){
+  SORP_Annuity <- function(age_1, age_2 = age_1, relationship, PostK, iPost = 0.5, annEsc = 1, guaranteed = 5, deferred = F){
+    postK = p_list[match(PostK, freq_list)]
+    
+    netiPost = ((1 + (iPost/100))/(1 + (annEsc/100))) - 1
+    
+    # annuities will increase by 0.33% per annum compound
+    years_to_buy = as.numeric(format(Sys.Date(), "%Y")) + (age_2 - age_1)
+    ann_inc_rate = 1.0033^(years_to_buy - 2013)
+    
+    if(deferred == F){
+      guar_ann = annuity(i = netiPost, n = guaranteed, k = postK, type = "advance")
+      if (relationship == 1) {
+        annuity = (guar_ann + axn(ILT15_female_reduced, x = age_2, i = netiPost, k = postK, m = guaranteed, payment = "advance"))*ann_inc_rate
+      } else {
+        annuity = (guar_ann + axyzn(listOfTables, x = c(age_2, age_2), i = netiPost, m = guaranteed, k = postK, status = "last", payment = "advance"))*ann_inc_rate
+      }
+    } else {
+      if (relationship == 1) {
+        annuity = axn(ILT15_female_reduced, x = age_1, i = netiPost, k = postK, m = (age_2 - age_1), payment = "advance")*ann_inc_rate
+      } else {
+        annuity = axyzn(listOfTables, x = c(age_1, age_1), i = netiPost, m = (age_2 - age_1), k = postK, status = "last", payment = "advance")*ann_inc_rate
+      }
+    }
+    
+    return(annuity)
+  },
+  
+  SORP <- function(age_1, age_2, relationship, sal, fundvalue, PreK, PostK, emp_contri, empr_contri, salEsc = 1.5, iPost = 0.5, annEsc = 1, guaranteed = 5, equity = 40, fixed = 30, cash = 30, investCharge = 0.5, equity_p = 4.5, fixed_p = 1, cash_p = 0){
     
     preK = p_list[match(PreK, freq_list)]
     postK = p_list[match(PostK, freq_list)]
     
     iPre = ((equity/100) * (equity_p/100)) + ((fixed/100) * (fixed_p/100)) + ((cash/100) * (cash_p/100)) - (investCharge/100)
-    netiPost = ((1 + (iPost/100))/(1 + (annEsc/100))) - 1
     
     iPreK = effective2Convertible(i=iPre, k=preK)
     iPostK = effective2Convertible(i=(iPost/100), k=postK)
@@ -53,10 +79,6 @@ list(
     ERContribution = numeric((age_2 - age_1)*preK + 2)
     totalContribution = numeric((age_2 - age_1)*preK + 2)
     sorp_vector = numeric((age_2 - age_1)*preK + 2)
-    
-    #annuities will increase by 0.33% per annum compound
-    retire_year = as.numeric(format(Sys.Date(), "%Y")) + (age_2 - age_1)
-    ann_inc_rate = 1.0033^(retire_year - 2013)
     
     ages[1] = age_1 - 1
     ages_exact[1] = age_1 - 1/preK
@@ -82,14 +104,7 @@ list(
       }
     }
     
-    guar_ann = annuity(i = netiPost, n = guaranteed, k = postK, type = "advance")
-    
-    if (relationship == 1) {
-      SORP_Annuity = (guar_ann + axn(ILT15_female_reduced, x = age_2, i = netiPost, k = postK, m = guaranteed, payment = "advance"))*ann_inc_rate
-    } else {
-      SORP_Annuity = (guar_ann + axyzn(listOfTables, x = c(age_2, age_2), i = netiPost, m = guaranteed, k = postK, status = "last", payment = "advance"))*ann_inc_rate
-    }
-    
+    SORP_Annuity = SORP_Annuity(age_1, age_2, relationship, PostK, iPost, annEsc, guaranteed)
     sorp_vector[1] = SORP_Annuity
     
     df_fund <- data.frame(age = ages, period = periods, age_exact = ages_exact,
@@ -103,7 +118,7 @@ list(
     return(df_fund)
   },
   
-  Drawdown_Sim <- function(retire_age, start_capital, withdraw_freq, annual_mean_return, annual_ret_std_dev, annual_inflation, annual_inf_std_dev, n_sim = 10000, percent_yn = F, annual_withdrawals = 28000, percent_withdrawal = 4, retire_age_spouse = retire_age, life_table = ILT15_female_reduced){
+  Drawdown_Sim <- function(retire_age, start_capital, withdraw_freq, annual_mean_return, annual_ret_std_dev, annual_inflation, annual_inf_std_dev, n_sim = 10000, percent_yn = F, annual_withdrawals = 28000, percent_withdrawal = 4, retire_age_spouse = retire_age, life_table = ILT15_female_reduced, end_age = NA){
     
     #-------------------------------------
     #Assignment
@@ -128,7 +143,11 @@ list(
     }
     
     # Time to Run
-    n_years = getOmega(life_table) - retire_age
+    if(is.na(end_age)){
+      n_years = getOmega(life_table) - retire_age
+    } else {
+      n_years = end_age - retire_age
+    }
     
     # number of periods to simulate
     n_obs = p * n_years
