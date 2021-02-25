@@ -92,129 +92,8 @@ list(
     cost_annuity = drawdown_deferred_pd[3]
     return(c("€", tommy_round(cost_annuity)))
   }),
-
-  output$compare_table_d_pd <- renderDataTable({
-    p = p_list[match("Annually", freq_list)]
-    
-    drawdown <- drawdown_react_pd()
-    drawdown_bl <- drawdown_react_buy_later_pd()
-    drawdown_deferred <- drawdown_deferred_pd()
-    drawdown_da <- drawdown_react_deferred_pd()
-    
-    sorp_annuity = sorp_annuity_pd()
-    sorp_periodic_payment = input$start_capital_pd / sorp_annuity / p
-    
-    sorp_annuity_buy_later = sorp_annuity_buy_later_pd()
-    average_fund_buy_later = average_fund_pd_bl()
-    bl_periodic_payment = average_fund_buy_later / sorp_annuity_buy_later / p
-    
-    da_periodic_payment = drawdown_deferred[1]
-    
-    sorp_total_paid = numeric(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))
-    drawdown_total_withdrawn = numeric(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))
-    drawdown_average_fund = numeric(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))
-    drawdown_prob_ruin = numeric(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))
-    buy_later_total_withdrawn = numeric(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))
-    buy_later_average_fund = numeric(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))
-    buy_later_prob_ruin = numeric(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))
-    buy_later_total_paid_annuity = numeric(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))
-    deferred_total_withdrawn = numeric(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))
-    deferred_average_fund = numeric(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))
-    deferred_prob_ruin = numeric(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))
-    deferred_total_paid_annuity = numeric(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))
-    years = rep(1:((getOmega(ILT15_female_reduced) - input$age_pd[1])), each = p)
-    
-    sorp_total_paid[1] = sorp_periodic_payment
-    drawdown_total_withdrawn[1] = mean(drawdown[[2]][, 1])
-    drawdown_average_fund[1] = mean(drawdown[[1]][, 1])
-    drawdown_prob_ruin[1] = (length(which(drawdown[[1]][, 1] == 0))) / 10000
-    buy_later_total_withdrawn[1] = mean(drawdown_bl[[2]][, 1])
-    buy_later_average_fund[1] = mean(drawdown_bl[[1]][, 1])
-    buy_later_prob_ruin[1] = (length(which(drawdown_bl[[1]][, 1] == 0))) / 10000
-    deferred_total_withdrawn[1] = mean(drawdown_da[[2]][, 1])
-    deferred_average_fund[1] = mean(drawdown_da[[1]][, 1])
-    deferred_prob_ruin[1] = (length(which(drawdown_da[[1]][, 1] == 0))) / 10000
-    
-    for(i in 2:(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))){
-      sorp_total_paid[i] = i * sorp_periodic_payment
-      drawdown_total_withdrawn[i] = mean(rowSums(drawdown[[2]][, 1:i]))
-      drawdown_average_fund[i] = mean(drawdown[[1]][, i])
-      drawdown_prob_ruin[i] = (length(which(drawdown[[1]][, i] == 0))) * 100 / 10000
-        
-      if(i <= (p * (input$age_pd[2] - input$age_pd[1]))){
-        buy_later_total_withdrawn[i] = mean(rowSums(drawdown_bl[[2]][, 1:i]))
-        buy_later_average_fund[i] = mean(drawdown_bl[[1]][, i])
-        buy_later_prob_ruin[i] = (length(which(drawdown_bl[[1]][, i] == 0))) * 100 / 10000
-        deferred_total_withdrawn[i] = mean(rowSums(drawdown_da[[2]][, 1:i]))
-        deferred_average_fund[i] = mean(drawdown_da[[1]][, i])
-        deferred_prob_ruin[i] = (length(which(drawdown_da[[1]][, i] == 0))) * 100 / 10000
-      } else {
-        buy_later_total_paid_annuity[i] = (i - (p * (input$age_pd[2] - input$age_pd[1]))) * bl_periodic_payment
-        buy_later_total_withdrawn[i] = buy_later_total_withdrawn[i - 1]
-        buy_later_prob_ruin[i] = buy_later_prob_ruin[i - 1]
-        deferred_total_paid_annuity[i] = (i - (p * (input$age_pd[2] - input$age_pd[1]))) * da_periodic_payment
-        deferred_total_withdrawn[i] = deferred_total_withdrawn[i - 1]
-        deferred_average_fund[i] = deferred_average_fund[i - 1]
-        deferred_prob_ruin[i] = deferred_prob_ruin[i - 1]
-      }
-    }
-    buy_later_total = buy_later_total_paid_annuity + buy_later_total_withdrawn
-    deferred_total = deferred_total_paid_annuity + deferred_total_withdrawn
-    
-    sorp_total_paid = paste0("€", tommy_round(sorp_total_paid))
-    drawdown_total_withdrawn = paste0("€", tommy_round(drawdown_total_withdrawn))
-    buy_later_total = paste0("€", tommy_round(buy_later_total))
-    deferred_total = paste0("€", tommy_round(deferred_total))
-    drawdown_average_fund = paste0("€", tommy_round(drawdown_average_fund))
-    buy_later_average_fund = paste0("€", tommy_round(buy_later_average_fund))
-    deferred_average_fund = paste0("€", tommy_round(deferred_average_fund))
-    buy_later_total_withdrawn = paste0("€", tommy_round(buy_later_total_withdrawn))
-    deferred_total_withdrawn = paste0("€", tommy_round(deferred_total_withdrawn))
-    buy_later_total_paid_annuity = paste0("€", tommy_round(buy_later_total_paid_annuity))
-    deferred_total_paid_annuity = paste0("€", tommy_round(deferred_total_paid_annuity))
-    drawdown_prob_ruin = paste0(tommy_round(drawdown_prob_ruin), "%")
-    buy_later_prob_ruin = paste0(tommy_round(buy_later_prob_ruin), "%")
-    deferred_prob_ruin = paste0(tommy_round(deferred_prob_ruin), "%")
-
-    important_years = seq(5, (getOmega(ILT15_female_reduced) - input$age_pd[1]), 5)
-    points = p * important_years
-    ex = round(p * exn(ILT15_female_reduced, input$age_pd[1]))
-    points = sort(unique(c(points, ex)))
-    table_df = data.frame(years, sorp_total_paid, 
-                          drawdown_total_withdrawn, drawdown_average_fund, drawdown_prob_ruin,
-                          buy_later_total, buy_later_average_fund, 
-                          deferred_total, deferred_average_fund, deferred_prob_ruin)
-    table_df = table_df[points, ]
-    
-    container = htmltools::withTags(table(
-      class = 'display',
-      thead(
-        tr(
-          th(rowspan = 2, 'Year', style="text-align:center; border-right: solid 1px"),
-          th(colspan = 1, 'SORP', style="text-align:center; border-right: solid 1px"),
-          th(colspan = 3, 'Drawdown', style="text-align:center; border-right: solid 1px"),
-          th(colspan = 2, 'Buy Later', style="text-align:center; border-right: solid 1px"),
-          th(colspan = 3, 'Deferred', style="text-align:center")
-        ),
-        tr(
-          th('Total Received', style = "border-right: solid 1px;"), 
-          th('Total Withdrawn'), th('Average Fund'), th('Prob of Ruin', style = "border-right: solid 1px;"), 
-          th('Total Withdrawn / Received'), th('Average Fund', style = "border-right: solid 1px;"), 
-          th('Total Withdrawn / Received'), th('Average Fund'), th('Prob of Ruin')
-        )
-      )
-    ))
-    table <- datatable(table_df, container = container, options = list(paging = FALSE, searching = FALSE), rownames= FALSE) %>% 
-      formatStyle(c(1, 2, 5, 7), `border-right` = "solid 1px") %>%
-      formatStyle(
-        'years',
-        target = 'row',
-        backgroundColor = styleEqual(ex, 'yellow')
-      )
-    return(table)
-  }),
   
-  output$income_compare <- renderPlotly({
+  dataframe_outputs_pd <- reactive({
     p = p_list[match("Annually", freq_list)]
     
     drawdown <- drawdown_react_pd()
@@ -222,12 +101,14 @@ list(
     drawdown_deferred <- drawdown_deferred_pd()
     drawdown_da <- drawdown_react_deferred_pd()
     
+    discount_factor = 1/((1 + 2.5/100)^(input$age_pd[2] - input$age_pd[1]))
+    
     sorp_annuity = sorp_annuity_pd()
     sorp_periodic_payment = input$start_capital_pd / sorp_annuity / p
     
     sorp_annuity_buy_later = sorp_annuity_buy_later_pd()
     average_fund_buy_later = average_fund_pd_bl()
-    bl_periodic_payment = average_fund_buy_later / sorp_annuity_buy_later / p
+    bl_periodic_payment = discount_factor * (average_fund_buy_later / sorp_annuity_buy_later / p)
     
     da_periodic_payment = drawdown_deferred[1]
     
@@ -269,49 +150,91 @@ list(
         deferred_total_withdrawn[i] = mean(rowSums(drawdown_da[[2]][, 1:i]))
         deferred_average_fund[i] = mean(drawdown_da[[1]][, i])
         deferred_prob_ruin[i] = (length(which(drawdown_da[[1]][, i] == 0))) * 100 / 10000
+      } else if (i == (p * (input$age_pd[2] - input$age_pd[1])) + 1){
+        buy_later_total_paid_annuity[i] = (i - (p * (input$age_pd[2] - input$age_pd[1]))) * bl_periodic_payment
+        buy_later_total_withdrawn[i] = buy_later_total_withdrawn[i - 1]
+        deferred_total_paid_annuity[i] = (i - (p * (input$age_pd[2] - input$age_pd[1]))) * da_periodic_payment
+        deferred_total_withdrawn[i] = deferred_total_withdrawn[i - 1] + deferred_average_fund[i - 1]
       } else {
         buy_later_total_paid_annuity[i] = (i - (p * (input$age_pd[2] - input$age_pd[1]))) * bl_periodic_payment
         buy_later_total_withdrawn[i] = buy_later_total_withdrawn[i - 1]
-        buy_later_prob_ruin[i] = buy_later_prob_ruin[i - 1]
         deferred_total_paid_annuity[i] = (i - (p * (input$age_pd[2] - input$age_pd[1]))) * da_periodic_payment
         deferred_total_withdrawn[i] = deferred_total_withdrawn[i - 1]
-        deferred_average_fund[i] = deferred_average_fund[i - 1]
-        deferred_prob_ruin[i] = deferred_prob_ruin[i - 1]
       }
     }
     buy_later_total = buy_later_total_paid_annuity + buy_later_total_withdrawn
     deferred_total = deferred_total_paid_annuity + deferred_total_withdrawn
     
-    sorp_total_paid = tommy_round(sorp_total_paid)
-    drawdown_total_withdrawn = tommy_round(drawdown_total_withdrawn)
-    buy_later_total = tommy_round(buy_later_total)
-    deferred_total = tommy_round(deferred_total)
-    drawdown_average_fund = paste0("€", tommy_round(drawdown_average_fund))
-    buy_later_average_fund = paste0("€", tommy_round(buy_later_average_fund))
-    deferred_average_fund = paste0("€", tommy_round(deferred_average_fund))
-    buy_later_total_withdrawn = paste0("€", tommy_round(buy_later_total_withdrawn))
-    deferred_total_withdrawn = paste0("€", tommy_round(deferred_total_withdrawn))
-    buy_later_total_paid_annuity = paste0("€", tommy_round(buy_later_total_paid_annuity))
-    deferred_total_paid_annuity = paste0("€", tommy_round(deferred_total_paid_annuity))
-    drawdown_prob_ruin = paste0(tommy_round(drawdown_prob_ruin), "%")
-    buy_later_prob_ruin = paste0(tommy_round(buy_later_prob_ruin), "%")
-    deferred_prob_ruin = paste0(tommy_round(deferred_prob_ruin), "%")
-    
-    
     table_df = data.frame(years, sorp_total_paid, 
                           drawdown_total_withdrawn, drawdown_average_fund, drawdown_prob_ruin,
                           buy_later_total, buy_later_average_fund, 
                           deferred_total, deferred_average_fund, deferred_prob_ruin)
-    fig <- plot_ly(table_df, x = ~years, y = ~sorp_total_paid, name = "SORP", type = "scatter", mode = "lines", line = list(color = 'blue', width = 4))
-    fig <- fig %>% add_trace(y = ~drawdown_total_withdrawn, name = "Drawdown",line = list(color = 'red', width = 4))
-    fig <- fig %>% add_trace(y = ~buy_later_total, name = "Buy Later",line = list(color = 'green', width = 4))
-    fig <- fig %>% add_trace(y = ~deferred_total, name = "Deferred",line = list(color = 'orange', width = 4))
-    fig <- fig %>% layout(xaxis = list(title = "Years since Retirement"), yaxis = list(title = "Amount Recived €", range = c(0,round_any(as.numeric(max(sorp_total_paid, drawdown_total_withdrawn, buy_later_total, deferred_total)),100000,f=ceiling))))
+    
+    return(table_df)
+  }),
+  
+  output$compare_table_d_pd <- renderDataTable({
+    table_df = dataframe_outputs_pd()
+    p = p_list[match("Annually", freq_list)]
+    
+    table_df$sorp_total_paid = paste0("€", tommy_round(table_df$sorp_total_paid))
+    table_df$drawdown_total_withdrawn = paste0("€", tommy_round(table_df$drawdown_total_withdrawn))
+    table_df$buy_later_total = paste0("€", tommy_round(table_df$buy_later_total))
+    table_df$deferred_total = paste0("€", tommy_round(table_df$deferred_total))
+    table_df$drawdown_average_fund = paste0("€", tommy_round(table_df$drawdown_average_fund))
+    table_df$buy_later_average_fund = paste0("€", tommy_round(table_df$buy_later_average_fund))
+    table_df$deferred_average_fund = paste0("€", tommy_round(table_df$deferred_average_fund))
+    table_df$drawdown_prob_ruin = paste0(tommy_round(table_df$drawdown_prob_ruin), "%")
+    table_df$deferred_prob_ruin = paste0(tommy_round(table_df$deferred_prob_ruin), "%")
+    
+    important_years = seq(5, (getOmega(ILT15_female_reduced) - input$age_pd[1]), 5)
+    points = p * important_years
+    ex = round(p * exn(ILT15_female_reduced, input$age_pd[1]))
+    points = sort(unique(c(points, ex)))
+
+    table_df = table_df[points, ]
+    
+    container = htmltools::withTags(table(
+      class = 'display',
+      thead(
+        tr(
+          th(rowspan = 2, 'Year', style="text-align:center; border-right: solid 1px"),
+          th(colspan = 1, 'SORP', style="text-align:center; border-right: solid 1px"),
+          th(colspan = 3, 'Drawdown', style="text-align:center; border-right: solid 1px"),
+          th(colspan = 2, 'Buy Later', style="text-align:center; border-right: solid 1px"),
+          th(colspan = 3, 'Deferred', style="text-align:center")
+        ),
+        tr(
+          th('Total Received', style = "border-right: solid 1px;"), 
+          th('Total Withdrawn'), th('Average Fund'), th('Prob of Ruin', style = "border-right: solid 1px;"), 
+          th('Total Withdrawn / Received'), th('Average Fund', style = "border-right: solid 1px;"), 
+          th('Total Withdrawn / Received'), th('Average Fund'), th('Prob of Ruin')
+        )
+      )
+    ))
+    
+    table <- datatable(table_df, container = container, options = list(paging = FALSE, searching = FALSE), rownames= FALSE) %>% 
+      formatStyle(c(1, 2, 5, 7), `border-right` = "solid 1px") %>%
+      formatStyle(
+        'years',
+        target = 'row',
+        backgroundColor = styleEqual(ex, 'yellow')
+      )
+    return(table)
+  }),
+  
+  output$income_compare <- renderPlotly({
+    table_df = dataframe_outputs_pd()
+    p = p_list[match("Annually", freq_list)]
+
+    fig <- plot_ly(table_df, x = ~table_df$years, y = ~table_df$sorp_total_paid, name = "SORP", type = "scatter", mode = "lines", line = list(color = 'blue', width = 4))
+    fig <- fig %>% add_trace(y = ~table_df$drawdown_total_withdrawn, name = "Drawdown",line = list(color = 'red', width = 4))
+    fig <- fig %>% add_trace(y = ~table_df$buy_later_total, name = "Buy Later",line = list(color = 'green', width = 4))
+    fig <- fig %>% add_trace(y = ~table_df$deferred_total, name = "Deferred",line = list(color = 'orange', width = 4))
+    fig <- fig %>% layout(xaxis = list(title = "Years since Retirement"), yaxis = list(title = "Amount Received €", range = c(0, round_any(max(table_df$sorp_total_paid, table_df$drawdown_total_withdrawn, table_df$buy_later_total, table_df$deferred_total),100000,f=ceiling))))
     fig <- fig %>% layout(legend = list(orientation = "h", y=1.2))
     fig <- fig %>%
       layout(hovermode = "x unified")
-    
-    
   }),
 
   observeEvent(input$resim_pd, {
