@@ -213,6 +213,106 @@ list(
       )
     return(table)
   }),
+  
+  output$income_compare <- renderPlotly({
+    p = p_list[match("Annually", freq_list)]
+    
+    drawdown <- drawdown_react_pd()
+    drawdown_bl <- drawdown_react_buy_later_pd()
+    drawdown_deferred <- drawdown_deferred_pd()
+    drawdown_da <- drawdown_react_deferred_pd()
+    
+    sorp_annuity = sorp_annuity_pd()
+    sorp_periodic_payment = input$start_capital_pd / sorp_annuity / p
+    
+    sorp_annuity_buy_later = sorp_annuity_buy_later_pd()
+    average_fund_buy_later = average_fund_pd_bl()
+    bl_periodic_payment = average_fund_buy_later / sorp_annuity_buy_later / p
+    
+    da_periodic_payment = drawdown_deferred[1]
+    
+    sorp_total_paid = numeric(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))
+    drawdown_total_withdrawn = numeric(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))
+    drawdown_average_fund = numeric(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))
+    drawdown_prob_ruin = numeric(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))
+    buy_later_total_withdrawn = numeric(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))
+    buy_later_average_fund = numeric(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))
+    buy_later_prob_ruin = numeric(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))
+    buy_later_total_paid_annuity = numeric(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))
+    deferred_total_withdrawn = numeric(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))
+    deferred_average_fund = numeric(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))
+    deferred_prob_ruin = numeric(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))
+    deferred_total_paid_annuity = numeric(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))
+    years = rep(1:((getOmega(ILT15_female_reduced) - input$age_pd[1])), each = p)
+    
+    sorp_total_paid[1] = sorp_periodic_payment
+    drawdown_total_withdrawn[1] = mean(drawdown[[2]][, 1])
+    drawdown_average_fund[1] = mean(drawdown[[1]][, 1])
+    drawdown_prob_ruin[1] = (length(which(drawdown[[1]][, 1] == 0))) / 10000
+    buy_later_total_withdrawn[1] = mean(drawdown_bl[[2]][, 1])
+    buy_later_average_fund[1] = mean(drawdown_bl[[1]][, 1])
+    buy_later_prob_ruin[1] = (length(which(drawdown_bl[[1]][, 1] == 0))) / 10000
+    deferred_total_withdrawn[1] = mean(drawdown_da[[2]][, 1])
+    deferred_average_fund[1] = mean(drawdown_da[[1]][, 1])
+    deferred_prob_ruin[1] = (length(which(drawdown_da[[1]][, 1] == 0))) / 10000
+    
+    for(i in 2:(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))){
+      sorp_total_paid[i] = i * sorp_periodic_payment
+      drawdown_total_withdrawn[i] = mean(rowSums(drawdown[[2]][, 1:i]))
+      drawdown_average_fund[i] = mean(drawdown[[1]][, i])
+      drawdown_prob_ruin[i] = (length(which(drawdown[[1]][, i] == 0))) * 100 / 10000
+      
+      if(i <= (p * (input$age_pd[2] - input$age_pd[1]))){
+        buy_later_total_withdrawn[i] = mean(rowSums(drawdown_bl[[2]][, 1:i]))
+        buy_later_average_fund[i] = mean(drawdown_bl[[1]][, i])
+        buy_later_prob_ruin[i] = (length(which(drawdown_bl[[1]][, i] == 0))) * 100 / 10000
+        deferred_total_withdrawn[i] = mean(rowSums(drawdown_da[[2]][, 1:i]))
+        deferred_average_fund[i] = mean(drawdown_da[[1]][, i])
+        deferred_prob_ruin[i] = (length(which(drawdown_da[[1]][, i] == 0))) * 100 / 10000
+      } else {
+        buy_later_total_paid_annuity[i] = (i - (p * (input$age_pd[2] - input$age_pd[1]))) * bl_periodic_payment
+        buy_later_total_withdrawn[i] = buy_later_total_withdrawn[i - 1]
+        buy_later_prob_ruin[i] = buy_later_prob_ruin[i - 1]
+        deferred_total_paid_annuity[i] = (i - (p * (input$age_pd[2] - input$age_pd[1]))) * da_periodic_payment
+        deferred_total_withdrawn[i] = deferred_total_withdrawn[i - 1]
+        deferred_average_fund[i] = deferred_average_fund[i - 1]
+        deferred_prob_ruin[i] = deferred_prob_ruin[i - 1]
+      }
+    }
+    buy_later_total = buy_later_total_paid_annuity + buy_later_total_withdrawn
+    deferred_total = deferred_total_paid_annuity + deferred_total_withdrawn
+    
+    sorp_total_paid = tommy_round(sorp_total_paid)
+    drawdown_total_withdrawn = tommy_round(drawdown_total_withdrawn)
+    buy_later_total = tommy_round(buy_later_total)
+    deferred_total = tommy_round(deferred_total)
+    drawdown_average_fund = paste0("€", tommy_round(drawdown_average_fund))
+    buy_later_average_fund = paste0("€", tommy_round(buy_later_average_fund))
+    deferred_average_fund = paste0("€", tommy_round(deferred_average_fund))
+    buy_later_total_withdrawn = paste0("€", tommy_round(buy_later_total_withdrawn))
+    deferred_total_withdrawn = paste0("€", tommy_round(deferred_total_withdrawn))
+    buy_later_total_paid_annuity = paste0("€", tommy_round(buy_later_total_paid_annuity))
+    deferred_total_paid_annuity = paste0("€", tommy_round(deferred_total_paid_annuity))
+    drawdown_prob_ruin = paste0(tommy_round(drawdown_prob_ruin), "%")
+    buy_later_prob_ruin = paste0(tommy_round(buy_later_prob_ruin), "%")
+    deferred_prob_ruin = paste0(tommy_round(deferred_prob_ruin), "%")
+    
+    
+    table_df = data.frame(years, sorp_total_paid, 
+                          drawdown_total_withdrawn, drawdown_average_fund, drawdown_prob_ruin,
+                          buy_later_total, buy_later_average_fund, 
+                          deferred_total, deferred_average_fund, deferred_prob_ruin)
+    fig <- plot_ly(table_df, x = ~years, y = ~sorp_total_paid, name = "SORP", type = "scatter", mode = "lines", line = list(color = 'blue', width = 4))
+    fig <- fig %>% add_trace(y = ~drawdown_total_withdrawn, name = "Drawdown",line = list(color = 'red', width = 4))
+    fig <- fig %>% add_trace(y = ~buy_later_total, name = "Buy Later",line = list(color = 'green', width = 4))
+    fig <- fig %>% add_trace(y = ~deferred_total, name = "Deferred",line = list(color = 'orange', width = 4))
+    fig <- fig %>% layout(xaxis = list(title = "Years since Retirement"), yaxis = list(title = "Amount Recived €", range = c(0,round_any(as.numeric(max(sorp_total_paid, drawdown_total_withdrawn, buy_later_total, deferred_total)),100000,f=ceiling))))
+    fig <- fig %>% layout(legend = list(orientation = "h", y=1.2))
+    fig <- fig %>%
+      layout(hovermode = "x unified")
+    
+    
+  }),
 
   observeEvent(input$resim_pd, {
     updateNumericInputIcon(session, "start_capital_pd", value = input$start_capital_pd + 1)

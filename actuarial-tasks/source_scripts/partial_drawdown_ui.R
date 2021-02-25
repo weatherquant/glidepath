@@ -73,6 +73,9 @@ list(
         title = "Average Periodic Payment (Deferred)", status = "primary", solidHeader = T, width = 4,
         h3(textOutput("average_annuity_pd_da")))
       ),
-      box(title = "Table", width = 12, status = "primary", solidHeader = T, DT::dataTableOutput("compare_table_d_pd"), style = "height:430px; overflow-y: scroll;overflow-x: scroll;")    )
+      box(title = "Table", width = 12, status = "primary", solidHeader = T, DT::dataTableOutput("compare_table_d_pd"), style = "height:430px; overflow-y: scroll;overflow-x: scroll;"), 
+      box(title = "Cumulative Income Comparison", status = "primary", solidHeader = T, width = 12, plotlyOutput("income_compare")),
+      
+      )
   )
 )

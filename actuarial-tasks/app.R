@@ -9,6 +9,7 @@ library(gganimate)
 library(readxl)
 library(writexl)
 library(xkcd)
+library(plyr)
 
 library(lifecontingencies)
 options(scipen=999)
