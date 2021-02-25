@@ -1,9 +1,7 @@
 list(
   box(h1("Life Expectancy Visualisations"), width = 12, background = "light-blue"),
-  # box(title = "Increase in Expected Lifespan per Year Survived", status = "primary", solidHeader = T, width = 12, plotlyOutput("animated_ex")),
-  box(title = "Static Graph", status = "primary", solidHeader = T, width = 12, 
-      awesomeRadio("gender_static_ex", "Gender:", choices = list("Female" = 1, "Male" = 2), inline = TRUE),
-      plotOutput("static_ex")),
+  box(title = "Percentage Increase in Life Expectancy per Year Survived", status = "primary", solidHeader = T, width = 12, plotlyOutput("percent_increase_ex")),
+  
   
   box(title = "Moveable Graph", status = "primary", solidHeader = T, width = 12,
       awesomeRadio("gender_interactive_ex", "Gender:", choices = list("Female" = 1, "Male" = 2), inline = TRUE),

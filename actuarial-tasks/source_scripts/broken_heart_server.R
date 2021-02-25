@@ -1,7 +1,7 @@
 list(
   drawdown_react_bh <- reactive({
     broken_heart_lifetable = broken_heart_life_table(input$widowed_status_bh, input$widowed_bh, input$gender_bh)
-    return(Drawdown_Sim(input$age_bh, input$start_capital_bh, input$withdraw_freq_bh, input$annual_mean_return_bh, input$annual_ret_std_dev_bh, input$annual_inflation_bh, input$annual_inf_std_dev_bh, percent_yn = input$percent_yn_bh, annual_withdrawals = input$annual_withdrawals_bh, percent_withdrawal = input$percent_withdrawal_bh, life_table = broken_heart_lifetable))
+    return(Drawdown_Sim(input$age_bh, input$start_capital_bh, input$withdraw_freq_bh, input$annual_mean_return_bh, input$annual_ret_std_dev_bh, input$annual_inflation_bh, input$annual_inf_std_dev_bh, percent_yn = input$percent_yn_bh, annual_withdrawals = input$annual_withdrawals_bh, percent_withdrawal = input$percent_withdrawal_bh, life_table = broken_heart_lifetable)[[1]])
   }),
   
   output$life_ex_bh <- renderText({
@@ -63,7 +63,7 @@ list(
     return(table)
   }),
   
-  output$life_ex_change_plot_bh <- renderPlot({
+  output$life_ex_change_plot_bh <- renderPlotly({
     broken_heart_lifetable_widow = broken_heart_life_table(T, input$widowed_bh, input$gender_bh)
     broken_heart_lifetable_no = broken_heart_life_table(F, input$widowed_bh, input$gender_bh)
     bh_w_qx = bh_n_qx = as.numeric(getOmega(broken_heart_lifetable_widow))
@@ -73,11 +73,16 @@ list(
     }
     diff_qx = ((bh_w_qx - bh_n_qx) * 100)/bh_n_qx
     df = data.frame(age = input$widowed_bh:(input$widowed_bh + 4), diff_qx = diff_qx[(input$widowed_bh + 1):(input$widowed_bh + 5)])
-    ggplot(df, aes(x = age, y = diff_qx, fill="#4A8DBF", color="#4A8DBF")) + xlab("Age") + ylab("% Difference in Prob of Death (qx)") +
-      geom_bar(stat = "identity", color = "#4A8DBF", fill = "#4A8DBF")
+    fig <- plot_ly(df, x = ~age, y = ~diff_qx, type = 'bar',
+                   hovertemplate = paste("%{xaxis.title.text}: %{x}<br>",
+                                         "%{yaxis.title.text}: %{y}<br>",
+                                         '<extra></extra>'))
+    fig <- fig %>%
+      layout(xaxis = list(title = "Age"), yaxis = list(title = "% increase in qx rate"))
   }),
+
   
-  output$qx_change_plot_bh <- renderPlot({
+  output$qx_change_plot_bh <- renderPlotly({
     bh_w_f = broken_heart_life_table(T, input$widowed_bh, 1)
     bh_no_f = broken_heart_life_table(F, input$widowed_bh, 1)
     bh_w_m = broken_heart_life_table(T, input$widowed_bh, 2)
@@ -91,16 +96,28 @@ list(
     }
     df = data.frame(age = (input$widowed_bh - 1):(input$widowed_bh + 4), 
                     female_widowed = bh_w_f_qx[(input$widowed_bh):(input$widowed_bh + 5)],
-                    female_not = bh_no_f_qx[(input$widowed_bh):(input$widowed_bh + 5)],
+                    female_baseline = bh_no_f_qx[(input$widowed_bh):(input$widowed_bh + 5)],
                     male_widowed = bh_w_m_qx[(input$widowed_bh):(input$widowed_bh + 5)],
-                    male_not = bh_no_m_qx[(input$widowed_bh):(input$widowed_bh + 5)]
+                    male_baseline = bh_no_m_qx[(input$widowed_bh):(input$widowed_bh + 5)]
                     )
     
-    ggplot(df, aes(x = age)) + xlab("Age") + ylab("Difference in Prob of Death (qx)") +
-      geom_line(aes(y = female_widowed, colour = 'Female', linetype = 'Widowed')) + geom_line(aes(y = female_not, colour = 'Female', linetype = 'Baseline')) + geom_line(aes(y = male_widowed, colour = "Male", linetype = 'Widowed')) + geom_line(aes(y = male_not, colour = "Male", linetype = "Baseline")) + 
-      scale_color_manual("Gender", values = c('hotpink3', "#4A8DBF")) + scale_linetype_manual("Widowhood Status", values = c("Widowed" = 1, "Baseline" = 2)) +
-      theme(legend.title = element_blank(), legend.text = element_text(size = 12), legend.position = 'top') + 
-      guides(color = guide_legend(override.aes = list(size = 1), shape = guide_legend(override.aes = list(size = 6))))
+    # fig <- plot_ly(df, x = ~age, y = ~female_widowed, name = "Widowed Female", type = "scatter", mode = "lines",
+    #                line = list(color = 'hotpink3', width = 4))
+    # fig <- fig %>% add_trace(y = ~female_baseline, name = "Baseline Female",line = list(color = 'hotpink3', width = 4, dash = 'dash'))
+    # fig <- fig %>% add_trace(y = ~male_widowed, name = "Male Widowed",line = list(color = "#4A8DBF", width = 4))
+    # fig <- fig %>% add_trace(y = ~male_baseline, name = "Baseline Male",line = list(color = "#4A8DBF", width = 4, dash = 'dash'))
+    # fig <- fig %>% layout(xaxis = list(title = "Age"), yaxis = list(title = "Probability of Death (qx rate)"))
+    # fig <- fig %>% layout(legend = list(orientation = "h", y=1.2))
+                                        
+
+  p <- ggplot(df, aes(x = age)) + xlab("Age") + ylab("Probability of Death (qx rate)") +
+    geom_line(aes(y = female_widowed, colour = 'Female', linetype = 'Widowed', size = "Female")) + geom_line(aes(y = female_baseline, colour = 'Female', linetype = 'Baseline',size = "Female")) + geom_line(aes(y = male_widowed, colour = "Male", linetype = 'Widowed', size = "Male")) + geom_line(aes(y = male_baseline, colour = "Male", linetype = "Baseline", size = "Male")) +
+    scale_color_manual("Gender", values = c('hotpink3', "#4A8DBF")) + scale_linetype_manual("Widowhood Status", values = c("Widowed" = 1, "Baseline" = 2)) +
+    scale_size_manual("Gender", values = c(1,1)) +
+    theme(legend.title = element_blank(), legend.text = element_text(size = 10), legend.position = 'top', legend.box = "horizontal") +
+    guides(color = guide_legend(override.aes = list(size = .5), shape = guide_legend(override.aes = list(size = 4))))
+  ggplotly(p, tooltip = c("age", "female_widowed", "female_baseline", "male_widowed", "male_baseline")) %>%
+    layout(legend = list(orientation = "h",y=1.2))
   }),
   
   output$drawdown_sim_plot_bh <- renderPlot({

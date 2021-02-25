@@ -45,8 +45,8 @@ list(
       ),
       box(title = "Table", width = 12, status = "primary", solidHeader = T, DT::dataTableOutput("table_d_bh"),rownames= FALSE, style = "height:400px; overflow-y: scroll;overflow-x: scroll;"),
       tabsetPanel(type = 'tabs',
-        tabPanel("Short-Term Effect of Widowhood on Mortality (Percentage)", style = "margin-top:1em", box(title = "Short-Term Effect of Widowhood on Mortality (Percentage)", status = "primary", width = 12, solidHeader = T, plotOutput("life_ex_change_plot_bh"))),
-        tabPanel("Short-Term Effect of Widowhood on Mortality (qx)", style = "margin-top:1em", box(title = "Short-Term Effect of Widowhood on Mortality (qx)", status = "primary", width = 12, solidHeader = T, plotOutput("qx_change_plot_bh"))),
+        tabPanel("Short-Term Effect of Widowhood on Mortality", style = "margin-top:1em", box(title = "Short-Term Effect of Widowhood on the Probability of Death", status = "primary", width = 12, solidHeader = T, plotlyOutput("life_ex_change_plot_bh"))),
+        tabPanel("Widowed vs Not-Widowed Death Probabilites", style = "margin-top:1em", box(title = "Comparison of Widowed vs Non-Widowed Death Probabilities", status = "primary", width = 12, solidHeader = T, plotlyOutput("qx_change_plot_bh"))),
         tabPanel("Drawdown Simulations", style = "margin-top:1em", box(title = "Drawdown Simulations", status = "primary", width = 12, solidHeader = T, plotOutput("drawdown_sim_plot_bh")))
       )
     )
