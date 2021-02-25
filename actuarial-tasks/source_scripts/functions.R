@@ -206,7 +206,8 @@ list(
         }
       }
     }
-    return(Spaths)
+    mylist = list(Spaths, periodic_withdrawals)
+    return(mylist)
   },
   
   tommy_round <- function(x){

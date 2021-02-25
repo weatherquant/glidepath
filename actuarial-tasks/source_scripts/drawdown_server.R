@@ -1,6 +1,6 @@
 list(
   drawdown_react <- reactive({
-    return(Drawdown_Sim(input$retire_age, input$start_capital, input$withdraw_freq, input$annual_mean_return, input$annual_ret_std_dev, input$annual_inflation, input$annual_inf_std_dev, percent_yn = input$percent_yn, annual_withdrawals = input$annual_withdrawals, percent_withdrawal = input$percent_withdrawal))
+    return(Drawdown_Sim(input$retire_age, input$start_capital, input$withdraw_freq, input$annual_mean_return, input$annual_ret_std_dev, input$annual_inflation, input$annual_inf_std_dev, percent_yn = input$percent_yn, annual_withdrawals = input$annual_withdrawals, percent_withdrawal = input$percent_withdrawal)[[1]])
   }),
   
   output$life_ex <- renderText({

@@ -190,7 +190,7 @@ list(
     } else {
       start_capital_bh = sorp[length(sorp[, 7]), 7]
     }
-    return(Drawdown_Sim(input$age_bh[2], start_capital_bh, input$withdraw_freq_bh, input$annual_mean_return_bh, input$annual_ret_std_dev_bh, input$annual_inflation_bh, input$annual_inf_std_dev_bh, percent_yn = input$percent_yn_bh, annual_withdrawals = input$annual_withdrawals_bh, percent_withdrawal = input$percent_withdrawal_bh, retire_age_spouse = input$age_bh_s[2]))
+    return(Drawdown_Sim(input$age_bh[2], start_capital_bh, input$withdraw_freq_bh, input$annual_mean_return_bh, input$annual_ret_std_dev_bh, input$annual_inflation_bh, input$annual_inf_std_dev_bh, percent_yn = input$percent_yn_bh, annual_withdrawals = input$annual_withdrawals_bh, percent_withdrawal = input$percent_withdrawal_bh, retire_age_spouse = input$age_bh_s[2])[[1]])
   }),
   
   output$life_ex_bh <- renderText({

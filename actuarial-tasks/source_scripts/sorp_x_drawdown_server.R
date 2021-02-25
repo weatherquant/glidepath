@@ -182,7 +182,7 @@ list(
     } else {
       start_capital_sd = sorp[length(sorp[, 7]), 7]
     }
-    return(Drawdown_Sim(input$age_sd[2], start_capital_sd, input$withdraw_freq_sd, input$annual_mean_return_sd, input$annual_ret_std_dev_sd, input$annual_inflation_sd, input$annual_inf_std_dev_sd, percent_yn = input$percent_yn_sd, annual_withdrawals = input$annual_withdrawals_sd, percent_withdrawal = input$percent_withdrawal_sd, retire_age_spouse = input$age_sd_s[2]))
+    return(Drawdown_Sim(input$age_sd[2], start_capital_sd, input$withdraw_freq_sd, input$annual_mean_return_sd, input$annual_ret_std_dev_sd, input$annual_inflation_sd, input$annual_inf_std_dev_sd, percent_yn = input$percent_yn_sd, annual_withdrawals = input$annual_withdrawals_sd, percent_withdrawal = input$percent_withdrawal_sd, retire_age_spouse = input$age_sd_s[2])[[1]])
   }),
   
   output$life_ex_sd <- renderText({

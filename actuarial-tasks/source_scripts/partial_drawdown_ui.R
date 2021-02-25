@@ -10,7 +10,7 @@ list(
                            sliderInput("age_pd", "Drawdown Age and Annuity Age:", value = c(66, 76), min = 55, max = getOmega(ILT15_female_reduced)),
                            awesomeRadio("relationship_pd", "Relationship Status:", choices = list("Single" = 1, "Married" = 2), inline = TRUE),
                            numericInputIcon(inputId = "start_capital_pd", label = "Starting Capital:", value = 300000, min = 0, icon = icon("euro")),
-                           selectInput("withdraw_freq_pd", "Withdrawal Frequency:", freq_list)
+                           # selectInput("withdraw_freq_pd", "Withdrawal Frequency:", freq_list)
                            ),
                  
                   tabPanel("Full Drawdown Withdrawals",
@@ -73,6 +73,6 @@ list(
         title = "Average Periodic Payment (Deferred)", status = "primary", solidHeader = T, width = 4,
         h3(textOutput("average_annuity_pd_da")))
       ),
-      box(title = "Table", width = 12, status = "primary", solidHeader = T, DT::dataTableOutput("table_d_pd"),rownames= FALSE, style = "height:400px; overflow-y: scroll;overflow-x: scroll;")    )
+      box(title = "Table", width = 12, status = "primary", solidHeader = T, DT::dataTableOutput("compare_table_d_pd"), style = "height:430px; overflow-y: scroll;overflow-x: scroll;")    )
   )
 )
