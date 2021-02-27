@@ -48,6 +48,13 @@ list(
     return(c("€", tommy_round(payment)))
   }),
   
+  average_fund_pd_d <- reactive({
+    Spaths <- drawdown_react_pd()[[1]]
+    p = p_list[match("Annually", freq_list)]
+    n.obs =  p * (input$age_pd[2] - input$age_pd[1])
+    return(mean(Spaths[, n.obs]))
+  }),
+  
   average_fund_pd_bl <- reactive({
     Spaths <- drawdown_react_buy_later_pd()[[1]]
     p = p_list[match("Annually", freq_list)]
@@ -78,6 +85,11 @@ list(
   
   output$drawdown_average_fund_pd_da <- renderText({
     average = average_fund_pd_da()
+    return(c("€", tommy_round(average)))
+  }),
+  
+  output$drawdown_average_fund_pd <- renderText({
+    average = average_fund_pd_d()
     return(c("€", tommy_round(average)))
   }),
   
@@ -199,10 +211,10 @@ list(
       thead(
         tr(
           th(rowspan = 2, 'Year', style="text-align:center; border-right: solid 1px"),
-          th(colspan = 1, 'SORP', style="text-align:center; border-right: solid 1px"),
-          th(colspan = 3, 'Drawdown', style="text-align:center; border-right: solid 1px"),
-          th(colspan = 2, 'Buy Later', style="text-align:center; border-right: solid 1px"),
-          th(colspan = 3, 'Deferred', style="text-align:center")
+          th(colspan = 1, '100 % Annuity', style="text-align:center; border-right: solid 1px"),
+          th(colspan = 3, '100% Drawdown', style="text-align:center; border-right: solid 1px"),
+          th(colspan = 2, 'Drawdown and subsequent Annuity Purchase', style="text-align:center; border-right: solid 1px"),
+          th(colspan = 3, 'Drawdown and Deferred Annuity', style="text-align:center")
         ),
         tr(
           th('Total Received', style = "border-right: solid 1px;"), 
@@ -227,10 +239,10 @@ list(
     table_df = dataframe_outputs_pd()
     p = p_list[match("Annually", freq_list)]
 
-    fig <- plot_ly(table_df, x = ~table_df$years, y = ~table_df$sorp_total_paid, name = "SORP", type = "scatter", mode = "lines", line = list(color = 'blue', width = 4))
-    fig <- fig %>% add_trace(y = ~table_df$drawdown_total_withdrawn, name = "Drawdown",line = list(color = 'red', width = 4))
-    fig <- fig %>% add_trace(y = ~table_df$buy_later_total, name = "Buy Later",line = list(color = 'green', width = 4))
-    fig <- fig %>% add_trace(y = ~table_df$deferred_total, name = "Deferred",line = list(color = 'orange', width = 4))
+    fig <- plot_ly(table_df, x = ~table_df$years, y = ~table_df$sorp_total_paid, name = "100 % Annuity", type = "scatter", mode = "lines", line = list(color = 'blue', width = 4))
+    fig <- fig %>% add_trace(y = ~table_df$drawdown_total_withdrawn, name = '100% Drawdown',line = list(color = 'red', width = 4))
+    fig <- fig %>% add_trace(y = ~table_df$buy_later_total, name = 'Drawdown and subsequent Annuity Purchase',line = list(color = 'green', width = 4))
+    fig <- fig %>% add_trace(y = ~table_df$deferred_total, name = 'Drawdown and Deferred Annuity',line = list(color = 'orange', width = 4))
     fig <- fig %>% layout(xaxis = list(title = "Years since Retirement"), yaxis = list(title = "Amount Received €", range = c(0, round_any(max(table_df$sorp_total_paid, table_df$drawdown_total_withdrawn, table_df$buy_later_total, table_df$deferred_total),100000,f=ceiling))))
     fig <- fig %>% layout(legend = list(orientation = "h", y=1.2))
     fig <- fig %>%

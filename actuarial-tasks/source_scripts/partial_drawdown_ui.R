@@ -15,17 +15,17 @@ list(
                  
                   tabPanel("Withdrawal Parameters",
                            style = "margin-top:1em",
-                           h4(strong("Drawdown:")),
+                           h4(strong("100% Drawdown:")),
                            awesomeRadio("percent_yn_pd_d", "Withdrawal Type:", choices = list("Fixed" = F, "Percentage" = T), selected = F, inline = TRUE),
                            numericInputIcon(inputId = "annual_withdrawals_pd_d", label = "Total Withdrawals per Annum:", value = 15000, min = 0, icon = icon("euro")),
                            numericInputIcon(inputId = "percent_withdrawal_pd_d", label = "Percentage Withdrawn per Annum:", value = 4, min = 0, max = 100, icon = list(NULL, icon("percent"))),
                            hr(),
-                           h4(strong("Buy Later:")),
+                           h4(strong("Drawdown and subsequent Annuity Purchase")),
                            awesomeRadio("percent_yn_pd_bl", "Withdrawal Type:", choices = list("Fixed" = F, "Percentage" = T), selected = F, inline = TRUE),
                            numericInputIcon(inputId = "annual_withdrawals_pd_bl", label = "Total Withdrawals per Annum:", value = 15000, min = 0, icon = icon("euro")),
                            numericInputIcon(inputId = "percent_withdrawal_pd_bl", label = "Percentage Withdrawn per Annum:", value = 4, min = 0, max = 100, icon = list(NULL, icon("percent"))),
                            hr(),
-                           h4(strong("Deferred:")),
+                           h4(strong("Drawdown and Deferred Annuity")),
                            style = "margin-top:1em",
                            awesomeRadio("percent_yn_pd_da", "Withdrawal Type:", choices = list("Fixed" = F, "Percentage" = T), selected = F, inline = TRUE),
                            numericInputIcon(inputId = "annual_withdrawals_pd_da", label = "Total Withdrawals per Annum:", value = 15000, min = 0, icon = icon("euro")),
@@ -43,6 +43,33 @@ list(
     )),
     
     mainPanel(
+      
+      box(title = "100% Annuity and 100% Drawdown ", status = "primary", solidHeader = T,
+          h4("Periodic Annuity:"),
+          h3(textOutput("sorp_payment_pd")),
+          hr(),
+          h4("Drawdown Average"),
+          h3(textOutput("drawdown_average_fund_pd"))
+      ),
+      
+      box(title = "Drawdown and subsequent Annuity Purchase", status = "primary", solidHeader = T,
+          h4("Fund Value At End of Drawdown Period"),
+          h3(textOutput("drawdown_average_fund_pd_bl")),
+          hr(),
+          h4("Periodic Annuity:"),
+          h3(textOutput("average_annuity_pd_bl"))
+      ),
+      
+      box(title = 'Drawdown and Deferred Annuity', status = "primary", solidHeader = T,
+          h4("Cost of Deferred Annuity"),
+          h3(textOutput("cost_annuity_pd_da")),
+          hr(),
+          h4("Periodic Annuity:"),
+          h3(textOutput("average_annuity_pd_da"))
+      ),
+                  
+                          
+                           
       # div(id = "life_ex_box_pd",box(
       #   title = "Life Expectancy", status = 'primary', solidHeader = T, width = 4,
       #   h3(textOutput('life_ex_pd')))
@@ -72,8 +99,9 @@ list(
       #   h3(textOutput("average_annuity_pd_da")))
       # ),
       box(title = "Table", width = 12, status = "primary", solidHeader = T, DT::dataTableOutput("compare_table_d_pd"), style = "height:430px; overflow-y: scroll;overflow-x: scroll;"), 
-      box(title = "Cumulative Income Comparison", status = "primary", solidHeader = T, width = 12, plotlyOutput("income_compare")),
+      box(title = "Retirement Income", status = "primary", solidHeader = T, width = 12, plotlyOutput("income_compare")),
       
       )
   )
 )
+  
