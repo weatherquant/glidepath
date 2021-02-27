@@ -36,11 +36,11 @@ list(
     return(Drawdown_Sim(input$age_pd[1], new_start_capital, "Annually", input$annual_mean_return_pd, input$annual_ret_std_dev_pd, input$annual_inflation_pd, input$annual_inf_std_dev_pd, percent_yn = input$percent_yn_pd_da, annual_withdrawals = input$annual_withdrawals_pd_da, percent_withdrawal = input$percent_withdrawal_pd_da, end_age = input$age_pd[2]))
   }),
 
-  output$life_ex_pd <- renderText({
-    ex = exn(ILT15_female_reduced, input$age_pd[1])
-    return(c(tommy_round(ex), " Years"))
-  }),
-  
+  # output$life_ex_pd <- renderText({
+  #   ex = exn(ILT15_female_reduced, input$age_pd[1])
+  #   return(c(tommy_round(ex), " Years"))
+  # }),
+  # 
   output$sorp_payment_pd <- renderText({
     sorp_annuity = sorp_annuity_pd()
     p = p_list[match("Annually", freq_list)]
@@ -48,11 +48,33 @@ list(
     return(c("€", tommy_round(payment)))
   }),
   
-  average_fund_pd_d <- reactive({
-    Spaths <- drawdown_react_pd()[[1]]
+  output$sum_annuity <- renderText({
+    sorp_annuity = sorp_annuity_pd()
     p = p_list[match("Annually", freq_list)]
-    n.obs =  p * (input$age_pd[2] - input$age_pd[1])
-    return(mean(Spaths[, n.obs]))
+    sum_payment = (input$start_capital_pd / sorp_annuity / p) * exn(ILT15_female_reduced, input$age_pd[1])
+    return(c("€", tommy_round(sum_payment)))
+    
+    # table_df = dataframe_outputs_pd()
+    # sum_payment = table_df$sorp_total_paid[round(exn(ILT15_female_reduced, input$age_pd[1]))]
+    # return(c("€", tommy_round(sum_payment)))
+  }),
+  
+  output$average_fund_pd_d <- renderText({
+    table_df = dataframe_outputs_pd()
+    value = table_df$drawdown_average_fund[round(exn(ILT15_female_reduced, input$age_pd[1]))]
+    return(c("€", tommy_round(value)))
+    
+    # Spaths <- drawdown_react_pd()[[1]]
+    # p = p_list[match("Annually", freq_list)]
+    # n.obs =  p * exn(ILT15_female_reduced, input$age_pd[1])
+    # return(c("€", tommy_round(mean(Spaths[, n.obs]))))
+    
+  }),
+  
+  output$drawdown_payment_sum <- renderText({
+    table_df = dataframe_outputs_pd()
+    sum = table_df$drawdown_total_withdrawn[round(exn(ILT15_female_reduced, input$age_pd[1]))]
+    return(c("€", tommy_round(sum)))
   }),
   
   average_fund_pd_bl <- reactive({

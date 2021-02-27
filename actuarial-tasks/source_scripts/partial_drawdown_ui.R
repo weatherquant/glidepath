@@ -44,12 +44,20 @@ list(
     
     mainPanel(
       
-      box(title = "100% Annuity and 100% Drawdown ", status = "primary", solidHeader = T,
+      box(title = "100% Annuity", status = "primary", solidHeader = T,
           h4("Periodic Annuity:"),
           h3(textOutput("sorp_payment_pd")),
           hr(),
-          h4("Drawdown Average"),
-          h3(textOutput("drawdown_average_fund_pd"))
+          h4("Total Annuity Payments Received: "),
+          h3(textOutput("sum_annuity"))
+      ),
+      
+      box(title = "100% Drawdown ", status = "primary", solidHeader = T,
+          h4("Total Payments Received:"),
+          h3(textOutput("drawdown_payment_sum")),
+          hr(),
+          h4("Average Final Fund Value: "),
+          h3(textOutput("average_fund_pd_d"))
       ),
       
       box(title = "Drawdown and subsequent Annuity Purchase", status = "primary", solidHeader = T,
