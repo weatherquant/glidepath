@@ -31,7 +31,7 @@ list(
                                          '<extra></extra>'))
                    
     fig <- fig %>%
-      layout(xaxis = list(title = "Age (years)"), yaxis = list(title = "% increase"))
+      layout(xaxis = list(title = "Age (Years)"), yaxis = list(title = "% Increase"))
       
   }),
 
@@ -124,14 +124,14 @@ list(
                           scale = c(1, 1),
                           ratioxy = ratioxy,
                           angleofspine = -pi/2,
-                          anglerighthumerus = rep(c(3*pi/2  + pi / 12, pi / 12), 2),
-                          anglelefthumerus = rep(c(11*pi / 12, 3*pi/2  - pi / 12), 2),
-                          anglerightradius = rep(c(3*pi/2  + pi / 12, 5*pi / 12), 2),
-                          angleleftradius = rep(c(7*pi / 12, 3*pi/2  - pi / 12), 2),
+                          anglerighthumerus = c(rep(3*pi/2  + pi / 12, 2), rep(pi / 12, 2)),
+                          anglelefthumerus = c(rep(11*pi / 12, 2), rep(3*pi/2  - pi / 12, 2)),
+                          anglerightradius = c(rep(3*pi/2  + pi / 12, 2), rep(5*pi / 12, 2)),
+                          angleleftradius = c(rep(7*pi / 12, 2), rep(3*pi/2  - pi / 12, 2)),
                           angleleftleg = 3*pi/2  + pi / 12,
                           anglerightleg = 3*pi/2  - pi / 12,
                           angleofneck = -pi/2,
-                          color=c("A","B", "A", "B"))
+                          color=c("A", "B", "A", "B"))
     p + xkcdman(mapping, dataman) + 
       geom_label(x = c(ages, deaths, mean(c(getOmega(ILT15_female_reduced) + 5, 50))), y = c(rep(3.4, 4), 4), label = c(ages, tommy_round(deaths), paste0("Difference in Lifespan = ", tommy_round(deaths[2] - deaths[1]), " Years")), label.padding = unit(0.4, "lines"), size = c(rep(4, 4), 6.5))
   })
