@@ -49,25 +49,15 @@ list(
   }),
   
   output$sum_annuity <- renderText({
-    sorp_annuity = sorp_annuity_pd()
-    p = p_list[match("Annually", freq_list)]
-    sum_payment = (input$start_capital_pd / sorp_annuity / p) * exn(ILT15_female_reduced, input$age_pd[1])
+    table_df = dataframe_outputs_pd()
+    sum_payment = table_df$sorp_total_paid[round(exn(ILT15_female_reduced, input$age_pd[1]))]
     return(c("€", tommy_round(sum_payment)))
-    
-    # table_df = dataframe_outputs_pd()
-    # sum_payment = table_df$sorp_total_paid[round(exn(ILT15_female_reduced, input$age_pd[1]))]
-    # return(c("€", tommy_round(sum_payment)))
   }),
   
   output$average_fund_pd_d <- renderText({
     table_df = dataframe_outputs_pd()
     value = table_df$drawdown_average_fund[round(exn(ILT15_female_reduced, input$age_pd[1]))]
     return(c("€", tommy_round(value)))
-    
-    # Spaths <- drawdown_react_pd()[[1]]
-    # p = p_list[match("Annually", freq_list)]
-    # n.obs =  p * exn(ILT15_female_reduced, input$age_pd[1])
-    # return(c("€", tommy_round(mean(Spaths[, n.obs]))))
     
   }),
   

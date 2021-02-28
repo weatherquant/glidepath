@@ -1,11 +1,11 @@
 list(
   drawdown_react_bh <- reactive({
-    broken_heart_lifetable = broken_heart_life_table(input$widowed_status_bh, input$widowed_bh, input$gender_bh)
-    return(Drawdown_Sim(input$age_bh, input$start_capital_bh, input$withdraw_freq_bh, input$annual_mean_return_bh, input$annual_ret_std_dev_bh, input$annual_inflation_bh, input$annual_inf_std_dev_bh, percent_yn = input$percent_yn_bh, annual_withdrawals = input$annual_withdrawals_bh, percent_withdrawal = input$percent_withdrawal_bh, life_table = broken_heart_lifetable)[[1]])
+    broken_heart_lifetable = broken_heart_life_table(T, input$widowed_bh, input$gender_bh)
+    return(Drawdown_Sim(input$age_bh, input$start_capital_bh, input$withdraw_freq_bh, input$annual_mean_return_bh, input$annual_ret_std_dev_bh, input$annual_inflation_bh, input$annual_inf_std_dev_bh, percent_yn = input$percent_yn_bh, annual_withdrawals = input$annual_withdrawals_bh, percent_withdrawal = input$percent_withdrawal_bh, life_table = broken_heart_lifetable))
   }),
   
   output$life_ex_bh <- renderText({
-    broken_heart_lifetable = broken_heart_life_table(input$widowed_status_bh, input$widowed_bh, input$gender_bh)
+    broken_heart_lifetable = broken_heart_life_table(T, input$widowed_bh, input$gender_bh)
     ex = exn(broken_heart_lifetable, input$age_bh)
     return(c(tommy_round(ex), " Years"))
   }),
@@ -24,8 +24,17 @@ list(
   }),
   
   output$drawdown_average_fund_bh <- renderText({
-    Spaths <- drawdown_react_bh()
-    broken_heart_lifetable = broken_heart_life_table(input$widowed_status_bh, input$widowed_bh, input$gender_bh)
+    Spaths <- drawdown_react_bh()[[1]]
+    broken_heart_lifetable = broken_heart_life_table(T, input$widowed_bh, input$gender_bh)
+    p = p_list[match(input$withdraw_freq_bh, freq_list)]
+    n.obs =  p * exn(broken_heart_lifetable, input$age_bh)
+    average = mean(Spaths[, n.obs])
+    return(c("€", tommy_round(average)))
+  }),
+  
+  output$drawdown_average_fund_no_bh <- renderText({
+    Spaths <- drawdown_react_bh()[[1]]
+    broken_heart_lifetable = broken_heart_life_table(F, input$widowed_bh, input$gender_bh)
     p = p_list[match(input$withdraw_freq_bh, freq_list)]
     n.obs =  p * exn(broken_heart_lifetable, input$age_bh)
     average = mean(Spaths[, n.obs])
@@ -33,36 +42,85 @@ list(
   }),
   
   output$drawdown_ruin_prob_bh <- renderText({
-    Spaths <- drawdown_react_bh()
-    broken_heart_lifetable = broken_heart_life_table(input$widowed_status_bh, input$widowed_bh, input$gender_bh)
+    Spaths <- drawdown_react_bh()[[1]]
+    broken_heart_lifetable = broken_heart_life_table(T, input$widowed_bh, input$gender_bh)
     p = p_list[match(input$withdraw_freq_bh, freq_list)]
     n.obs =  p * exn(broken_heart_lifetable, input$age_bh)
     ruin = (length(which(Spaths[, n.obs] == 0)) * 100) / 10000
     return(c(tommy_round(ruin), "%"))
   }),
   
-  output$table_d_bh <- renderDataTable({
-    Spaths <- drawdown_react_bh()
-    broken_heart_lifetable = broken_heart_life_table(input$widowed_status_bh, input$widowed_bh, input$gender_bh)
+  output$drawdown_ruin_prob_no_bh <- renderText({
+    Spaths <- drawdown_react_bh()[[1]]
+    broken_heart_lifetable = broken_heart_life_table(F, input$widowed_bh, input$gender_bh)
     p = p_list[match(input$withdraw_freq_bh, freq_list)]
-    average = as.numeric(p * (getOmega(broken_heart_lifetable) - input$age_bh))
-    prob_ruin = as.numeric(p * (getOmega(broken_heart_lifetable) - input$age_bh))
-    years = rep(1:(getOmega(broken_heart_lifetable) - input$age_bh), each = p)
-    for(i in 1:(p * (getOmega(broken_heart_lifetable) - input$age_bh))){
-      average[i] = mean(Spaths[, i])
-      prob_ruin[i] = (length(which(Spaths[, i] == 0))) / 10000
-    }
-    important_years = seq(5, getOmega(broken_heart_lifetable) - input$age_bh, 5)
-    points = p * important_years
-    table_df = data.frame(years, average, prob_ruin)
-    table_df = table_df[points, ]
-    colnames(table_df) = c("Years", "Final Average Fund Value", "Probability of Ruin")
-    table <- datatable(table_df, options = list(paging = FALSE, searching = FALSE), rownames= FALSE)
-    table <- formatCurrency(table, columns = "Final Average Fund Value", currency = "€")
-    table <- formatPercentage(table, columns = "Probability of Ruin", digits = 2)
-    return(table)
+    n.obs =  p * exn(broken_heart_lifetable, input$age_bh)
+    ruin = (length(which(Spaths[, n.obs] == 0)) * 100) / 10000
+    return(c(tommy_round(ruin), "%"))
   }),
   
+  output$drawdown_total_withdrawal_bh <- renderText({
+     table_df = dataframe_outputs_bh()
+     broken_heart_lifetable = broken_heart_life_table(T, input$widowed_bh, input$gender_bh)
+     sum = table_df$drawdown_total_withdrawn[round(exn(broken_heart_lifetable, input$age_bh))]
+     return(c("€", tommy_round(sum)))
+   }),
+  
+  output$drawdown_total_withdrawal_no_bh <- renderText({
+    table_df = dataframe_outputs_bh()
+    broken_heart_lifetable = broken_heart_life_table(F, input$widowed_bh, input$gender_bh)
+    sum = table_df$drawdown_total_withdrawn[round(exn(broken_heart_lifetable, input$age_bh))]
+    return(c("€", tommy_round(sum)))
+  }),
+  
+  dataframe_outputs_bh <- reactive({
+    Spaths <- drawdown_react_bh()
+    broken_heart_lifetable = broken_heart_life_table(T, input$widowed_bh, input$gender_bh)
+    p = p_list[match(input$withdraw_freq_bh, freq_list)]
+    
+    drawdown_total_withdrawn = numeric(p * (getOmega(broken_heart_lifetable) - input$age_bh))
+    average = numeric(p * (getOmega(broken_heart_lifetable) - input$age_bh))
+    prob_ruin = numeric(p * (getOmega(broken_heart_lifetable) - input$age_bh))
+    years = rep(1:(getOmega(broken_heart_lifetable) - input$age_bh), each = p)
+    
+    drawdown_total_withdrawn[1] = mean(Spaths[[2]][, 1])
+    average[1] = mean(Spaths[[1]][, 1])
+    prob_ruin[1] = (length(which(Spaths[[1]][, 1] == 0))) / 10000
+    
+    for(i in 2:(p * (getOmega(broken_heart_lifetable) - input$age_bh))){
+      drawdown_total_withdrawn[i] = mean(rowSums(Spaths[[2]][, 1:i]))
+      average[i] = mean(Spaths[[1]][, i])
+      prob_ruin[i] = (length(which(Spaths[[1]][, i] == 0))) / 10000
+    }
+    table_df = data.frame(years, drawdown_total_withdrawn, average, prob_ruin)
+    return(table_df)
+  }),
+  
+  output$table_d_bh <- renderDataTable({
+    table_df = dataframe_outputs_bh()
+    broken_heart_lifetable = broken_heart_life_table(T, input$widowed_bh, input$gender_bh)
+    broken_heart_lifetable_no = broken_heart_life_table(F, input$widowed_bh, input$gender_bh)
+    p = p_list[match("Annually", freq_list)]
+
+
+    important_years = seq(5, getOmega(broken_heart_lifetable) - input$age_bh, 5)
+    points = p * important_years
+    ex_no_bh = round(p * exn(broken_heart_lifetable_no, input$age_bh))
+    ex_bh = round(p * exn(broken_heart_lifetable, input$age_bh))
+    points = sort(unique(c(points, ex_no_bh, ex_bh)))
+    table_df = table_df[points, ]
+    
+    colnames(table_df) = c("Years","Total Withdrawn", "Final Average Fund Value", "Probability of Ruin")
+    table <- datatable(table_df, options = list(paging = FALSE, searching = FALSE), rownames= FALSE)
+    table <- formatCurrency(table, columns = "Total Withdrawn", currency = "€")
+    table <- formatCurrency(table, columns = "Final Average Fund Value", currency = "€")
+    table <- formatPercentage(table, columns = "Probability of Ruin", digits = 2)
+    table <- formatStyle(table, 'Years',target = 'row',backgroundColor = styleEqual(ex_bh, 'yellow'))
+    table <- formatStyle(table, 'Years',target = 'row',backgroundColor = styleEqual(ex_no_bh, 'orange'))
+    
+    return(table)
+  }),
+    
   output$life_ex_change_plot_bh <- renderPlotly({
     broken_heart_lifetable_widow = broken_heart_life_table(T, input$widowed_bh, input$gender_bh)
     broken_heart_lifetable_no = broken_heart_life_table(F, input$widowed_bh, input$gender_bh)
@@ -122,7 +180,7 @@ list(
   
   output$drawdown_sim_plot_bh <- renderPlot({
     Spaths <- drawdown_react_bh()
-    broken_heart_lifetable = broken_heart_life_table(input$widowed_status_bh, input$widowed_bh, input$gender_bh)
+    broken_heart_lifetable = broken_heart_life_table(T, input$widowed_bh, input$gender_bh)
     dat <- vector("list", input$n_sim_bh)
     p <- ggplot()
     for (i in seq(input$n_sim_bh)){
@@ -137,8 +195,8 @@ list(
     updateNumericInputIcon(session, "start_capital_bh", value = input$start_capital_bh)
   }),
   
-  observeEvent(input$widowed_status_bh,{
-    if(input$widowed_status_bh == T) {
+  observeEvent(T,{
+    if(T == T) {
       enable("widowed_bh")
       updateNumericInputIcon(session, "widowed_bh", value = input$age_bh)
     } else {
