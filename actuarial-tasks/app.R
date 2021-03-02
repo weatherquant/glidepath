@@ -5,11 +5,11 @@ library(shinyWidgets)
 library(DT)
 library(tidyverse)
 library(plotly)
-library(gganimate)
 library(readxl)
 library(writexl)
+library(janitor)
 library(xkcd)
-library(plyr)
+# library(plyr)
 
 library(lifecontingencies)
 options(scipen=999)
@@ -27,14 +27,54 @@ life_table_male <- read_xlsx("data/ILT15.xlsx", sheet = 2, skip=1, col_names = c
 qx_female <- unlist(life_table_female[,5] * 0.5)
 qx_male <- unlist(life_table_male[,5] * 0.42)
 
-ILT15_female_reduced <- probs2lifetable(probs=qx_female,radix=100000,"qx",name="ILT15_female_reduced")
-ILT15_male_reduced <- probs2lifetable(probs=qx_male,radix=100000,"qx",name="ILT15_male_reduced")
+ILT15_female_reduced <- probs2lifetable(probs = qx_female, radix = 100000, type = "qx", name = "ILT15_female_reduced")
+ILT15_male_reduced <- probs2lifetable(probs = qx_male, radix = 100000, type = "qx", name = "ILT15_male_reduced")
 listOfTables <- list(ILT15_female_reduced, ILT15_male_reduced)
+
+# Broken Heart Life Table -------------------------------------------------
+BrokenHeart_LifeTable <- function(widowed_status = FALSE, widowed_age = NULL, gender = 1){
+    cnames <- read_excel("data/Broken Heart Life Table.xlsx", sheet = 1, n_max = 0) %>%
+        names()
+    
+    if(gender == 1){
+        life_table <- read_xlsx("data/Broken Heart Life Table.xlsx", sheet = 2, skip = 1, col_names = cnames) %>% 
+            drop_na()
+        band_1 = c(0.0295, 0.0321, 0.0223, 0.0163, 0.0226)
+        band_2 = c(0.1221, 0.0146, 0.0653, 0.0351, 0.0000)
+        band_3 = c(0.1954, 0.1713, 0.0688, 0.0806, 0.0000)
+    } else {
+        life_table <- read_xlsx("data/Broken Heart Life Table.xlsx", sheet = 1, skip = 1, col_names = cnames) %>% 
+            drop_na()
+        band_1 = c(0.1835, 0.0695, 0.0254, 0.0556, 0.0000)
+        band_2 = c(0.4699, 0.0923, 0.0461, 0.0000, 0.2322)
+        band_3 = c(0.5097, 0.1452, 0.0888, 0.2150, 0.3785)
+    }
+    
+    qx <- unlist(life_table[,2])
+    
+    if(widowed_status == TRUE){
+        for(i in widowed_age:(widowed_age + 4))
+            if(i <= 75){
+                qx[i + 1] = band_1[i + 1 - widowed_age]
+            } else if (76 <= i && i <= 85){
+                qx[i + 1] = band_2[i + 1 - widowed_age]
+            } else {
+                qx[i + 1] = band_3[i + 1 - widowed_age]
+            }
+    }
+    
+    broken_heart_lifetable <- probs2lifetable(probs = qx, radix = 11454, "qx", name = "broken_heart_lifetable")
+    return(broken_heart_lifetable)
+}
 
 # Frequencies -------------------------------------------------------------
 freq_list = c("Annually", "Semi-Annually", "Quarterly", "Bi-Monthly", "Monthly", "Fortnightly", "Weekly", "Daily")
 p_list = c(1, 2, 4, 6, 12, 26, 52, 365)
 
+# Rounding to 2 Decimal Places --------------------------------------------
+round_2d <- function(x){
+    return(format(round(as.numeric(x), 2), nsmall = 2, big.mark = ",", scientific=FALSE))
+}
 
 # General UI --------------------------------------------------------------
 ui <- dashboardPage(
@@ -47,8 +87,7 @@ ui <- dashboardPage(
             menuItem("SORP Calculator", tabName = "sorp"),
             menuItem("Drawdown Simulator", tabName = "drawdown"),
             menuItem("SORP & Drawdown", tabName = "sorp_x_drawdown"),
-            menuItem("Partial Drawdown Simulator", tabName = "partial_drawdown"),
-            # menuItem("SORP & Drawdown", tabName = "sorp_bh"),
+            # menuItem("Partial Drawdown Simulator", tabName = "partial_drawdown"),
             menuItem("Broken Heart", tabName = "broken_heart"),
             menuItem("SORP Import", tabName = "sorp_import"),
             menuItem("Life Expectancy Visualisation", tabName = 'life_ex')
@@ -63,8 +102,7 @@ ui <- dashboardPage(
                 tabItem(tabName = 'sorp', source("source_scripts/sorp_ui.R", local = TRUE)[1]),
                 tabItem(tabName = 'drawdown', source("source_scripts/drawdown_ui.R", local = TRUE)[1]),
                 tabItem(tabName = 'sorp_x_drawdown', source("source_scripts/sorp_x_drawdown_ui.R", local = TRUE)[1]),
-                tabItem(tabName = 'partial_drawdown', source("source_scripts/partial_drawdown_ui.R", local = TRUE)[1]),
-                # tabItem(tabName = 'sorp_bh', source("source_scripts/sorp_bh_ui.R", local = TRUE)[1]),
+                # tabItem(tabName = 'partial_drawdown', source("source_scripts/partial_drawdown_ui.R", local = TRUE)[1]),
                 tabItem(tabName = 'broken_heart', source("source_scripts/broken_heart_ui.R", local = TRUE)[1]),
                 tabItem(tabName = 'sorp_import', source("source_scripts/sorp_import_ui.R", local = TRUE)[1]),
                 tabItem(tabName = 'life_ex', source("source_scripts/life_ex_ui.R", local = TRUE)[1])
@@ -80,8 +118,7 @@ server <- function(input, output, session) {
     source("source_scripts/sorp_server.R", local = TRUE)[1]
     source("source_scripts/drawdown_server.R", local = TRUE)[1]
     source("source_scripts/sorp_x_drawdown_server.R", local = TRUE)[1]
-    source("source_scripts/partial_drawdown_server.R", local = TRUE)[1]
-    # source("source_scripts/sorp_bh_server.R", local = TRUE)[1]
+    # source("source_scripts/partial_drawdown_server.R", local = TRUE)[1]
     source("source_scripts/broken_heart_server.R", local = TRUE)[1]
     source("source_scripts/sorp_import_server.R", local = TRUE)[1]
     source("source_scripts/life_ex_server.R", local = TRUE)[1]

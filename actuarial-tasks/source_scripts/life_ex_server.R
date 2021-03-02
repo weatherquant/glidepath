@@ -133,6 +133,6 @@ list(
                           angleofneck = -pi/2,
                           color=c("A", "B", "A", "B"))
     p + xkcdman(mapping, dataman) + 
-      geom_label(x = c(ages, deaths, mean(c(getOmega(ILT15_female_reduced) + 5, 50))), y = c(rep(3.4, 4), 4), label = c(ages, tommy_round(deaths), paste0("Difference in Lifespan = ", tommy_round(deaths[2] - deaths[1]), " Years")), label.padding = unit(0.4, "lines"), size = c(rep(4, 4), 6.5))
+      geom_label(x = c(ages, deaths, mean(c(getOmega(ILT15_female_reduced) + 5, 50))), y = c(rep(3.4, 4), 4), label = c(ages, round_2d(deaths), paste0("Difference in Lifespan = ", round_2d(deaths[2] - deaths[1]), " Years")), label.padding = unit(0.4, "lines"), size = c(rep(4, 4), 6.5))
   })
 )

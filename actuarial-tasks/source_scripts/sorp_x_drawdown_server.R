@@ -1,278 +1,322 @@
 list(
-  SORP_react_sd <- reactive({
-    return(SORP(input$age_sd[1], input$age_sd[2], input$relationship_sd, input$sal_sd, input$fundvalue_sd, input$PreK_sd, input$PostK_sd, input$emp_contri_sd, input$empr_contri_sd, input$salEsc_sd, input$iPost_sd, input$annEsc_sd, input$guaranteed_sd, input$equity_sd, input$fixed_sd, input$cash_sd, input$investCharge_sd, input$equity_p_sd, input$fixed_p_sd, input$cash_p_sd))
-  }),
-  
-  SORP_react_sd_s <- reactive({
-    return(SORP(input$age_sd_s[1], input$age_sd_s[2], input$relationship_sd, input$sal_sd_s, input$fundvalue_sd_s, input$PreK_sd_s, input$PostK_sd_s, input$emp_contri_sd_s, input$empr_contri_sd_s, input$salEsc_sd, input$iPost_sd, input$annEsc_sd, input$guaranteed_sd, input$equity_sd, input$fixed_sd, input$cash_sd, input$investCharge_sd, input$equity_p_sd, input$fixed_p_sd, input$cash_p_sd))
-  }),
-  
-  observeEvent(input$default_sd, {
-    updateNumericInputIcon(session, "salEsc_sd", value = 1.5)
-    updateNumericInputIcon(session, "discountRate_sd", value = 2.5)
-    updateNumericInputIcon(session, "iPost_sd", value = 0.5)
-    updateNumericInputIcon(session, "annEsc_sd", value = 1)
-    updateNumericInputIcon(session, "guaranteed_sd", value = 5)
-    updateSliderInput(session, "equity_sd", value = 40)
-    updateSliderInput(session, "fixed_sd", value = 30)
-    updateSliderInput(session, "cash_sd", value = 30)
-    updateNumericInputIcon(session, "investCharge_sd", value = 0.5)
-    updateSliderInput(session, "equity_p_sd", value = 4.5)
-    updateSliderInput(session, "fixed_p_sd", value = 1)
-    updateSliderInput(session, "cash_p_sd", value = 0)
-  }),
-  
-  output$plot_sd <- renderPlot({
-    
-    AgeandFundValue <- SORP_react_sd() %>% select(age_exact, FundValue)
-    
-    ggplot(AgeandFundValue, aes(x=age_exact, y=FundValue, fill="#4A8DBF", color="#4A8DBF")) +
-      geom_bar(stat = "identity", color = "#4A8DBF", fill = "#4A8DBF") + 
-      labs(y="Fund Value", x = "Age", fill = NULL, color = NULL) +
-      theme(legend.position = "none") +
-      scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(expand = c(0, 0)) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-                                                                                          panel.background = element_blank(), axis.line = element_line(colour = "black"))
-    
-  }),
-  
-  output$fundFV_sd <- renderText({
-    sorp <- SORP_react_sd()
-    preK = p_list[match(input$PreK_sd, freq_list)]
-    fundvalue_at_retirement <- sorp %>% select(FundValue)
-    fund_FV <- fundvalue_at_retirement[(input$age_sd[2] - input$age_sd[1])*preK + 1, 1]
-    return(c("€", format(round(as.numeric(fund_FV), 2), nsmall = 2, big.mark = ",", scientific=FALSE)))
-  }),
-  
-  output$pensionPaymentFV_sd <- renderText({
-    sorp <- SORP_react_sd()
-    preK = p_list[match(input$PreK_sd, freq_list)]
-    postK = p_list[match(input$PostK_sd, freq_list)]
-    fundvalue_at_retirement <- sorp %>% select(FundValue)
-    periodic_payment_FV = (fundvalue_at_retirement[(input$age_sd[2] - input$age_sd[1])*preK + 1, 1]/sorp[1, 8])/postK
-    return(c("€", format(round(as.numeric(periodic_payment_FV), 2), nsmall = 2, big.mark = ",", scientific=FALSE)))
-  }),
-  
-  output$fundCV_sd <- renderText({
-    sorp <- SORP_react_sd()
-    preK = p_list[match(input$PreK_sd, freq_list)]
-    fundvalue_at_retirement <- sorp %>% select(FundValue)
-    discount_factor = 1/((1 + input$discountRate_sd/100)^(input$age_sd[2] - input$age_sd[1]))
-    fund_CV = fundvalue_at_retirement[(input$age_sd[2] - input$age_sd[1])*preK + 1, 1] * discount_factor
-    return(c("€", format(round(as.numeric(fund_CV), 2), nsmall = 2, big.mark = ",", scientific=FALSE)))
-  }),
-  
-  output$pensionPaymentCV_sd <- renderText({
-    sorp <- SORP_react_sd()
-    preK = p_list[match(input$PreK_sd, freq_list)]
-    postK = p_list[match(input$PostK_sd, freq_list)]
-    fundvalue_at_retirement <- sorp %>% select(FundValue)
-    discount_factor = 1/((1 + input$discountRate_sd/100)^(input$age_sd[2] - input$age_sd[1]))
-    periodic_payment_CV = discount_factor * (fundvalue_at_retirement[(input$age_sd[2] - input$age_sd[1])*preK + 1, 1]/sorp[1, 8])/postK
-    return(c("€", format(round(as.numeric(periodic_payment_CV), 2), nsmall = 2, big.mark = ",", scientific=FALSE)))
-  }),
-  
-  output$table_sd <- renderDataTable({
-    sorp = SORP_react_sd()
-    preK = p_list[match(input$PreK_sd, freq_list)]
-    if(preK == 1){
-      sorp = data.frame(select(sorp, -period, -age_exact, -SORPAnnuity))
-      colnames(sorp) = c("Age", "Employee Contribution", "Employer Contribution", "Total Contribution", "Fund Value at end of Period")
-    }else{
-      sorp = data.frame(select(sorp, -age_exact, -SORPAnnuity))
-      colnames(sorp) = c("Age", "Period", "Employee Contribution", "Employer Contribution", "Total Contribution", "Fund Value at end of Period")
+# Input Function ----------------------------------------------------------
+  sd_inputs <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4}, {
+    return(reactiveValuesToList(input))
+  }, ignoreNULL = FALSE),
+
+# Reactive Functions - SORP ------------------------------------------------------
+  sd_annuity_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4}, {
+    sd_inputs = sd_inputs()
+    return(SORP_Annuity(age_1 = sd_inputs$sd_age[1], 
+                      age_2 = sd_inputs$sd_age[2], 
+                      relationship = sd_inputs$sd_relationship, 
+                      freq = sd_inputs$sd_post_freq, 
+                      annuity_interest = sd_inputs$sd_annuity_interest, 
+                      annuity_esc = sd_inputs$sd_annuity_esc, 
+                      guaranteed = sd_inputs$sd_guaranteed))
+  }, ignoreNULL = FALSE),
+
+  sd_annuity_spouse_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4}, {
+    sd_inputs = sd_inputs()
+    if(sd_inputs$sd_relationship == 2){
+      return(SORP_Annuity(age_1 = sd_inputs$sd_age_spouse[1], 
+                          age_2 = sd_inputs$sd_age_spouse[2], 
+                          relationship = sd_inputs$sd_relationship, 
+                          freq = sd_inputs$sd_post_freq_spouse, 
+                          annuity_interest = sd_inputs$sd_annuity_interest, 
+                          annuity_esc = sd_inputs$sd_annuity_esc, 
+                          guaranteed = sd_inputs$sd_guaranteed))
+    } else {
+      return(NULL)
     }
-    sorp <- datatable(sorp, options = list(paging = FALSE, searching = FALSE), rownames= FALSE)
-    sorp <- formatCurrency(sorp, columns = c("Employee Contribution", "Employer Contribution", "Total Contribution", "Fund Value at end of Period"), currency = "€")
-    return(sorp)
-  }),
-  
-  output$plot_sd_s <- renderPlot({
-    
-    AgeandFundValue <- SORP_react_sd_s() %>% select(age_exact, FundValue)
-    
-    ggplot(AgeandFundValue, aes(x=age_exact, y=FundValue, fill="#4A8DBF", color="#4A8DBF")) +
-      geom_bar(stat = "identity", color = "#4A8DBF", fill = "#4A8DBF") + 
-      labs(y="Fund Value", x = "Age", fill = NULL, color = NULL) +
-      theme(legend.position = "none") +
-      scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(expand = c(0, 0)) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-                                                                                          panel.background = element_blank(), axis.line = element_line(colour = "black"))
-    
-  }),
-  
-  output$fundFV_sd_s <- renderText({
-    sorp <- SORP_react_sd_s()
-    preK = p_list[match(input$PreK_sd_s, freq_list)]
-    fundvalue_at_retirement <- sorp %>% select(FundValue)
-    fund_FV <- fundvalue_at_retirement[(input$age_sd_s[2] - input$age_sd_s[1])*preK + 1, 1]
-    return(c("€", format(round(as.numeric(fund_FV), 2), nsmall = 2, big.mark = ",", scientific=FALSE)))
-  }),
-  
-  output$pensionPaymentFV_sd_s <- renderText({
-    sorp <- SORP_react_sd_s()
-    preK = p_list[match(input$PreK_sd_s, freq_list)]
-    postK = p_list[match(input$PostK_sd_s, freq_list)]
-    fundvalue_at_retirement <- sorp %>% select(FundValue)
-    periodic_payment_FV = (fundvalue_at_retirement[(input$age_sd_s[2] - input$age_sd_s[1])*preK + 1, 1]/sorp[1, 8])/postK
-    return(c("€", format(round(as.numeric(periodic_payment_FV), 2), nsmall = 2, big.mark = ",", scientific=FALSE)))
-  }),
-  
-  output$fundCV_sd_s <- renderText({
-    sorp <- SORP_react_sd_s()
-    preK = p_list[match(input$PreK_sd_s, freq_list)]
-    fundvalue_at_retirement <- sorp %>% select(FundValue)
-    discount_factor = 1/((1 + input$discountRate_sd/100)^(input$age_sd_s[2] - input$age_sd_s[1]))
-    fund_CV = fundvalue_at_retirement[(input$age_sd_s[2] - input$age_sd_s[1])*preK + 1, 1] * discount_factor
-    return(c("€", format(round(as.numeric(fund_CV), 2), nsmall = 2, big.mark = ",", scientific=FALSE)))
-  }),
-  
-  output$pensionPaymentCV_sd_s <- renderText({
-    sorp <- SORP_react_sd_s()
-    preK = p_list[match(input$PreK_sd_s, freq_list)]
-    postK = p_list[match(input$PostK_sd_s, freq_list)]
-    fundvalue_at_retirement <- sorp %>% select(FundValue)
-    discount_factor = 1/((1 + input$discountRate_sd/100)^(input$age_sd_s[2] - input$age_sd_s[1]))
-    periodic_payment_CV = discount_factor * (fundvalue_at_retirement[(input$age_sd_s[2] - input$age_sd_s[1])*preK + 1, 1]/sorp[1, 8])/postK
-    return(c("€", format(round(as.numeric(periodic_payment_CV), 2), nsmall = 2, big.mark = ",", scientific=FALSE)))
-  }),
-  
-  output$table_sd_s <- renderDataTable({
-    sorp = SORP_react_sd_s()
-    preK = p_list[match(input$PreK_sd_s, freq_list)]
-    if(preK == 1){
-      sorp = data.frame(select(sorp, -period, -age_exact, -SORPAnnuity))
-      colnames(sorp) = c("Age", "Employee Contribution", "Employer Contribution", "Total Contribution", "Fund Value at end of Period")
-    }else{
-      sorp = data.frame(select(sorp, -age_exact, -SORPAnnuity))
-      colnames(sorp) = c("Age", "Period", "Employee Contribution", "Employer Contribution", "Total Contribution", "Fund Value at end of Period")
+  }, ignoreNULL = FALSE),
+
+  sd_contributions_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4}, {
+    sd_inputs = sd_inputs()
+    return(SORP_Contributions(age_1 = sd_inputs$sd_age[1], 
+                            age_2 = sd_inputs$sd_age[2], 
+                            salary = sd_inputs$sd_salary, 
+                            current_fundvalue = sd_inputs$sd_current_fundvalue, 
+                            freq = sd_inputs$sd_pre_freq, 
+                            emp_contri = sd_inputs$sd_emp_contri, 
+                            empr_contri = sd_inputs$sd_empr_contri, 
+                            salary_esc = sd_inputs$sd_salary_esc,
+                            investment_charges = sd_inputs$sd_investment_charges,
+                            equity_prop = sd_inputs$sd_equity_prop,
+                            equity_rate = sd_inputs$sd_equity_rate,
+                            fixed_prop = sd_inputs$sd_fixed_prop, 
+                            fixed_rate = sd_inputs$sd_fixed_rate, 
+                            cash_prop = sd_inputs$sd_cash_prop, 
+                            cash_rate = sd_inputs$sd_cash_rate))
+  }, ignoreNULL = FALSE),
+
+  sd_contributions_spouse_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4}, {
+    sd_inputs = sd_inputs()
+    if(sd_inputs$sd_relationship == 2){
+      return(SORP_Contributions(age_1 = sd_inputs$sd_age_spouse[1], 
+                                age_2 = sd_inputs$sd_age_spouse[2], 
+                                salary = sd_inputs$sd_salary_spouse, 
+                                current_fundvalue = sd_inputs$sd_current_fundvalue_spouse, 
+                                freq = sd_inputs$sd_pre_freq_spouse, 
+                                emp_contri = sd_inputs$sd_emp_contri_spouse, 
+                                empr_contri = sd_inputs$sd_empr_contri_spouse, 
+                                salary_esc = sd_inputs$sd_salary_esc,
+                                investment_charges = sd_inputs$sd_investment_charges,
+                                equity_prop = sd_inputs$sd_equity_prop,
+                                equity_rate = sd_inputs$sd_equity_rate,
+                                fixed_prop = sd_inputs$sd_fixed_prop, 
+                                fixed_rate = sd_inputs$sd_fixed_rate, 
+                                cash_prop = sd_inputs$sd_cash_prop, 
+                                cash_rate = sd_inputs$sd_cash_rate))
+    } else {
+      return(NULL)
     }
-    sorp <- datatable(sorp, options = list(paging = FALSE, searching = FALSE), rownames= FALSE)
-    sorp <- formatCurrency(sorp, columns = c("Employee Contribution", "Employer Contribution", "Total Contribution", "Fund Value at end of Period"), currency = "€")
-    return(sorp)
+  }, ignoreNULL = FALSE),
+
+  sd_fund_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4}, {
+    sd_inputs = sd_inputs()
+    return(SORP_Fund(SORP_Contributions = sd_contributions_reactive(), 
+                     freq = sd_inputs$sd_pre_freq))
+    
+  }, ignoreNULL = FALSE),
+
+  sd_fund_spouse_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4}, {
+    sd_inputs = sd_inputs()
+    if(sd_inputs$sd_relationship == 2){
+      return(SORP_Fund(SORP_Contributions = sd_contributions_spouse_reactive(), 
+                       freq = sd_inputs$sd_pre_freq_spouse))
+      } else {
+          return(NULL)
+      }
+  }, ignoreNULL = FALSE),
+
+  sd_pension_payment_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4}, {
+    sd_inputs = sd_inputs()
+    return(SORP_Pension_Payment(SORP_Fund = sd_fund_reactive(), 
+                                SORP_Annuity = sd_annuity_reactive(), 
+                                freq = sd_inputs$sd_post_freq))
+  }, ignoreNULL = FALSE),
+
+  sd_pension_payment_spouse_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4}, {
+    sd_inputs = sd_inputs()
+    if(sd_inputs$sd_relationship == 2){
+      return(SORP_Pension_Payment(SORP_Fund = sd_fund_spouse_reactive(), 
+                                  SORP_Annuity = sd_annuity_spouse_reactive(), 
+                                  freq = sd_inputs$sd_post_freq_spouse))
+    } else {
+      return(NULL)
+    }
+  }, ignoreNULL = FALSE),
+
+# Reactive Functions - Drawdown ---------------------------------------
+  sd_starting_capital_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4}, {
+    sd_inputs = sd_inputs()
+    if(sd_inputs$sd_relationship != 1){
+      sd_start_capital = sd_fund_reactive() + sd_fund_spouse_reactive()
+    } else {
+      sd_start_capital = sd_fund_reactive()
+    }
+  }, ignoreNULL = FALSE),
+
+  sd_simulations_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4}, {
+    sd_inputs = sd_inputs()
+    return(Drawdown_Simulations(retire_age = sd_inputs$sd_age[2], 
+                                start_capital = sd_starting_capital_reactive(), 
+                                withdraw_freq = sd_inputs$sd_withdraw_freq, 
+                                annual_mean_return = sd_inputs$sd_annual_mean_return, 
+                                annual_ret_std_dev = sd_inputs$sd_annual_ret_std_dev, 
+                                annual_inflation = sd_inputs$sd_annual_inflation, 
+                                annual_inf_std_dev = sd_inputs$sd_annual_inf_std_dev, 
+                                n_sim = 10000, 
+                                withdraw_type = sd_inputs$sd_withdraw_type, 
+                                annual_withdrawals = sd_inputs$sd_annual_withdrawals, 
+                                percent_withdrawal = sd_inputs$sd_percent_withdrawal))
+  }, ignoreNULL = FALSE),
+
+  sd_paths_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4}, {
+    return(Drawdown_Paths(sd_simulations_reactive()))
+  }, ignoreNULL = FALSE),
+
+  sd_withdrawals_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4}, {
+    return(Drawdown_Withdrawals(sd_simulations_reactive()))
+  }, ignoreNULL = FALSE),
+
+  sd_life_ex_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4}, {
+    sd_inputs = sd_inputs()
+    if(sd_inputs$sd_relationship != 1){
+      ex = max(exn(ILT15_female_reduced, sd_inputs$sd_age[2]), exn(ILT15_male_reduced, sd_inputs$sd_age_spouse[2]))
+    } else {
+      ex = exn(ILT15_female_reduced, sd_inputs$sd_age[2])
+    }
+    return(ex)
+  }, ignoreNULL = FALSE),
+
+# Output Functions - SORP -------------------------------------------------
+  output$sd_text_fundvalue <- renderText({
+    return(c("€", round_2d(sd_fund_reactive())))
+  }),
+
+  output$sd_text_fundvalue_spouse <- renderText({
+    return(c("€", round_2d(sd_fund_spouse_reactive())))
+  }),
+
+  output$sd_text_pension_payment <- renderText({
+    return(c("€", round_2d(sd_pension_payment_reactive())))
+  }),
+
+  output$sd_text_pension_payment_spouse <- renderText({
+    return(c("€", round_2d(sd_pension_payment_spouse_reactive())))
+  }),
+
+  output$sd_text_fundvalue_discounted <- renderText({
+    sd_inputs = sd_inputs()
+    discounted_fund = SORP_Discount(x = sd_fund_reactive(),
+                                    age_1 = sd_inputs$sd_age[1], 
+                                    age_2 = sd_inputs$sd_age[2],
+                                    discount_rate = sd_inputs$sd_discount_rate)
+    return(c("€", round_2d(discounted_fund)))
+  }),
+
+  output$sd_text_fundvalue_discounted_spouse <- renderText({
+    sd_inputs = sd_inputs()
+    discounted_fund_spouse = SORP_Discount(x = sd_fund_spouse_reactive(),
+                                    age_1 = sd_inputs$sd_age_spouse[1], 
+                                    age_2 = sd_inputs$sd_age_spouse[2],
+                                    discount_rate = sd_inputs$sd_discount_rate)
+    return(c("€", round_2d(discounted_fund_spouse)))
+  }),
+
+  output$sd_text_pension_payment_discounted <- renderText({
+    sd_inputs = sd_inputs()
+    discounted_pension_payment = SORP_Discount(x = sd_pension_payment_reactive(),
+                                               age_1 = sd_inputs$sd_age[1], 
+                                               age_2 = sd_inputs$sd_age[2],
+                                               discount_rate = sd_inputs$sd_discount_rate)
+    return(c("€", round_2d(discounted_pension_payment)))
+  }),
+
+  output$sd_text_pension_payment_discounted_spouse <- renderText({
+    sd_inputs = sd_inputs()
+    discounted_pension_payment_spouse = SORP_Discount(x = sd_pension_payment_spouse_reactive(),
+                                                      age_1 = sd_inputs$sd_age_spouse[1], 
+                                                      age_2 = sd_inputs$sd_age_spouse[2],
+                                                      discount_rate = sd_inputs$sd_discount_rate)
+    return(c("€", round_2d(discounted_pension_payment_spouse)))
+  }),
+
+  output$sd_plot_fundvalue <- renderPlot({
+    SORP_Plot_FundValue(SORP_Contributions = sd_contributions_reactive())
+  }),
+
+  output$sd_plot_fundvalue_spouse <- renderPlot({
+    SORP_Plot_FundValue(SORP_Contributions = sd_contributions_spouse_reactive())
+  }),
+
+  output$sd_table_contributions <- renderDataTable({
+    sd_inputs = sd_inputs()
+    SORP_Table_Contributions(SORP_Contributions = sd_contributions_reactive(), 
+                             freq = sd_inputs$sd_pre_freq)
+  }),
+
+  output$sd_table_contributions_spouse <- renderDataTable({
+    sd_inputs = sd_inputs()
+    SORP_Table_Contributions(SORP_Contributions = sd_contributions_spouse_reactive(), 
+                             freq = sd_inputs$sd_pre_freq_spouse)
+  }),
+
+# Output Functions - Drawdown ---------------------------------------------
+  output$sd_text_life_ex <- renderText({
+    return(c(round_2d(sd_life_ex_reactive()), " Years"))
+  }),
+
+  output$sd_text_average_fund_life_ex <- renderText({
+    sd_inputs = sd_inputs()
+    average = Drawdown_Mean_Life_Ex(Drawdown_Paths = sd_paths_reactive(),
+                                    freq = sd_inputs$sd_withdraw_freq,
+                                    ex = sd_life_ex_reactive())
+    return(c("€", round_2d(average)))
   }),
   
-  observeEvent(input$equity_sd,{
-    updateSliderInput(session, "fixed_sd", max = 100 - input$equity_sd)
-    disable("cash_sd") # putting this here keeps the slider disabled all the time (but still shows updating)
+  output$sd_text_ruin_prob_life_ex <- renderText({
+    sd_inputs = sd_inputs()
+    ruin = 100 * Drawdown_Ruin_Life_Ex(Drawdown_Paths = sd_paths_reactive(),
+                                       freq = sd_inputs$sd_withdraw_freq,
+                                       ex = sd_life_ex_reactive())
+    return(c(round_2d(ruin), "%"))
   }),
-  
+
+  output$sd_table <- renderDataTable({
+    sd_inputs = sd_inputs()
+    freq = p_list[match(sd_inputs$sd_withdraw_freq, freq_list)]
+    series = c(1, (freq * seq(1, (length(sd_paths_reactive()[1, ]) / freq), 1)) + 1)
+    return(Drawdown_Table(Drawdown_Paths = sd_paths_reactive(),
+                          Drawdown_Withdrawals = sd_withdrawals_reactive(),
+                          freq = sd_inputs$sd_withdraw_freq, 
+                          series = series))
+  }),
+
+  output$sd_plot_sims <- renderPlot({
+    return(Drawdown_Plot_Sims(Drawdown_Paths = sd_paths_reactive(), n_sims = 25))
+  }),
+
+# Observe Event Functions -------------------------------------------------
+  observeEvent(input$sd_withdraw_type, {
+    if(input$sd_withdraw_type == T) {
+      updateNumericInputIcon(session, "sd_percent_withdrawal", value = 4)
+      enable("sd_percent_withdrawal")
+      disable("sd_annual_withdrawals")
+      updateNumericInputIcon(session, "sd_annual_withdrawals", value = NA)
+    } else {
+      updateNumericInputIcon(session, "sd_annual_withdrawals", value = 15000)
+      enable("sd_annual_withdrawals")
+      disable("sd_percent_withdrawal")
+      updateNumericInputIcon(session, "sd_percent_withdrawal", value = NA)
+    }
+  }),
+
+  observeEvent(input$sd_default, {
+    updateNumericInputIcon(session, "sd_salary_esc", value = 1.5)
+    updateNumericInputIcon(session, "sd_discount_rate", value = 2.5)
+    updateNumericInputIcon(session, "sd_annuity_interest", value = 0.5)
+    updateNumericInputIcon(session, "sd_annuity_esc", value = 1)
+    updateNumericInputIcon(session, "sd_guaranteed", value = 5)
+    updateNumericInputIcon(session, "sd_investment_charges", value = 0.5)
+    updateSliderInput(session, "sd_equity_prop", value = 40)
+    updateSliderInput(session, "sd_equity_rate", value = 4.5)
+    updateSliderInput(session, "sd_fixed_prop", value = 30)
+    updateSliderInput(session, "sd_fixed_rate", value = 1)
+    updateSliderInput(session, "sd_cash_prop", value = 30)
+    updateSliderInput(session, "sd_cash_rate", value = 0)
+  }),
+
+  observeEvent(input$sd_equity_prop, {
+    updateSliderInput(session, "sd_fixed_prop", max = 100 - input$sd_equity_prop)
+    disable("sd_cash_prop") # putting this here keeps the slider disabled all the time (but still shows updating)
+  }),
+
   observe({
-    updateSliderInput(session, "cash_sd", value = 100 - input$equity_sd - input$fixed_sd)
+    updateSliderInput(session, "sd_cash_prop", value = 100 - input$sd_equity_prop - input$sd_fixed_prop)
   }),
-  
-  observeEvent(input$age_sd[2],{
-    updateNumericInputIcon(session, "guaranteed_sd", max = getOmega(ILT15_female_reduced) - input$age_sd[2])
+
+  observeEvent(input$sd_age[2], {
+    updateNumericInputIcon(session, "sd_guaranteed", max = getOmega(ILT15_female_reduced) - input$sd_age[2])
   }),
-  
-  observeEvent(input$relationship_sd,{
-    if(input$relationship_sd != 1) {
-      shinyjs::show(id = "spouse_sorp_parameters")
-      shinyjs::show(id = "spouse_sorp_summary")
+
+  observeEvent(input$sd_relationship, {
+    if(input$sd_relationship != 1) {
+      shinyjs::show(id = "sd_sorp_parameters_spouse")
     }
-    if(input$relationship_sd == 1){
-      shinyjs::hide(id = "spouse_sorp_parameters")
-      shinyjs::hide(id = "spouse_sorp_summary")
+    if(input$sd_relationship == 1){
+      shinyjs::hide(id = "sd_sorp_parameters_spouse")
     }
   }),
-  
-  drawdown_react_sd <- reactive({
-    sorp <- SORP_react_sd()
-    if(input$relationship_sd != 1){
-      sorp_s <- SORP_react_sd_s()
-      start_capital_sd = sorp[length(sorp[, 7]), 7] + sorp_s[length(sorp[, 7]), 7]
-    } else {
-      start_capital_sd = sorp[length(sorp[, 7]), 7]
+
+  observeEvent({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4},{
+    if(input$sd_relationship != 1) {
+      shinyjs::show(id = "sd_spouse_sorp_summary")
     }
-    return(Drawdown_Sim(input$age_sd[2], start_capital_sd, input$withdraw_freq_sd, input$annual_mean_return_sd, input$annual_ret_std_dev_sd, input$annual_inflation_sd, input$annual_inf_std_dev_sd, percent_yn = input$percent_yn_sd, annual_withdrawals = input$annual_withdrawals_sd, percent_withdrawal = input$percent_withdrawal_sd, retire_age_spouse = input$age_sd_s[2])[[1]])
-  }),
-  
-  output$life_ex_sd <- renderText({
-    if(input$relationship_sd != 1){
-      ex = max(exn(ILT15_female_reduced, input$age_sd[2]), exn(ILT15_male_reduced, input$age_sd_s[2]))
-    } else {
-      ex = exn(ILT15_female_reduced, input$age_sd[2])
+    if(input$sd_relationship == 1){
+      shinyjs::hide(id = "sd_spouse_sorp_summary")
     }
-    return(c(format(round(as.numeric(ex), 2), nsmall = 2, big.mark = ",", scientific=FALSE), " Years"))
-  }),
-  
-  output$drawdown_average_fund_sd <- renderText({
-    Spaths <- drawdown_react_sd()
-    p = p_list[match(input$withdraw_freq_sd, freq_list)]
-    if(input$relationship_sd != 1){
-      n.obs =  p * max(exn(ILT15_female_reduced, input$age_sd[2]), exn(ILT15_male_reduced, input$age_sd_s[2]))
-    } else {
-      n.obs =  p * exn(ILT15_female_reduced, input$age_sd[2])
-    }
-    average = mean(Spaths[, n.obs])
-    return(c("€", format(round(as.numeric(average), 2), nsmall = 2, big.mark = ",", scientific=FALSE)))
-  }),
-  
-  output$drawdown_ruin_prob_sd <- renderText({
-    Spaths <- drawdown_react_sd()
-    p = p_list[match(input$withdraw_freq_sd, freq_list)]
-    if(input$relationship_sd != 1){
-      n.obs =  p * max(exn(ILT15_female_reduced, input$age_sd[2]), exn(ILT15_male_reduced, input$age_sd_s[2]))
-    } else {
-      n.obs =  p * exn(ILT15_female_reduced, input$age_sd[2])
-    }
-    ruin = (length(which(Spaths[, n.obs] == 0)) * 100) / 10000
-    return(c(format(round(as.numeric(ruin), 2), nsmall = 2, big.mark = ",", scientific=FALSE), "%"))
-  }),
-  
-  output$table_d_sd <- renderDataTable({
-    Spaths <- drawdown_react_sd()
-    p = p_list[match(input$withdraw_freq_sd, freq_list)]
-    average = as.numeric(p * (getOmega(ILT15_female_reduced) - input$age_sd[2]))
-    prob_ruin = as.numeric(p * (getOmega(ILT15_female_reduced) - input$age_sd[2]))
-    years = rep(1:(getOmega(ILT15_female_reduced) - input$age_sd[2]), each = p)
-    for(i in 1:(p * (getOmega(ILT15_female_reduced) - input$age_sd[2]))){
-      average[i] = mean(Spaths[, i])
-      prob_ruin[i] = (length(which(Spaths[, i] == 0))) / 10000
-    }
-    important_years = seq(5, getOmega(ILT15_female_reduced) - input$age_sd[2], 5)
-    points = p * important_years
-    table_df = data.frame(years, average, prob_ruin)
-    table_df = table_df[points, ]
-    colnames(table_df) = c("Years", "Final Average Fund Value", "Probability of Ruin")
-    table <- datatable(table_df, options = list(paging = FALSE, searching = FALSE), rownames= FALSE)
-    table <- formatCurrency(table, columns = "Final Average Fund Value", currency = "€")
-    table <- formatPercentage(table, columns = "Probability of Ruin", digits = 2)
-    return(table)
-  }),
-  
-  output$drawdown_sim_plot_sd <- renderPlot({
-    Spaths <- drawdown_react_sd()
-    dat <- vector("list", input$n_sim_sd)
-    p <- ggplot()
-    if(input$relationship_sd != 1){
-      for (i in seq(input$n_sim_sd)){
-        dat[[i]] <- data.frame(time = (0:((p_list[match(input$withdraw_freq_sd, freq_list)] * (getOmega(ILT15_female_reduced) - input$age_sd[2])))), capital = Spaths[i,])
-        p <- p + geom_line(data = dat[[i]], mapping = aes(x = time, y = capital), col = i)
-      }
-    } else {
-      for (i in seq(input$n_sim_sd)){
-        dat[[i]] <- data.frame(time = (0:((p_list[match(input$withdraw_freq_sd, freq_list)] * (getOmega(ILT15_female_reduced) - input$age_sd[2])))), capital = Spaths[i,])
-        p <- p + geom_line(data = dat[[i]], mapping = aes(x = time, y = capital), col = i)
-      }
-    }
-    return(p)
-  }),
-  
-  observeEvent(input$resim_sd, {
-    updateNumericInputIcon(session, "investCharge_sd", value = input$investCharge_sd + 1)
-    updateNumericInputIcon(session, "investCharge_sd", value = input$investCharge_sd)
-  }),
-  
-  observeEvent(input$percent_yn_sd,{
-    if(input$percent_yn_sd == T) {
-      updateNumericInputIcon(session, "percent_withdrawal_sd", value = 4)
-      enable("percent_withdrawal_sd")
-      disable("annual_withdrawals_sd")
-      updateNumericInputIcon(session, "annual_withdrawals_sd", value = NA)
-    } else {
-      updateNumericInputIcon(session, "annual_withdrawals_sd", value = 15000)
-      enable("annual_withdrawals_sd")
-      disable("percent_withdrawal_sd")
-      updateNumericInputIcon(session, "percent_withdrawal_sd", value = NA)
-    }
-  })
+  }, ignoreNULL = FALSE)
 )
