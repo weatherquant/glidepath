@@ -1,7 +1,10 @@
 list(
 # Reactive Functions ------------------------------------------------------
     import_calcs_reactive <- reactive({
-    database <- input$import_database
+    validate(
+      need(input$import_database != '', "Please Upload a Database")
+    )
+      database <- input$import_database
     cnames <- read_excel(database$datapath, sheet = 1, n_max = 0) %>% names()
     database <- read_xlsx(database$datapath, sheet = 1, skip = 1, col_names = cnames)
     database <- data.frame(database)
@@ -30,7 +33,7 @@ list(
                                               cash_prop = input$import_cash_prop, 
                                               cash_rate = input$import_cash_rate)
       
-      import_fund = SORP_Fund(SORP_Contributions = import_contributions, freq = database[i, 6])
+      import_fund = SORP_Fund(SORP_Contributions = import_contributions)
       import_pension_payment = SORP_Pension_Payment(SORP_Fund = import_fund, SORP_Annuity = import_annuity, freq = database[i, 7])
       
       database[i, 10] = import_fund

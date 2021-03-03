@@ -9,7 +9,7 @@ list(
                  numericInputIcon(inputId = "bh_age_current", label = "Current Age:", value = 66, min = 66, max = getOmega(BrokenHeart_LifeTable()), icon = list(NULL, "Years")),
                  numericInputIcon(inputId = "bh_age_widowed", label = "Widowed Age:", value = 66, min = 66, max = getOmega(BrokenHeart_LifeTable()), icon = list(NULL, "Years")),
                  numericInputIcon(inputId = "bh_start_capital", label = "Starting Capital:", value = 300000, min = 0, icon = icon("euro")),
-                 selectInput("bh_withdraw_freq", "Withdrawal Frequency:", freq_list),
+                 selectInput("bh_withdraw_freq", "Withdrawal Frequency:", freq_list_drawdown),
                  awesomeRadio("bh_withdraw_type", "Withdrawal Type:", choices = list("Fixed" = F, "Percentage" = T), inline = TRUE),
                  numericInputIcon(inputId = "bh_annual_withdrawals", label = "Total Withdrawals per Annum:", value = 15000, min = 0, icon = icon("euro")),
                  numericInputIcon(inputId = "bh_percent_withdrawal", label = "Percentage Withdrawn per Annum:", value = 4, min = 0, max = 100, icon = list(NULL, icon("percent"))),
@@ -58,7 +58,8 @@ list(
       tabsetPanel(type = 'tabs',
         tabPanel("Widowed vs Not-Widowed Death Probabilites", style = "margin-top:1em", box(title = "Comparison of Widowed vs Non-Widowed Death Probabilities", status = "primary", width = 12, solidHeader = T, plotlyOutput("bh_qx_change_plot"))),
         tabPanel("Short-Term Effect of Widowhood on Mortality", style = "margin-top:1em", box(title = "Short-Term Effect of Widowhood on the Probability of Death", status = "primary", width = 12, solidHeader = T, plotlyOutput("bh_life_ex_change_plot"))),
-        tabPanel("Drawdown Simulations", style = "margin-top:1em", box(title = "Drawdown Simulations", status = "primary", width = 12, solidHeader = T, plotOutput("bh_plot_sims")))
+        tabPanel("Drawdown Simulations", style = "margin-top:1em", box(title = "Drawdown Simulations", status = "primary", width = 12, solidHeader = T, plotOutput("bh_plot_sims"))),
+        tabPanel("Drawdown Percentile Plot", style = "margin-top:1em", box(title = "Drawdown Percentile Plot", status = "primary", width = 12, solidHeader = T, plotlyOutput("bh_plot_percentiles")))
       )
     )
   )

@@ -8,7 +8,7 @@ list(
       tabsetPanel(type = "tabs",
                   tabPanel("SORP Parameters",
                            style = "margin-top:1em",
-                           sliderInput("sd_age", "Current Age and Retirement Age:", value = c(45,66), min = 16, max = getOmega(ILT15_female_reduced)),
+                           sliderInput("sd_age", "Current Age and Retirement Age:", value = c(45, 66), min = 16, max = getOmega(ILT15_female_reduced)),
                            awesomeRadio("sd_relationship", "Relationship Status:", choices = list("Single" = 1, "Married" = 2), inline = TRUE),
                            numericInputIcon(inputId = "sd_salary", label = "Current Salary:", value = 50000, min = 0, icon = icon("euro")),
                            numericInputIcon(inputId = "sd_current_fundvalue", label = "Current Fund Value:", value = 100000, min = 0, icon = icon("euro")),
@@ -21,7 +21,6 @@ list(
                   
                   tabPanel(div(id = 'sd_sorp_parameters_spouse', "Spouse SORP Parameters"),
                            style = "margin-top:1em",
-                           sliderInput("sd_age_spouse", "Current Age and Retirement Age:", value = c(45,66), min = 16, max = getOmega(ILT15_female_reduced)),
                            numericInputIcon(inputId = "sd_salary_spouse", label = "Current Salary:", value = 50000, min = 0, icon = icon("euro")),
                            numericInputIcon(inputId = "sd_current_fundvalue_spouse", label = "Current Fund Value:", value = 100000, min = 0, icon = icon("euro")),
                            selectInput("sd_pre_freq_spouse", "Contribution Frequency:", freq_list),
@@ -33,7 +32,7 @@ list(
                   
                   tabPanel("Drawdown Parameters",
                            style = "margin-top:1em",
-                           selectInput("sd_withdraw_freq", "Withdrawal Frequency:", freq_list),
+                           selectInput("sd_withdraw_freq", "Withdrawal Frequency:", freq_list_drawdown),
                            awesomeRadio("sd_withdraw_type", "Withdrawal Type:", choices = list("Fixed" = F, "Percentage" = T), inline = TRUE),
                            numericInputIcon(inputId = "sd_annual_withdrawals", label = "Total Withdrawals per Annum:", value = 15000, min = 0, icon = icon("euro")),
                            numericInputIcon(inputId = "sd_percent_withdrawal", label = "Percentage Withdrawn per Annum:", value = 4, min = 0, max = 100, icon = list(NULL, icon("percent"))),
@@ -143,7 +142,8 @@ list(
                                h3(textOutput("sd_text_ruin_prob_life_ex"))
                              ),
                              box(title = "Table", width = 12, status = "primary", solidHeader = T, DT::dataTableOutput("sd_table"), rownames= FALSE, style = "height:400px; overflow-y: scroll;overflow-x: scroll;"),
-                             box(title = "Drawdown Simulations", status = "primary", width = 12, solidHeader = T, plotOutput("sd_plot_sims"))
+                             box(title = "Drawdown Simulations", status = "primary", width = 12, solidHeader = T, plotOutput("sd_plot_sims")),
+                             box(title = "Drawdown Percentile Plot", status = "primary", width = 12, solidHeader = T, plotlyOutput("sd_plot_percentiles"))
                              )
         )
       )

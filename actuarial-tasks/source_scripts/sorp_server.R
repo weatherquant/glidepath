@@ -29,8 +29,7 @@ list(
   }),
   
   sorp_fund_reactive <- reactive({
-    return(SORP_Fund(SORP_Contributions = sorp_contributions_reactive(), 
-                     freq = input$sorp_pre_freq))
+    return(SORP_Fund(SORP_Contributions = sorp_contributions_reactive()))
   }),
   
   sorp_pension_payment_reactive <- reactive({
@@ -65,7 +64,7 @@ list(
   }),
 
   output$sorp_plot_fundvalue <- renderPlot({
-    SORP_Plot_FundValue(SORP_Contributions = sorp_contributions_reactive())
+    SORP_Plot_FundValue(SORP_Contributions = sorp_contributions_reactive(), freq = input$sorp_pre_freq)
   }),
   
   output$sorp_table_contributions <- renderDataTable({

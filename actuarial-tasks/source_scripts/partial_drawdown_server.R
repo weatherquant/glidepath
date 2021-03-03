@@ -1,310 +1,293 @@
 list(
-  sorp_annuity_pd <- reactive({
-    return(SORP_Annuity(input$age_pd[1], relationship = input$relationship_pd, PostK = "Annually"))
+# Input Function ----------------------------------------------------------
+  pd_inputs <- eventReactive({input$pd_resim1; input$pd_resim2; input$pd_resim3}, {
+    return(reactiveValuesToList(input))
+  }, ignoreNULL = FALSE),
+  
+# Reactive Functions - Annuities ------------------------------------------
+  pd_annuity_reactive <- eventReactive({input$pd_resim1; input$pd_resim2; input$pd_resim3}, {
+    pd_inputs = pd_inputs()
+    return(SORP_Annuity(age_1 = pd_inputs$pd_age[1], 
+                        relationship = pd_inputs$pd_relationship, 
+                        freq = freq_list[match(pd_inputs$pd_withdraw_freq, freq_list_drawdown)]))
+  }, ignoreNULL = FALSE),
+  
+  pd_annuity_buylater_reactive <- eventReactive({input$pd_resim1; input$pd_resim2; input$pd_resim3}, {
+    pd_inputs = pd_inputs()
+    return(SORP_Annuity(age_1 = pd_inputs$pd_age[1], 
+                        age_2 = pd_inputs$pd_age[2], 
+                        relationship = pd_inputs$pd_relationship, 
+                        freq = freq_list[match(pd_inputs$pd_withdraw_freq, freq_list_drawdown)],
+                        guaranteed = 0))
+  }, ignoreNULL = FALSE),
+  
+  pd_annuity_deferred_reactive <- eventReactive({input$pd_resim1; input$pd_resim2; input$pd_resim3}, {
+    pd_inputs = pd_inputs()
+    return(SORP_Annuity(age_1 = pd_inputs$pd_age[1], 
+                        age_2 = pd_inputs$pd_age[2], 
+                        relationship = pd_inputs$pd_relationship, 
+                        freq = freq_list[match(pd_inputs$pd_withdraw_freq, freq_list_drawdown)],
+                        guaranteed = 0,
+                        deferred = T))
+  }, ignoreNULL = FALSE),
+
+  pd_annuity_payment_reactive <- eventReactive({input$pd_resim1; input$pd_resim2; input$pd_resim3}, {
+    pd_inputs = pd_inputs()
+    return(SORP_Pension_Payment(SORP_Fund = pd_inputs$pd_starting_capital, 
+                                SORP_Annuity = pd_annuity_reactive(), 
+                                freq = freq_list[match(pd_inputs$pd_withdraw_freq, freq_list_drawdown)]))
+  }, ignoreNULL = FALSE),
+
+  pd_average_annuity_payment_buylater_reactive <- eventReactive({input$pd_resim1; input$pd_resim2; input$pd_resim3}, {
+    pd_inputs = pd_inputs()
+    payment = SORP_Pension_Payment(SORP_Fund = pd_average_fund_buylater_end_reactive(), 
+                                   SORP_Annuity = pd_annuity_buylater_reactive(), 
+                                   freq = freq_list[match(pd_inputs$pd_withdraw_freq, freq_list_drawdown)])
+    return(SORP_Discount(x = payment,
+                         age_1 = pd_inputs$pd_age[1], 
+                         age_2 = pd_inputs$pd_age[2]))
+  }, ignoreNULL = FALSE),
+
+  pd_annuity_cost_deferred_reactive <- eventReactive({input$pd_resim1; input$pd_resim2; input$pd_resim3}, {
+    pd_inputs = pd_inputs()
+    freq = p_list[match(pd_inputs$pd_withdraw_freq, freq_list_drawdown)]
+    annuity = pd_annuity_deferred_reactive()
+    annuity_payment = pd_annuity_payment_reactive()
+    return(annuity * annuity_payment * freq)
+  }, ignoreNULL = FALSE),
+
+# Reactive Functions - Drawdown --------------------------------------------
+  pd_simulations_drawdown_reactive <- eventReactive({input$pd_resim1; input$pd_resim2; input$pd_resim3}, {
+    pd_inputs = pd_inputs()
+    return(Drawdown_Simulations(retire_age = pd_inputs$pd_age[1], 
+                                start_capital = pd_inputs$pd_starting_capital, 
+                                withdraw_freq = pd_inputs$pd_withdraw_freq, 
+                                annual_mean_return = pd_inputs$pd_annual_mean_return, 
+                                annual_ret_std_dev = pd_inputs$pd_annual_ret_std_dev, 
+                                annual_inflation = pd_inputs$pd_annual_inflation, 
+                                annual_inf_std_dev = pd_inputs$pd_annual_inf_std_dev, 
+                                n_sim = 10000, 
+                                withdraw_type = pd_inputs$pd_withdraw_type_drawdown, 
+                                annual_withdrawals = pd_inputs$pd_annual_withdrawals_drawdown, 
+                                percent_withdrawal = pd_inputs$pd_percent_withdrawal_drawdown))
+  }, ignoreNULL = FALSE),
+
+  pd_paths_drawdown_reactive <- eventReactive({input$pd_resim1; input$pd_resim2; input$pd_resim3}, {
+    return(Drawdown_Paths(pd_simulations_drawdown_reactive()))
+  }, ignoreNULL = FALSE),
+
+  pd_withdrawals_drawdown_reactive <- eventReactive({input$pd_resim1; input$pd_resim2; input$pd_resim3}, {
+    return(Drawdown_Withdrawals(pd_simulations_drawdown_reactive()))
+  }, ignoreNULL = FALSE),  
+
+  pd_simulations_buylater_reactive <- eventReactive({input$pd_resim1; input$pd_resim2; input$pd_resim3}, {
+    pd_inputs = pd_inputs()
+    return(Drawdown_Simulations(retire_age = pd_inputs$pd_age[1], 
+                                start_capital = pd_inputs$pd_starting_capital, 
+                                withdraw_freq = pd_inputs$pd_withdraw_freq, 
+                                annual_mean_return = pd_inputs$pd_annual_mean_return, 
+                                annual_ret_std_dev = pd_inputs$pd_annual_ret_std_dev, 
+                                annual_inflation = pd_inputs$pd_annual_inflation, 
+                                annual_inf_std_dev = pd_inputs$pd_annual_inf_std_dev, 
+                                n_sim = 10000, 
+                                withdraw_type = pd_inputs$pd_withdraw_type_buylater, 
+                                annual_withdrawals = pd_inputs$pd_annual_withdrawals_buylater, 
+                                percent_withdrawal = pd_inputs$pd_percent_withdrawal_buylater,
+                                end_age = pd_inputs$pd_age[2] + 1))
+  }, ignoreNULL = FALSE),
+
+  pd_paths_buylater_reactive <- eventReactive({input$pd_resim1; input$pd_resim2; input$pd_resim3}, {
+    return(Drawdown_Paths(pd_simulations_buylater_reactive()))
+  }, ignoreNULL = FALSE),
+
+  pd_withdrawals_buylater_reactive <- eventReactive({input$pd_resim1; input$pd_resim2; input$pd_resim3}, {
+    return(Drawdown_Withdrawals(pd_simulations_buylater_reactive()))
+  }, ignoreNULL = FALSE), 
+
+  pd_average_fund_buylater_end_reactive <- eventReactive({input$pd_resim1; input$pd_resim2; input$pd_resim3}, {
+    pd_inputs = pd_inputs()
+    time = p_list[match(pd_inputs$pd_withdraw_freq, freq_list_drawdown)] * (input$pd_age[2] + 1 - input$pd_age[1])
+    average = Drawdown_Mean(Drawdown_Paths = pd_paths_buylater_reactive(), time = time)
+  }, ignoreNULL = FALSE), 
+
+  pd_simulations_deferred_reactive <- eventReactive({input$pd_resim1; input$pd_resim2; input$pd_resim3}, {
+    pd_inputs = pd_inputs()
+    return(Drawdown_Simulations(retire_age = pd_inputs$pd_age[1], 
+                                start_capital = pd_inputs$pd_starting_capital - pd_annuity_cost_deferred_reactive(), 
+                                withdraw_freq = pd_inputs$pd_withdraw_freq, 
+                                annual_mean_return = pd_inputs$pd_annual_mean_return, 
+                                annual_ret_std_dev = pd_inputs$pd_annual_ret_std_dev, 
+                                annual_inflation = pd_inputs$pd_annual_inflation, 
+                                annual_inf_std_dev = pd_inputs$pd_annual_inf_std_dev, 
+                                n_sim = 10000, 
+                                withdraw_type = pd_inputs$pd_withdraw_type_deferred, 
+                                annual_withdrawals = pd_inputs$pd_annual_withdrawals_deferred, 
+                                percent_withdrawal = pd_inputs$pd_percent_withdrawal_deferred,
+                                end_age = pd_inputs$pd_age[2] + 1))
+  }, ignoreNULL = FALSE),
+
+  pd_paths_deferred_reactive <- eventReactive({input$pd_resim1; input$pd_resim2; input$pd_resim3}, {
+    return(Drawdown_Paths(pd_simulations_deferred_reactive()))
+  }, ignoreNULL = FALSE),
+
+  pd_withdrawals_deferred_reactive <- eventReactive({input$pd_resim1; input$pd_resim2; input$pd_resim3}, {
+    return(Drawdown_Withdrawals(pd_simulations_deferred_reactive()))
+  }, ignoreNULL = FALSE), 
+
+  pd_average_fund_deferred_end_reactive <- eventReactive({input$pd_resim1; input$pd_resim2; input$pd_resim3}, {
+    pd_inputs = pd_inputs()
+    time = p_list[match(pd_inputs$pd_withdraw_freq, freq_list_drawdown)] * (input$pd_age[2] + 1 - input$pd_age[1])
+    average = Drawdown_Mean(Drawdown_Paths = pd_paths_deferred_reactive(), time = time)
+  }, ignoreNULL = FALSE), 
+
+  pd_life_ex_reactive <- eventReactive({input$pd_resim1; input$pd_resim2; input$pd_resim3}, {
+    pd_inputs = pd_inputs()
+    return(round_to_fraction(exn(ILT15_female_reduced, pd_inputs$pd_age[1]), p_list[match(pd_inputs$pd_withdraw_freq, freq_list_drawdown)]))
+  }, ignoreNULL = FALSE),
+
+# Output Functions - Annuities --------------------------------------------
+  output$pd_text_annuity_payment <- output$pd_text_annuity_payment_deferred <- renderText({
+    return(c("€", round_2d(pd_annuity_payment_reactive())))
+  }),  
+  
+  output$pd_text_annuity_cumulative_life_ex <- renderText({
+    pd_inputs = pd_inputs()
+    freq = p_list[match(pd_inputs$pd_withdraw_freq, freq_list_drawdown)]
+    cumulative = SORP_Cumulative_Payments(SORP_Pension_Payment = pd_annuity_payment_reactive(),
+                                          time = freq * pd_life_ex_reactive())
+    return(c("€", round_2d(cumulative)))
   }),
 
-  sorp_annuity_buy_later_pd <- reactive({
-    return(SORP_Annuity(input$age_pd[1], input$age_pd[2], input$relationship_pd, "Annually", guaranteed = 0))
+  output$pd_text_average_annuity_payment_buylater <- renderText({
+    return(c("€", round_2d(pd_average_annuity_payment_buylater_reactive())))
+  }),  
+
+  output$pd_text_annuity_cost_deferred <- renderText({
+    return(c("€", round_2d(pd_annuity_cost_deferred_reactive())))
   }),
 
-  sorp_annuity_deferred_pd <- reactive({
-    return(SORP_Annuity(input$age_pd[1], input$age_pd[2], input$relationship_pd, "Annually", guaranteed = 0, deferred = T))
+# Output Functions - Drawdowns --------------------------------------------
+  output$pd_text_drawdown_total_withdrawals_life_ex <- renderText({
+    pd_inputs = pd_inputs()
+    average = Drawdown_Total_Withdrawals_Life_Ex(Drawdown_Withdrawals = pd_withdrawals_drawdown_reactive(),
+                                                 freq = pd_inputs$pd_withdraw_freq,
+                                                 ex = pd_life_ex_reactive())
+    return(c("€", round_2d(average)))
   }),
 
-  drawdown_react_pd <- reactive({
-    return(Drawdown_Sim(input$age_pd[1], input$start_capital_pd, "Annually", input$annual_mean_return_pd, input$annual_ret_std_dev_pd, input$annual_inflation_pd, input$annual_inf_std_dev_pd, percent_yn = input$percent_yn_pd_d, annual_withdrawals = input$annual_withdrawals_pd_d, percent_withdrawal = input$percent_withdrawal_pd_d))
+  output$pd_text_drawdown_average_fund_life_ex <- renderText({
+    pd_inputs = pd_inputs()
+    average = Drawdown_Mean_Life_Ex(Drawdown_Paths = pd_paths_drawdown_reactive(),
+                                    freq = pd_inputs$pd_withdraw_freq,
+                                    ex = pd_life_ex_reactive())
+    return(c("€", round_2d(average)))
+  }),
+  
+  output$pd_text_buylater_average_fund_end <- renderText({
+    return(c("€", round_2d(pd_average_fund_buylater_end_reactive())))
   }),
 
-  drawdown_react_buy_later_pd <- reactive({
-    return(Drawdown_Sim(input$age_pd[1], input$start_capital_pd, "Annually", input$annual_mean_return_pd, input$annual_ret_std_dev_pd, input$annual_inflation_pd, input$annual_inf_std_dev_pd, percent_yn = input$percent_yn_pd_bl, annual_withdrawals = input$annual_withdrawals_pd_bl, percent_withdrawal = input$percent_withdrawal_pd_bl, end_age = input$age_pd[2]))
+  output$pd_text_deferred_average_fund_end <- renderText({
+    return(c("€", round_2d(pd_average_fund_deferred_end_reactive())))
   }),
 
-  drawdown_deferred_pd <- reactive({
-    sorp_annuity = sorp_annuity_pd()
-    p = p_list[match("Annually", freq_list)]
-    periodic_payment = input$start_capital_pd / sorp_annuity / p
-    
-    deferred_annuity = sorp_annuity_deferred_pd()
-    cost_deferred = deferred_annuity * periodic_payment * p
-    new_start_capital = input$start_capital_pd - cost_deferred
-    return(c(periodic_payment, deferred_annuity, cost_deferred, new_start_capital))
-  }), 
-  
-  drawdown_react_deferred_pd <- reactive({
-    drawdown_deferred_pd = drawdown_deferred_pd()
-    new_start_capital = drawdown_deferred_pd[4]
-    return(Drawdown_Sim(input$age_pd[1], new_start_capital, "Annually", input$annual_mean_return_pd, input$annual_ret_std_dev_pd, input$annual_inflation_pd, input$annual_inf_std_dev_pd, percent_yn = input$percent_yn_pd_da, annual_withdrawals = input$annual_withdrawals_pd_da, percent_withdrawal = input$percent_withdrawal_pd_da, end_age = input$age_pd[2]))
+# Output Functions - Table and Plot ------------------------------------------------
+output$drawdown_table <- renderDataTable({
+  drawdown_inputs = drawdown_inputs()
+  freq = p_list[match(drawdown_inputs$drawdown_withdraw_freq, freq_list_drawdown)]
+  series = c(1, (freq * seq(1, (length(drawdown_paths_reactive()[1, ]) / freq), 1)) + 1)
+  return(Drawdown_Table(Drawdown_Paths = drawdown_paths_reactive(),
+                        Drawdown_Withdrawals = drawdown_withdrawals_reactive(),
+                        freq = drawdown_inputs$drawdown_withdraw_freq, 
+                        series = series))
+}),
+
+  output$pd_comparison_table <- renderDataTable({
+    pd_inputs = pd_inputs()
+    freq = p_list[match(pd_inputs$pd_withdraw_freq, freq_list_drawdown)]
+    series = c(1, (freq * seq(1, (length(pd_paths_drawdown_reactive()[1, ]) / freq), 1)) + 1)
+    return(Partial_Drawdown_Comparison_Table(age_1 = pd_inputs$pd_age[1], 
+                                             age_2 = pd_inputs$pd_age[2], 
+                                             freq = pd_inputs$pd_withdraw_freq, 
+                                             annuity_payment = pd_annuity_payment_reactive(), 
+                                             Drawdown_Paths = pd_paths_drawdown_reactive(), 
+                                             Drawdown_Withdrawals = pd_withdrawals_drawdown_reactive(),
+                                             buy_later_average_annuity_payment = pd_average_annuity_payment_buylater_reactive(), 
+                                             BuyLater_Paths = pd_paths_buylater_reactive(), 
+                                             BuyLater_Withdrawals = pd_withdrawals_buylater_reactive(),
+                                             Deferred_Paths = pd_paths_deferred_reactive(),
+                                             Deferred_Withdrawals = pd_withdrawals_deferred_reactive(),
+                                             series = series, 
+                                             points = NULL, 
+                                             colour = NULL))
   }),
 
-  # output$life_ex_pd <- renderText({
-  #   ex = exn(ILT15_female_reduced, input$age_pd[1])
-  #   return(c(tommy_round(ex), " Years"))
-  # }),
-  # 
-  output$sorp_payment_pd <- renderText({
-    sorp_annuity = sorp_annuity_pd()
-    p = p_list[match("Annually", freq_list)]
-    payment = (input$start_capital_pd / sorp_annuity / p)
-    return(c("€", tommy_round(payment)))
-  }),
-  
-  output$sum_annuity <- renderText({
-    table_df = dataframe_outputs_pd()
-    sum_payment = table_df$sorp_total_paid[round(exn(ILT15_female_reduced, input$age_pd[1]))]
-    return(c("€", tommy_round(sum_payment)))
-  }),
-  
-  output$average_fund_pd_d <- renderText({
-    table_df = dataframe_outputs_pd()
-    value = table_df$drawdown_average_fund[round(exn(ILT15_female_reduced, input$age_pd[1]))]
-    return(c("€", tommy_round(value)))
+  output$pd_plot_income_compare <- renderPlotly({
+    pd_inputs = pd_inputs()
+    freq = p_list[match(pd_inputs$pd_withdraw_freq, freq_list_drawdown)]
     
-  }),
-  
-  output$drawdown_payment_sum <- renderText({
-    table_df = dataframe_outputs_pd()
-    sum = table_df$drawdown_total_withdrawn[round(exn(ILT15_female_reduced, input$age_pd[1]))]
-    return(c("€", tommy_round(sum)))
-  }),
-  
-  average_fund_pd_bl <- reactive({
-    Spaths <- drawdown_react_buy_later_pd()[[1]]
-    p = p_list[match("Annually", freq_list)]
-    n.obs =  p * (input$age_pd[2] - input$age_pd[1])
-    return(mean(Spaths[, n.obs]))
-  }),
-  
-  output$drawdown_average_fund_pd_bl <- renderText({
-    average = average_fund_pd_bl()
-    return(c("€", tommy_round(average)))
-  }),
+    table_df = Partial_Drawdown_DataFrame(age_1 = pd_inputs$pd_age[1], 
+                                          age_2 = pd_inputs$pd_age[2], 
+                                          freq = pd_inputs$pd_withdraw_freq, 
+                                          annuity_payment = pd_annuity_payment_reactive(), 
+                                          Drawdown_Paths = pd_paths_drawdown_reactive(), 
+                                          Drawdown_Withdrawals = pd_withdrawals_drawdown_reactive(),
+                                          buy_later_average_annuity_payment = pd_average_annuity_payment_buylater_reactive(), 
+                                          BuyLater_Paths = pd_paths_buylater_reactive(), 
+                                          BuyLater_Withdrawals = pd_withdrawals_buylater_reactive(),
+                                          Deferred_Paths = pd_paths_deferred_reactive(),
+                                          Deferred_Withdrawals = pd_withdrawals_deferred_reactive())
 
-  output$average_annuity_pd_bl <- renderText({
-    average = average_fund_pd_bl()
-    sorp_annuity = sorp_annuity_buy_later_pd()
-    p = p_list[match("Annually", freq_list)]
-    discount_factor = 1/((1 + 2.5/100)^(input$age_pd[2] - input$age_pd[1]))
-    payment = discount_factor * (average / sorp_annuity / p)
-    return(c("€", tommy_round(payment)))
-  }),
-  
-  average_fund_pd_da <- reactive({
-    Spaths <- drawdown_react_deferred_pd()[[1]]
-    p = p_list[match("Annually", freq_list)]
-    n.obs =  p * (input$age_pd[2] - input$age_pd[1])
-    return(mean(Spaths[, n.obs]))
-  }),
-  
-  output$drawdown_average_fund_pd_da <- renderText({
-    average = average_fund_pd_da()
-    return(c("€", tommy_round(average)))
-  }),
-  
-  output$drawdown_average_fund_pd <- renderText({
-    average = average_fund_pd_d()
-    return(c("€", tommy_round(average)))
-  }),
-  
-  output$average_annuity_pd_da <- renderText({
-    drawdown_deferred_pd = drawdown_deferred_pd()
-    periodic_payment = drawdown_deferred_pd[1]
-    return(c("€", tommy_round(periodic_payment)))
-  }),
-  
-  output$cost_annuity_pd_da <- renderText({
-    drawdown_deferred_pd = drawdown_deferred_pd()
-    cost_annuity = drawdown_deferred_pd[3]
-    return(c("€", tommy_round(cost_annuity)))
-  }),
-  
-  dataframe_outputs_pd <- reactive({
-    p = p_list[match("Annually", freq_list)]
-    
-    drawdown <- drawdown_react_pd()
-    drawdown_bl <- drawdown_react_buy_later_pd()
-    drawdown_deferred <- drawdown_deferred_pd()
-    drawdown_da <- drawdown_react_deferred_pd()
-    
-    discount_factor = 1/((1 + 2.5/100)^(input$age_pd[2] - input$age_pd[1]))
-    
-    sorp_annuity = sorp_annuity_pd()
-    sorp_periodic_payment = input$start_capital_pd / sorp_annuity / p
-    
-    sorp_annuity_buy_later = sorp_annuity_buy_later_pd()
-    average_fund_buy_later = average_fund_pd_bl()
-    bl_periodic_payment = discount_factor * (average_fund_buy_later / sorp_annuity_buy_later / p)
-    
-    da_periodic_payment = drawdown_deferred[1]
-    
-    sorp_total_paid = numeric(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))
-    drawdown_total_withdrawn = numeric(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))
-    drawdown_average_fund = numeric(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))
-    drawdown_prob_ruin = numeric(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))
-    buy_later_total_withdrawn = numeric(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))
-    buy_later_average_fund = numeric(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))
-    buy_later_prob_ruin = numeric(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))
-    buy_later_total_paid_annuity = numeric(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))
-    deferred_total_withdrawn = numeric(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))
-    deferred_average_fund = numeric(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))
-    deferred_prob_ruin = numeric(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))
-    deferred_total_paid_annuity = numeric(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))
-    years = rep(1:((getOmega(ILT15_female_reduced) - input$age_pd[1])), each = p)
-    
-    sorp_total_paid[1] = sorp_periodic_payment
-    drawdown_total_withdrawn[1] = mean(drawdown[[2]][, 1])
-    drawdown_average_fund[1] = mean(drawdown[[1]][, 1])
-    drawdown_prob_ruin[1] = (length(which(drawdown[[1]][, 1] == 0))) / 10000
-    buy_later_total_withdrawn[1] = mean(drawdown_bl[[2]][, 1])
-    buy_later_average_fund[1] = mean(drawdown_bl[[1]][, 1])
-    buy_later_prob_ruin[1] = (length(which(drawdown_bl[[1]][, 1] == 0))) / 10000
-    deferred_total_withdrawn[1] = mean(drawdown_da[[2]][, 1])
-    deferred_average_fund[1] = mean(drawdown_da[[1]][, 1])
-    deferred_prob_ruin[1] = (length(which(drawdown_da[[1]][, 1] == 0))) / 10000
-    
-    for(i in 2:(p * ((getOmega(ILT15_female_reduced) - input$age_pd[1])))){
-      sorp_total_paid[i] = i * sorp_periodic_payment
-      drawdown_total_withdrawn[i] = mean(rowSums(drawdown[[2]][, 1:i]))
-      drawdown_average_fund[i] = mean(drawdown[[1]][, i])
-      drawdown_prob_ruin[i] = (length(which(drawdown[[1]][, i] == 0))) * 100 / 10000
-      
-      if(i <= (p * (input$age_pd[2] - input$age_pd[1]))){
-        buy_later_total_withdrawn[i] = mean(rowSums(drawdown_bl[[2]][, 1:i]))
-        buy_later_average_fund[i] = mean(drawdown_bl[[1]][, i])
-        buy_later_prob_ruin[i] = (length(which(drawdown_bl[[1]][, i] == 0))) * 100 / 10000
-        deferred_total_withdrawn[i] = mean(rowSums(drawdown_da[[2]][, 1:i]))
-        deferred_average_fund[i] = mean(drawdown_da[[1]][, i])
-        deferred_prob_ruin[i] = (length(which(drawdown_da[[1]][, i] == 0))) * 100 / 10000
-      } else if (i == (p * (input$age_pd[2] - input$age_pd[1])) + 1){
-        buy_later_total_paid_annuity[i] = (i - (p * (input$age_pd[2] - input$age_pd[1]))) * bl_periodic_payment
-        buy_later_total_withdrawn[i] = buy_later_total_withdrawn[i - 1]
-        deferred_total_paid_annuity[i] = (i - (p * (input$age_pd[2] - input$age_pd[1]))) * da_periodic_payment
-        deferred_total_withdrawn[i] = deferred_total_withdrawn[i - 1] + deferred_average_fund[i - 1]
-      } else {
-        buy_later_total_paid_annuity[i] = (i - (p * (input$age_pd[2] - input$age_pd[1]))) * bl_periodic_payment
-        buy_later_total_withdrawn[i] = buy_later_total_withdrawn[i - 1]
-        deferred_total_paid_annuity[i] = (i - (p * (input$age_pd[2] - input$age_pd[1]))) * da_periodic_payment
-        deferred_total_withdrawn[i] = deferred_total_withdrawn[i - 1]
-      }
-    }
-    buy_later_total = buy_later_total_paid_annuity + buy_later_total_withdrawn
-    deferred_total = deferred_total_paid_annuity + deferred_total_withdrawn
-    
-    table_df = data.frame(years, sorp_total_paid, 
-                          drawdown_total_withdrawn, drawdown_average_fund, drawdown_prob_ruin,
-                          buy_later_total, buy_later_average_fund, 
-                          deferred_total, deferred_average_fund, deferred_prob_ruin)
-    
-    return(table_df)
-  }),
-  
-  output$compare_table_d_pd <- renderDataTable({
-    table_df = dataframe_outputs_pd()
-    p = p_list[match("Annually", freq_list)]
-    
-    table_df$sorp_total_paid = paste0("€", tommy_round(table_df$sorp_total_paid))
-    table_df$drawdown_total_withdrawn = paste0("€", tommy_round(table_df$drawdown_total_withdrawn))
-    table_df$buy_later_total = paste0("€", tommy_round(table_df$buy_later_total))
-    table_df$deferred_total = paste0("€", tommy_round(table_df$deferred_total))
-    table_df$drawdown_average_fund = paste0("€", tommy_round(table_df$drawdown_average_fund))
-    table_df$buy_later_average_fund = paste0("€", tommy_round(table_df$buy_later_average_fund))
-    table_df$deferred_average_fund = paste0("€", tommy_round(table_df$deferred_average_fund))
-    table_df$drawdown_prob_ruin = paste0(tommy_round(table_df$drawdown_prob_ruin), "%")
-    table_df$deferred_prob_ruin = paste0(tommy_round(table_df$deferred_prob_ruin), "%")
-    
-    important_years = seq(5, (getOmega(ILT15_female_reduced) - input$age_pd[1]), 5)
-    points = p * important_years
-    ex = round(p * exn(ILT15_female_reduced, input$age_pd[1]))
-    points = sort(unique(c(points, ex)))
-
-    table_df = table_df[points, ]
-    
-    container = htmltools::withTags(table(
-      class = 'display',
-      thead(
-        tr(
-          th(rowspan = 2, 'Year', style="text-align:center; border-right: solid 1px"),
-          th(colspan = 1, '100 % Annuity', style="text-align:center; border-right: solid 1px"),
-          th(colspan = 3, '100% Drawdown', style="text-align:center; border-right: solid 1px"),
-          th(colspan = 2, 'Drawdown and subsequent Annuity Purchase', style="text-align:center; border-right: solid 1px"),
-          th(colspan = 3, 'Drawdown and Deferred Annuity', style="text-align:center")
-        ),
-        tr(
-          th('Total Received', style = "border-right: solid 1px;"), 
-          th('Total Withdrawn'), th('Average Fund'), th('Prob of Ruin', style = "border-right: solid 1px;"), 
-          th('Total Withdrawn / Received'), th('Average Fund', style = "border-right: solid 1px;"), 
-          th('Total Withdrawn / Received'), th('Average Fund'), th('Prob of Ruin')
-        )
-      )
-    ))
-    
-    table <- datatable(table_df, container = container, options = list(paging = FALSE, searching = FALSE), rownames= FALSE) %>% 
-      formatStyle(c(1, 2, 5, 7), `border-right` = "solid 1px") %>%
-      formatStyle(
-        'years',
-        target = 'row',
-        backgroundColor = styleEqual(ex, 'yellow')
-      )
-    return(table)
-  }),
-  
-  output$income_compare <- renderPlotly({
-    table_df = dataframe_outputs_pd()
-    p = p_list[match("Annually", freq_list)]
-
-    fig <- plot_ly(table_df, x = ~table_df$years, y = ~table_df$sorp_total_paid, name = "100 % Annuity", type = "scatter", mode = "lines", line = list(color = 'blue', width = 4))
+    fig <- plot_ly(table_df, x = ~table_df$years, y = ~table_df$annuity_total_paid, name = "100 % Annuity", type = "scatter", mode = "lines", line = list(color = 'blue', width = 4))
     fig <- fig %>% add_trace(y = ~table_df$drawdown_total_withdrawn, name = '100% Drawdown',line = list(color = 'red', width = 4))
-    fig <- fig %>% add_trace(y = ~table_df$buy_later_total, name = 'Drawdown and subsequent Annuity Purchase',line = list(color = 'green', width = 4))
-    fig <- fig %>% add_trace(y = ~table_df$deferred_total, name = 'Drawdown and Deferred Annuity',line = list(color = 'orange', width = 4))
-    fig <- fig %>% layout(xaxis = list(title = "Years since Retirement"), yaxis = list(title = "Amount Received €", range = c(0, round_any(max(table_df$sorp_total_paid, table_df$drawdown_total_withdrawn, table_df$buy_later_total, table_df$deferred_total),100000,f=ceiling))))
+    fig <- fig %>% add_trace(y = ~table_df$buy_later_total, name = 'Drawdown and Subsequent Annuity Purchase', line = list(color = 'green', width = 4))
+    fig <- fig %>% add_trace(y = ~table_df$deferred_total, name = 'Drawdown and Deferred Annuity', line = list(color = 'orange', width = 4))
+    fig <- fig %>% layout(xaxis = list(title = "Years since Retirement"), yaxis = list(title = "Amount Received €", range = c(0, round_any(max(table_df$annuity_total_paid, table_df$drawdown_total_withdrawn, table_df$buy_later_total, table_df$deferred_total), 100000, f = ceiling))))
     fig <- fig %>% layout(legend = list(orientation = "h", y=1.2))
     fig <- fig %>%
       layout(hovermode = "x unified")
   }),
 
-  observeEvent(input$resim_pd, {
-    updateNumericInputIcon(session, "start_capital_pd", value = input$start_capital_pd + 1)
-    updateNumericInputIcon(session, "start_capital_pd", value = input$start_capital_pd)
+# Observe Event Functions -------------------------------------------------
+  observeEvent(input$pd_withdraw_type_drawdown, {
+    if(input$pd_withdraw_type_drawdown == T) {
+      updateNumericInputIcon(session, "pd_percent_withdrawal_drawdown", value = 4)
+      enable("pd_percent_withdrawal_drawdown")
+      disable("pd_annual_withdrawals_drawdown")
+      updateNumericInputIcon(session, "pd_annual_withdrawals_drawdown", value = NA)
+    } else {
+      updateNumericInputIcon(session, "pd_annual_withdrawals_drawdown", value = 15000)
+      enable("pd_annual_withdrawals_drawdown")
+      disable("pd_percent_withdrawal_drawdown")
+      updateNumericInputIcon(session, "pd_percent_withdrawal_drawdown", value = NA)
+    }
+  }),
+  
+  observeEvent(input$pd_withdraw_type_buylater, {
+    if(input$pd_withdraw_type_buylater == T) {
+      updateNumericInputIcon(session, "pd_percent_withdrawal_buylater", value = 4)
+      enable("pd_percent_withdrawal_buylater")
+      disable("pd_annual_withdrawals_buylater")
+      updateNumericInputIcon(session, "pd_annual_withdrawals_buylater", value = NA)
+    } else {
+      updateNumericInputIcon(session, "pd_annual_withdrawals_buylater", value = 15000)
+      enable("pd_annual_withdrawals_buylater")
+      disable("pd_percent_withdrawal_buylater")
+      updateNumericInputIcon(session, "pd_percent_withdrawal_buylater", value = NA)
+    }
   }),
 
-  observeEvent(input$percent_yn_pd_d,{
-    if(input$percent_yn_pd_d == T) {
-      updateNumericInputIcon(session, "percent_withdrawal_pd_d", value = 4)
-      enable("percent_withdrawal_pd_d")
-      disable("annual_withdrawals_pd_d")
-      updateNumericInputIcon(session, "annual_withdrawals_pd_d", value = NA)
+  observeEvent(input$pd_withdraw_type_deferred, {
+    if(input$pd_withdraw_type_deferred == T) {
+      updateNumericInputIcon(session, "pd_percent_withdrawal_deferred", value = 4)
+      enable("pd_percent_withdrawal_deferred")
+      disable("pd_annual_withdrawals_deferred")
+      updateNumericInputIcon(session, "pd_annual_withdrawals_deferred", value = NA)
     } else {
-      updateNumericInputIcon(session, "annual_withdrawals_pd_d", value = 15000)
-      enable("annual_withdrawals_pd_d")
-      disable("percent_withdrawal_pd_d")
-      updateNumericInputIcon(session, "percent_withdrawal_pd_d", value = NA)
-    }
-  }),
-  
-  observeEvent(input$percent_yn_pd_bl,{
-    if(input$percent_yn_pd_bl == T) {
-      updateNumericInputIcon(session, "percent_withdrawal_pd_bl", value = 4)
-      enable("percent_withdrawal_pd_bl")
-      disable("annual_withdrawals_pd_bl")
-      updateNumericInputIcon(session, "annual_withdrawals_pd_bl", value = NA)
-    } else {
-      updateNumericInputIcon(session, "annual_withdrawals_pd_bl", value = 15000)
-      enable("annual_withdrawals_pd_bl")
-      disable("percent_withdrawal_pd_bl")
-      updateNumericInputIcon(session, "percent_withdrawal_pd_bl", value = NA)
-    }
-  }),
-  
-  observeEvent(input$percent_yn_pd_da,{
-    if(input$percent_yn_pd_da == T) {
-      updateNumericInputIcon(session, "percent_withdrawal_pd_da", value = 4)
-      enable("percent_withdrawal_pd_da")
-      disable("annual_withdrawals_pd_da")
-      updateNumericInputIcon(session, "annual_withdrawals_pd_da", value = NA)
-    } else {
-      updateNumericInputIcon(session, "annual_withdrawals_pd_da", value = 15000)
-      enable("annual_withdrawals_pd_da")
-      disable("percent_withdrawal_pd_da")
-      updateNumericInputIcon(session, "percent_withdrawal_pd_da", value = NA)
+      updateNumericInputIcon(session, "pd_annual_withdrawals_deferred", value = 15000)
+      enable("pd_annual_withdrawals_deferred")
+      disable("pd_percent_withdrawal_deferred")
+      updateNumericInputIcon(session, "pd_percent_withdrawal_deferred", value = NA)
     }
   })
 )

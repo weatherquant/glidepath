@@ -11,7 +11,7 @@ list(
   
   output$text_ex <- renderText({
     ex <- life_ex()
-    return(c(format(round(as.numeric(ex), 2), nsmall = 2, big.mark = ",", scientific=FALSE), " Years"))
+    return(c(round_2d(ex), " Years"))
   }),
   
   output$percent_increase_ex <- renderPlotly({
@@ -32,15 +32,11 @@ list(
                    
     fig <- fig %>%
       layout(xaxis = list(title = "Age (Years)"), yaxis = list(title = "% Increase"))
-      
   }),
-
-  
-
 
   output$interactive_ex <- renderPlot({
     life_ex <- life_ex()
-    life_ex_text = format(round(as.numeric(life_ex), 2), nsmall = 2, big.mark = ",", scientific=FALSE)
+    life_ex_text = round_2d(life_ex)
     df = data.frame(x = c(0, 5, getOmega(ILT15_female_reduced)), y = c(0, 5, 10))
     p = ggplot(data = df, aes(x = x, y = y)) +
       xlim(-10, getOmega(ILT15_female_reduced) + 10) + ylim(0, 4) + xlab("Age") + ylab(NULL) +
@@ -79,12 +75,9 @@ list(
                            angleofneck = -pi/2,
                            color=c("A","B"))
     p + xkcdman(mapping, dataman) + 
-      geom_label(x = c(input$current_age_ex - 10, life_ex + 10, mean(c(input$current_age_ex, life_ex))), y = c(3, 3, 3.75), label = c(input$current_age_ex, life_ex_text, paste0("Life Expectancy = ", format(round(as.numeric(life_ex - input$current_age_ex), 2), nsmall = 2, big.mark = ",", scientific=FALSE))))
+      geom_label(x = c(input$current_age_ex - 10, life_ex + 10, mean(c(input$current_age_ex, life_ex))), y = c(3, 3, 3.75), label = c(input$current_age_ex, life_ex_text, paste0("Life Expectancy = ", round_2d(life_ex - input$current_age_ex))), label.padding = unit(0.4, "lines"), size = c(rep(4, 2), 6.5))
   }),
 
-
-
-  
   output$comparison_ex <- renderPlot({
     ages = input$ages_ex
     deaths = numeric(length(ages))
@@ -116,9 +109,6 @@ list(
                    angleleftleg = angleleftleg,
                    angleofneck = angleofneck,
                    color = color)
-    
-   
-
 
     dataman <- data.frame(x = c(ages, deaths), y = rep(2.75, 4),
                           scale = c(1, 1),
@@ -132,7 +122,8 @@ list(
                           anglerightleg = 3*pi/2  - pi / 12,
                           angleofneck = -pi/2,
                           color=c("A", "B", "A", "B"))
+    
     p + xkcdman(mapping, dataman) + 
-      geom_label(x = c(ages, deaths, mean(c(getOmega(ILT15_female_reduced) + 5, 50))), y = c(rep(3.4, 4), 4), label = c(ages, round_2d(deaths), paste0("Difference in Lifespan = ", round_2d(deaths[2] - deaths[1]), " Years")), label.padding = unit(0.4, "lines"), size = c(rep(4, 4), 6.5))
+      geom_label(x = c(ages, deaths, mean(c(getOmega(table) + 5, 50))), y = c(rep(3.4, 4), 4), label = c(ages, round_2d(deaths), paste0("Difference in Lifespan = ", round_2d(deaths[2] - deaths[1]), " Years")), label.padding = unit(0.4, "lines"), size = c(rep(4, 4), 6.5))
   })
 )

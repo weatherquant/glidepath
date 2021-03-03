@@ -27,11 +27,20 @@ list(
     return(Drawdown_Withdrawals(drawdown_simulations_reactive()))
   }, ignoreNULL = FALSE),
 
+  drawdown_life_ex_reactive <- eventReactive(input$drawdown_resim, {
+    drawdown_inputs = drawdown_inputs()
+    ex = exn(ILT15_female_reduced, drawdown_inputs$drawdown_retire_age)
+    return(round_to_fraction(ex, p_list[match(drawdown_inputs$drawdown_withdraw_freq, freq_list_drawdown)]))
+  }, ignoreNULL = FALSE),
+
 # Output Functions --------------------------------------------------------
   output$drawdown_text_life_ex <- renderText({
     drawdown_inputs = drawdown_inputs()
-    ex = exn(ILT15_female_reduced, drawdown_inputs$drawdown_retire_age)
-    return(c(round_2d(ex), " Years"))
+    if(drawdown_inputs$drawdown_withdraw_freq == "Annually"){
+      return(c(drawdown_life_ex_reactive(), " Years"))
+    } else {
+      return(c(round_2d(drawdown_life_ex_reactive()), " Years"))
+    }
   }),
   
   output$drawdown_text_average_fund_life_ex <- renderText({
@@ -52,16 +61,25 @@ list(
   
   output$drawdown_table <- renderDataTable({
     drawdown_inputs = drawdown_inputs()
-    freq = p_list[match(drawdown_inputs$drawdown_withdraw_freq, freq_list)]
+    freq = p_list[match(drawdown_inputs$drawdown_withdraw_freq, freq_list_drawdown)]
     series = c(1, (freq * seq(1, (length(drawdown_paths_reactive()[1, ]) / freq), 1)) + 1)
+    points = c(drawdown_life_ex_reactive())
+    colour = c('yellow')
     return(Drawdown_Table(Drawdown_Paths = drawdown_paths_reactive(),
                           Drawdown_Withdrawals = drawdown_withdrawals_reactive(),
                           freq = drawdown_inputs$drawdown_withdraw_freq, 
-                          series = series))
+                          series = series,
+                          points = points,
+                          colour = colour))
   }),
   
   output$drawdown_plot_sims <- renderPlot({
     return(Drawdown_Plot_Sims(Drawdown_Paths = drawdown_paths_reactive(), n_sims = 25))
+  }),
+
+  output$drawdown_plot_percentiles <- renderPlotly({
+    drawdown_inputs = drawdown_inputs()
+    return(Drawdown_Plot_Percentile(Drawdown_Paths = drawdown_paths_reactive(), Drawdown_Withdrawals = drawdown_withdrawals_reactive(), freq = drawdown_inputs$drawdown_withdraw_freq, lower = 0.25, upper = 0.75))
   }),
 
 # Observe Event Functions -------------------------------------------------

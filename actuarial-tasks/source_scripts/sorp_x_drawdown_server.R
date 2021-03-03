@@ -19,8 +19,8 @@ list(
   sd_annuity_spouse_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4}, {
     sd_inputs = sd_inputs()
     if(sd_inputs$sd_relationship == 2){
-      return(SORP_Annuity(age_1 = sd_inputs$sd_age_spouse[1], 
-                          age_2 = sd_inputs$sd_age_spouse[2], 
+      return(SORP_Annuity(age_1 = sd_inputs$sd_age[1], 
+                          age_2 = sd_inputs$sd_age[2], 
                           relationship = sd_inputs$sd_relationship, 
                           freq = sd_inputs$sd_post_freq_spouse, 
                           annuity_interest = sd_inputs$sd_annuity_interest, 
@@ -53,8 +53,8 @@ list(
   sd_contributions_spouse_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4}, {
     sd_inputs = sd_inputs()
     if(sd_inputs$sd_relationship == 2){
-      return(SORP_Contributions(age_1 = sd_inputs$sd_age_spouse[1], 
-                                age_2 = sd_inputs$sd_age_spouse[2], 
+      return(SORP_Contributions(age_1 = sd_inputs$sd_age[1], 
+                                age_2 = sd_inputs$sd_age[2], 
                                 salary = sd_inputs$sd_salary_spouse, 
                                 current_fundvalue = sd_inputs$sd_current_fundvalue_spouse, 
                                 freq = sd_inputs$sd_pre_freq_spouse, 
@@ -75,16 +75,14 @@ list(
 
   sd_fund_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4}, {
     sd_inputs = sd_inputs()
-    return(SORP_Fund(SORP_Contributions = sd_contributions_reactive(), 
-                     freq = sd_inputs$sd_pre_freq))
+    return(SORP_Fund(SORP_Contributions = sd_contributions_reactive()))
     
   }, ignoreNULL = FALSE),
 
   sd_fund_spouse_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4}, {
     sd_inputs = sd_inputs()
     if(sd_inputs$sd_relationship == 2){
-      return(SORP_Fund(SORP_Contributions = sd_contributions_spouse_reactive(), 
-                       freq = sd_inputs$sd_pre_freq_spouse))
+      return(SORP_Fund(SORP_Contributions = sd_contributions_spouse_reactive()))
       } else {
           return(NULL)
       }
@@ -143,12 +141,8 @@ list(
 
   sd_life_ex_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4}, {
     sd_inputs = sd_inputs()
-    if(sd_inputs$sd_relationship != 1){
-      ex = max(exn(ILT15_female_reduced, sd_inputs$sd_age[2]), exn(ILT15_male_reduced, sd_inputs$sd_age_spouse[2]))
-    } else {
-      ex = exn(ILT15_female_reduced, sd_inputs$sd_age[2])
-    }
-    return(ex)
+    return(round_to_fraction(exn(ILT15_female_reduced, sd_inputs$sd_age[2]), p_list[match(sd_inputs$sd_withdraw_freq, freq_list_drawdown)]))
+    
   }, ignoreNULL = FALSE),
 
 # Output Functions - SORP -------------------------------------------------
@@ -180,8 +174,8 @@ list(
   output$sd_text_fundvalue_discounted_spouse <- renderText({
     sd_inputs = sd_inputs()
     discounted_fund_spouse = SORP_Discount(x = sd_fund_spouse_reactive(),
-                                    age_1 = sd_inputs$sd_age_spouse[1], 
-                                    age_2 = sd_inputs$sd_age_spouse[2],
+                                    age_1 = sd_inputs$sd_age[1], 
+                                    age_2 = sd_inputs$sd_age[2],
                                     discount_rate = sd_inputs$sd_discount_rate)
     return(c("€", round_2d(discounted_fund_spouse)))
   }),
@@ -198,18 +192,20 @@ list(
   output$sd_text_pension_payment_discounted_spouse <- renderText({
     sd_inputs = sd_inputs()
     discounted_pension_payment_spouse = SORP_Discount(x = sd_pension_payment_spouse_reactive(),
-                                                      age_1 = sd_inputs$sd_age_spouse[1], 
-                                                      age_2 = sd_inputs$sd_age_spouse[2],
+                                                      age_1 = sd_inputs$sd_age[1], 
+                                                      age_2 = sd_inputs$sd_age[2],
                                                       discount_rate = sd_inputs$sd_discount_rate)
     return(c("€", round_2d(discounted_pension_payment_spouse)))
   }),
 
   output$sd_plot_fundvalue <- renderPlot({
-    SORP_Plot_FundValue(SORP_Contributions = sd_contributions_reactive())
+    sd_inputs = sd_inputs()
+    SORP_Plot_FundValue(SORP_Contributions = sd_contributions_reactive(), freq = sd_inputs$sd_pre_freq)
   }),
 
   output$sd_plot_fundvalue_spouse <- renderPlot({
-    SORP_Plot_FundValue(SORP_Contributions = sd_contributions_spouse_reactive())
+    sd_inputs = sd_inputs()
+    SORP_Plot_FundValue(SORP_Contributions = sd_contributions_spouse_reactive(), freq = sd_inputs$sd_pre_freq_spouse)
   }),
 
   output$sd_table_contributions <- renderDataTable({
@@ -226,7 +222,12 @@ list(
 
 # Output Functions - Drawdown ---------------------------------------------
   output$sd_text_life_ex <- renderText({
-    return(c(round_2d(sd_life_ex_reactive()), " Years"))
+    sd_inputs = sd_inputs()
+    if(sd_inputs$sd_withdraw_freq == "Annually"){
+      return(c(sd_life_ex_reactive(), " Years"))
+    } else {
+      return(c(round_2d(sd_life_ex_reactive()), " Years"))
+    }
   }),
 
   output$sd_text_average_fund_life_ex <- renderText({
@@ -247,7 +248,7 @@ list(
 
   output$sd_table <- renderDataTable({
     sd_inputs = sd_inputs()
-    freq = p_list[match(sd_inputs$sd_withdraw_freq, freq_list)]
+    freq = p_list[match(sd_inputs$sd_withdraw_freq, freq_list_drawdown)]
     series = c(1, (freq * seq(1, (length(sd_paths_reactive()[1, ]) / freq), 1)) + 1)
     return(Drawdown_Table(Drawdown_Paths = sd_paths_reactive(),
                           Drawdown_Withdrawals = sd_withdrawals_reactive(),
@@ -257,6 +258,11 @@ list(
 
   output$sd_plot_sims <- renderPlot({
     return(Drawdown_Plot_Sims(Drawdown_Paths = sd_paths_reactive(), n_sims = 25))
+  }),
+
+  output$sd_plot_percentiles <- renderPlotly({
+    sd_inputs = sd_inputs()
+    return(Drawdown_Plot_Percentile(Drawdown_Paths = sd_paths_reactive(), Drawdown_Withdrawals = sd_withdrawals_reactive(), freq = sd_inputs$sd_withdraw_freq, lower = 0.25, upper = 0.75))
   }),
 
 # Observe Event Functions -------------------------------------------------

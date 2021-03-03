@@ -30,26 +30,43 @@ list(
 
   bh_life_ex_widowed_reactive <- eventReactive(input$bh_resim, {
     bh_inputs = bh_inputs()
-    return(exn(BrokenHeart_LifeTable(widowed_status = TRUE, widowed_age = bh_inputs$bh_age_widowed, gender = bh_inputs$bh_gender), bh_inputs$bh_age_current))
+    ex = exn(BrokenHeart_LifeTable(widowed_status = TRUE, widowed_age = bh_inputs$bh_age_widowed, gender = bh_inputs$bh_gender), bh_inputs$bh_age_current)
+    return(round_to_fraction(ex, p_list[match(bh_inputs$bh_withdraw_freq, freq_list_drawdown)]))
   }, ignoreNULL = FALSE),
 
   bh_life_ex_not_widowed_reactive <- eventReactive(input$bh_resim, {
     bh_inputs = bh_inputs()
-    return(exn(BrokenHeart_LifeTable(widowed_status = FALSE, gender = bh_inputs$bh_gender), bh_inputs$bh_age_current))
+    ex = exn(BrokenHeart_LifeTable(widowed_status = FALSE, gender = bh_inputs$bh_gender), bh_inputs$bh_age_current)
+    return(round_to_fraction(ex, p_list[match(bh_inputs$bh_withdraw_freq, freq_list_drawdown)]))
   }, ignoreNULL = FALSE),
 
 # Output Functions --------------------------------------------------------
   output$bh_text_life_ex_widowed <- renderText({
-    return(c(round_2d(bh_life_ex_widowed_reactive()), " Years"))
+    bh_inputs = bh_inputs()
+    if(bh_inputs$bh_withdraw_freq == "Annually"){
+      return(c(bh_life_ex_widowed_reactive(), " Years"))
+    } else {
+      return(c(round_2d(bh_life_ex_widowed_reactive()), " Years"))
+    }
   }),
 
   output$bh_text_life_ex_not_widowed <- renderText({
-    return(c(round_2d(bh_life_ex_not_widowed_reactive()), " Years"))
-  }),  
+    bh_inputs = bh_inputs()
+    if(bh_inputs$bh_withdraw_freq == "Annually"){
+      return(c(bh_life_ex_not_widowed_reactive(), " Years"))
+    } else {
+      return(c(round_2d(bh_life_ex_not_widowed_reactive()), " Years"))
+    }
+  }),
   
   output$bh_text_life_ex_diff <- renderText({
+    bh_inputs = bh_inputs()
     diff = bh_life_ex_not_widowed_reactive() - bh_life_ex_widowed_reactive()
-    return(c(round_2d(diff), " Years"))
+    if(bh_inputs$bh_withdraw_freq == "Annually"){
+      return(c(diff, " Years"))
+    } else {
+      return(c(round_2d(diff), " Years"))
+    }
   }),
   
   output$bh_text_average_fund_life_ex_widowed <- renderText({
@@ -102,9 +119,9 @@ list(
   
   output$bh_table <- renderDataTable({
     bh_inputs = bh_inputs()
-    freq = p_list[match(bh_inputs$bh_withdraw_freq, freq_list)]
+    freq = p_list[match(bh_inputs$bh_withdraw_freq, freq_list_drawdown)]
     series = c(1, (freq * seq(1, (length(bh_paths_reactive()[1, ]) / freq), 1)) + 1)
-    points = (freq * c(round_to_fraction(bh_life_ex_widowed_reactive(), freq), round_to_fraction(bh_life_ex_not_widowed_reactive(), freq))) + 1
+    points = c(bh_life_ex_widowed_reactive(), bh_life_ex_not_widowed_reactive())
     colour = c('yellow', 'orange')
     return(Drawdown_Table(Drawdown_Paths = bh_paths_reactive(),
                           Drawdown_Withdrawals = bh_withdrawals_reactive(),
@@ -116,6 +133,11 @@ list(
 
   output$bh_plot_sims <- renderPlot({
     return(Drawdown_Plot_Sims(Drawdown_Paths = bh_paths_reactive(), n_sims = 25))
+  }),
+
+  output$bh_plot_percentiles <- renderPlotly({
+    bh_inputs = bh_inputs()
+    return(Drawdown_Plot_Percentile(Drawdown_Paths = bh_paths_reactive(), Drawdown_Withdrawals = bh_withdrawals_reactive(), freq = bh_inputs$sd_withdraw_freq, lower = 0.25, upper = 0.75))
   }),
 
   output$bh_qx_change_plot <- renderPlotly({

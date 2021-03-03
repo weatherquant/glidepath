@@ -8,8 +8,8 @@ library(plotly)
 library(readxl)
 library(writexl)
 library(janitor)
+library(plyr)
 library(xkcd)
-# library(plyr)
 
 library(lifecontingencies)
 options(scipen=999)
@@ -69,6 +69,7 @@ BrokenHeart_LifeTable <- function(widowed_status = FALSE, widowed_age = NULL, ge
 
 # Frequencies -------------------------------------------------------------
 freq_list = c("Annually", "Semi-Annually", "Quarterly", "Bi-Monthly", "Monthly", "Fortnightly", "Weekly", "Daily")
+freq_list_drawdown = c("Annually", "Semi-Annually", "Quarterly (Slow)", "Bi-Monthly (Very Slow)", "Monthly (Extremely Slow)")
 p_list = c(1, 2, 4, 6, 12, 26, 52, 365)
 
 # Rounding to 2 Decimal Places --------------------------------------------
@@ -87,10 +88,10 @@ ui <- dashboardPage(
             menuItem("SORP Calculator", tabName = "sorp"),
             menuItem("Drawdown Simulator", tabName = "drawdown"),
             menuItem("SORP & Drawdown", tabName = "sorp_x_drawdown"),
-            # menuItem("Partial Drawdown Simulator", tabName = "partial_drawdown"),
+            menuItem("Partial Drawdown Simulator", tabName = "partial_drawdown"),
             menuItem("Broken Heart", tabName = "broken_heart"),
             menuItem("SORP Import", tabName = "sorp_import"),
-            menuItem("Life Expectancy Visualisation", tabName = 'life_ex')
+            menuItem("Life Expectancy Visualisations", tabName = 'life_ex')
         )
     ),
 
@@ -102,7 +103,7 @@ ui <- dashboardPage(
                 tabItem(tabName = 'sorp', source("source_scripts/sorp_ui.R", local = TRUE)[1]),
                 tabItem(tabName = 'drawdown', source("source_scripts/drawdown_ui.R", local = TRUE)[1]),
                 tabItem(tabName = 'sorp_x_drawdown', source("source_scripts/sorp_x_drawdown_ui.R", local = TRUE)[1]),
-                # tabItem(tabName = 'partial_drawdown', source("source_scripts/partial_drawdown_ui.R", local = TRUE)[1]),
+                tabItem(tabName = 'partial_drawdown', source("source_scripts/partial_drawdown_ui.R", local = TRUE)[1]),
                 tabItem(tabName = 'broken_heart', source("source_scripts/broken_heart_ui.R", local = TRUE)[1]),
                 tabItem(tabName = 'sorp_import', source("source_scripts/sorp_import_ui.R", local = TRUE)[1]),
                 tabItem(tabName = 'life_ex', source("source_scripts/life_ex_ui.R", local = TRUE)[1])
@@ -118,7 +119,7 @@ server <- function(input, output, session) {
     source("source_scripts/sorp_server.R", local = TRUE)[1]
     source("source_scripts/drawdown_server.R", local = TRUE)[1]
     source("source_scripts/sorp_x_drawdown_server.R", local = TRUE)[1]
-    # source("source_scripts/partial_drawdown_server.R", local = TRUE)[1]
+    source("source_scripts/partial_drawdown_server.R", local = TRUE)[1]
     source("source_scripts/broken_heart_server.R", local = TRUE)[1]
     source("source_scripts/sorp_import_server.R", local = TRUE)[1]
     source("source_scripts/life_ex_server.R", local = TRUE)[1]

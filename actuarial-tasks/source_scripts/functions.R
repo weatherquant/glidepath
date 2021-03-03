@@ -67,21 +67,21 @@ list(
     
     contributions_interest = effective2Convertible(i = contributions_interest_annual, k = freq) / freq
     
-    fundValueX = numeric((age_2 - age_1)*freq + 2)
-    ages = numeric((age_2 - age_1)*freq + 2)
-    ages_exact = numeric((age_2 - age_1)*freq + 2)
-    periods = numeric((age_2 - age_1)*freq + 2)
-    EEContribution = numeric((age_2 - age_1)*freq + 2)
-    ERContribution = numeric((age_2 - age_1)*freq + 2)
-    totalContribution = numeric((age_2 - age_1)*freq + 2)
-    interestOnFund = numeric((age_2 - age_1)*freq + 2)
+    fundValueX = numeric((age_2 - age_1)*freq + 1)
+    ages = numeric((age_2 - age_1)*freq + 1)
+    ages_exact = numeric((age_2 - age_1)*freq + 1)
+    periods = numeric((age_2 - age_1)*freq + 1)
+    EEContribution = numeric((age_2 - age_1)*freq + 1)
+    ERContribution = numeric((age_2 - age_1)*freq + 1)
+    totalContribution = numeric((age_2 - age_1)*freq + 1)
+    interestOnFund = numeric((age_2 - age_1)*freq + 1)
     
     ages[1] = age_1 - 1
     ages_exact[1] = age_1 - 1/freq
     periods[1] = freq
     fundValueX[1] = current_fundvalue
     
-    for (m in 2:((age_2 - age_1)*freq + 2)){
+    for (m in 2:((age_2 - age_1)*freq + 1)){
       ages[m] = ages[m-1]
       ages_exact[m] = ages_exact[m - 1] + 1 / freq
       periods[m] = periods[m - 1] + 1
@@ -110,8 +110,7 @@ list(
     return(df_fund)
   },
   
-  SORP_Fund <- function(SORP_Contributions, freq){
-    freq = p_list[match(input$sorp_pre_freq, freq_list)]
+  SORP_Fund <- function(SORP_Contributions){
     fund_FV <- SORP_Contributions[length(SORP_Contributions[, "FundValue"]), "FundValue"]
     return(fund_FV)
   },
@@ -127,10 +126,15 @@ list(
     return(x * discount_factor)
   },
 
+  SORP_Cumulative_Payments <- function(SORP_Pension_Payment, time){
+    return(SORP_Pension_Payment * time)
+  },
+
 # To Finalize
-  SORP_Plot_FundValue <- function(SORP_Contributions){
+  SORP_Plot_FundValue <- function(SORP_Contributions, freq){
+    freq = p_list[match(freq, freq_list)]
     AgeandFundValue <- SORP_Contributions %>% select(age_exact, FundValue)
-    p <- ggplot(AgeandFundValue, aes(x = age_exact, y = FundValue, fill = "#4A8DBF", colour = "#4A8DBF")) +
+    p <- ggplot(AgeandFundValue, aes(x = age_exact + (1 / freq), y = FundValue, fill = "#4A8DBF", colour = "#4A8DBF")) +
       geom_bar(stat = "identity", colour = "#4A8DBF", fill = "#4A8DBF") + 
       labs(x = "Age", y = "Fund Value", fill = NULL, color = NULL) +
       scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(expand = c(0, 0)) + 
@@ -158,7 +162,7 @@ list(
 # Drawdown Functions ------------------------------------------------------
   Drawdown_Simulations <- function(retire_age, start_capital, withdraw_freq, annual_mean_return, annual_ret_std_dev, annual_inflation, annual_inf_std_dev, n_sim = 10000, withdraw_type = F, annual_withdrawals = 15000, percent_withdrawal = 4, life_table = ILT15_female_reduced, end_age = NA){
     
-    p = p_list[match(withdraw_freq, freq_list)]
+    p = p_list[match(withdraw_freq, freq_list_drawdown)]
     
     # Investment
     annual_mean_return = annual_mean_return / 100
@@ -265,9 +269,9 @@ list(
   },
 
   Drawdown_Mean_Life_Ex <- function(Drawdown_Paths, freq, age = NULL, ex = NULL, lifetable = ILT15_female_reduced){
-    freq = p_list[match(freq, freq_list)]
+    freq = p_list[match(freq, freq_list_drawdown)]
     if(is.null(ex)){
-      ex = exn(lifetable, age)
+      ex = round_to_fraction(exn(lifetable, age), freq)
     }
     time = round((freq * ex) + 1)
     return(Drawdown_Mean(Drawdown_Paths, time))
@@ -278,9 +282,9 @@ list(
   },
 
   Drawdown_Ruin_Life_Ex <- function(Drawdown_Paths, freq, age = NULL, ex = NULL, lifetable = ILT15_female_reduced, ruin_value = 0){
-    freq = p_list[match(freq, freq_list)]
+    freq = p_list[match(freq, freq_list_drawdown)]
     if(is.null(ex)){
-      ex = exn(lifetable, age)
+      ex = round_to_fraction(exn(lifetable, age), freq)
     }
     time = round((freq * ex) + 1)
     return(Drawdown_Ruin_Prob(Drawdown_Paths, time, ruin_value))
@@ -295,17 +299,17 @@ list(
   },
 
   Drawdown_Total_Withdrawals_Life_Ex <- function(Drawdown_Withdrawals, freq, age = NULL, ex = NULL, lifetable = ILT15_female_reduced){
-    freq = p_list[match(freq, freq_list)]
+    freq = p_list[match(freq, freq_list_drawdown)]
     if(is.null(ex)){
-      ex = exn(lifetable, age)
+      ex = round_to_fraction(exn(lifetable, age), freq)
     }
     time = round((freq * ex) + 1)
     return(Drawdown_Total_Withdrawals(Drawdown_Withdrawals, time))
   },
 
 # To Finalize
-  Drawdown_DataFrame <- function(Drawdown_Paths, Drawdown_Withdrawals, freq, ruin_value = 0, lower = 0.25, upper = 0.75){
-    freq = p_list[match(freq, freq_list)]
+  Drawdown_DataFrame <- function(Drawdown_Paths, Drawdown_Withdrawals, freq, lower = 0.25, upper = 0.75, ruin_value = 0){
+    freq = p_list[match(freq, freq_list_drawdown)]
   
     total_withdrawn = numeric(length(Drawdown_Withdrawals[1, ]))
     average = numeric(length(Drawdown_Paths[1, ]))
@@ -328,21 +332,23 @@ list(
   },
 
 # To Finalize
-  Drawdown_Table <- function(Drawdown_Paths, Drawdown_Withdrawals, freq, series = NULL, points = NULL, colour = NULL, ruin_value = 0, lower = 0.25, upper = 0.75){
-    dataframe = Drawdown_DataFrame(Drawdown_Paths, Drawdown_Withdrawals, freq, ruin_value, lower, upper)
+  Drawdown_Table <- function(Drawdown_Paths, Drawdown_Withdrawals, freq, series = NULL, points = NULL, colour = NULL, lower = 0.25, upper = 0.75, ruin_value = 0){
+    dataframe = Drawdown_DataFrame(Drawdown_Paths = Drawdown_Paths, Drawdown_Withdrawals = Drawdown_Withdrawals, freq = freq, lower = lower, upper = upper, ruin_value = ruin_value)
+    freq = p_list[match(freq, freq_list_drawdown)]
     if(!is.null(points)){
-      series = sort(unique(c(series, points)))
+      series = sort(unique(c(series, ((freq * points) + 1))))
     }
     if(!is.null(series)){
       dataframe = dataframe[series, ]
     }
-    colnames(dataframe) = c("Years", "Total Withdrawn", "Average Fund Value", "Probability of Ruin", "Lower Bound", "Median", "Upper Bound")
+    colnames(dataframe) = c("Years", "Total Withdrawn", "Average Fund Value", "Probability of Ruin", "25th Percentile", "Median", "75th Percentile")
     table <- datatable(dataframe, options = list(paging = FALSE, searching = FALSE, info = FALSE, columnDefs = list(list(className = 'dt-center', targets = "_all"))), rownames = FALSE)
-    table <- formatCurrency(table, columns = c("Total Withdrawn", "Average Fund Value", "Lower Bound", "Median", "Upper Bound"), currency = "€")
+    table <- formatCurrency(table, columns = c("Total Withdrawn", "Average Fund Value", "25th Percentile", "Median", "75th Percentile"), currency = "€")
     table <- formatPercentage(table, columns = "Probability of Ruin", digits = 2)
+    table <- formatStyle(table, c(1, 4), `border-right` = "solid 1px")
     if(!is.null(points)){
       for(i in 1:length(points)){
-        table <- formatStyle(table, 'Years', target = 'row', backgroundColor = styleEqual(points[i], colour[i]))
+        table <- formatStyle(table, "Years", target = 'row', backgroundColor = styleEqual(points[i], colour[i]))
       }
     }
     return(table)
@@ -350,12 +356,123 @@ list(
 
 # To Finalize
   Drawdown_Plot_Sims <- function(Drawdown_Paths, n_sims = 25){
-      dat <- vector("list", n_sims)
-      p <- ggplot()
-      for (i in seq(n_sims)){
-        dat[[i]] <- data.frame(time = (0:(length(Drawdown_Paths[1, ]) - 1)), capital = Drawdown_Paths[i, ])
-        p <- p + geom_line(data = dat[[i]], mapping = aes(x = time, y = capital), col = i)
+    dat <- vector("list", n_sims)
+    p <- ggplot()
+    for (i in seq(n_sims)){
+      dat[[i]] <- data.frame(time = (0:(length(Drawdown_Paths[1, ]) - 1)), capital = Drawdown_Paths[i, ])
+      p <- p + geom_line(data = dat[[i]], mapping = aes(x = time, y = capital), col = i) + labs(x = "Time", y = "Fund Value") +
+        scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(labels = scales::dollar_format(prefix = "€"), expand = c(0, 0)) +
+        theme(legend.position = "none", 
+              axis.text.x = element_text(size = 10), axis.text.y = element_text(size = 10),
+              axis.title.x = element_text(margin = margin(t = 15, r = 0, b = 0, l = 0)),
+              axis.title.y = element_text(margin = margin(t = 0, r = 15, b = 0, l = 0)))
+    }
+    return(p)
+  },
+
+# To Finalize
+  Drawdown_Plot_Percentile <- function(Drawdown_Paths, Drawdown_Withdrawals, freq, lower = 0.25, upper = 0.75, ruin_value = 0){
+    dataframe = Drawdown_DataFrame(Drawdown_Paths = Drawdown_Paths, Drawdown_Withdrawals = Drawdown_Withdrawals, freq = freq, lower = lower, upper = upper, ruin_value = ruin_value)
+    fig <- plot_ly(dataframe, x = ~dataframe$years, y = ~dataframe$median, name = "Median", type = "scatter", mode = "lines", line = list(color = 'blue', width = 4))
+    fig <- fig %>% add_trace(y = ~dataframe$lower_bound, name = '25th Percentile',line = list(color = 'red', width = 4))
+    fig <- fig %>% add_trace(y = ~dataframe$upper_bound, name = '75th Percentile',line = list(color = 'green', width = 4))
+    fig <- fig %>% layout(xaxis = list(title = "Years"), yaxis = list(title = "Average Fund Value €"))
+    fig <- fig %>% layout(legend = list(orientation = "h", y=1.2))
+    fig <- fig %>% layout(hovermode = "x unified")
+  },
+
+# Partial Drawdown Functions ----------------------------------------------
+  Partial_Drawdown_DataFrame <- function(age_1, age_2, freq, annuity_payment, Drawdown_Paths, Drawdown_Withdrawals, buy_later_average_annuity_payment, BuyLater_Paths, BuyLater_Withdrawals, Deferred_Paths, Deferred_Withdrawals, lifetable = ILT15_female_reduced){
+    freq = p_list[match(freq, freq_list_drawdown)]
+    
+    annuity_total_paid = numeric(length(Drawdown_Paths[1, ]))
+    drawdown_total_withdrawn = numeric(length(Drawdown_Paths[1, ]))
+    drawdown_average_fund = numeric(length(Drawdown_Paths[1, ]))
+    drawdown_prob_ruin = numeric(length(Drawdown_Paths[1, ]))
+    buy_later_total_withdrawn = numeric(length(Drawdown_Paths[1, ]))
+    buy_later_average_fund = numeric(length(Drawdown_Paths[1, ]))
+    buy_later_prob_ruin = numeric(length(Drawdown_Paths[1, ]))
+    buy_later_total_paid_annuity = numeric(length(Drawdown_Paths[1, ]))
+    deferred_total_withdrawn = numeric(length(Drawdown_Paths[1, ]))
+    deferred_average_fund = numeric(length(Drawdown_Paths[1, ]))
+    deferred_prob_ruin = numeric(length(Drawdown_Paths[1, ]))
+    deferred_total_paid_annuity = numeric(length(Drawdown_Paths[1, ]))
+    years = c(seq(0, ((length(Drawdown_Paths[1, ]) - 1) / freq), by = 1/freq))
+    
+    for(i in 1:length(Drawdown_Paths[1, ])){
+      annuity_total_paid[i] = (i - 1) * annuity_payment
+      drawdown_total_withdrawn[i] = Drawdown_Total_Withdrawals(Drawdown_Withdrawals, i)
+      drawdown_average_fund[i] = Drawdown_Mean(Drawdown_Paths, i)
+      drawdown_prob_ruin[i] = Drawdown_Ruin_Prob(Drawdown_Paths, i)
+      
+      if(i <= (freq * (age_2 - age_1) + 1)){
+        buy_later_total_withdrawn[i] = Drawdown_Total_Withdrawals(BuyLater_Withdrawals, i)
+        buy_later_average_fund[i] = Drawdown_Mean(BuyLater_Paths, i)
+        buy_later_prob_ruin[i] = Drawdown_Ruin_Prob(BuyLater_Paths, i)
+        deferred_total_withdrawn[i] = Drawdown_Total_Withdrawals(Deferred_Withdrawals, i)
+        deferred_average_fund[i] = Drawdown_Mean(Deferred_Paths, i)
+        deferred_prob_ruin[i] = Drawdown_Ruin_Prob(Deferred_Paths, i)
+        
+      } else if (i == (freq * (age_2 - age_1)) + 2){
+        buy_later_total_paid_annuity[i] = buy_later_average_annuity_payment
+        buy_later_total_withdrawn[i] = buy_later_total_withdrawn[i - 1]
+        deferred_total_paid_annuity[i] = annuity_payment
+        deferred_total_withdrawn[i] = deferred_total_withdrawn[i - 1] + deferred_average_fund[i - 1]
+        
+      } else {
+        buy_later_total_paid_annuity[i] = (i - (freq * (age_2 - age_1 + 1))) * buy_later_average_annuity_payment
+        buy_later_total_withdrawn[i] = buy_later_total_withdrawn[i - 1]
+        deferred_total_paid_annuity[i] = (i - (freq * (age_2 - age_1 + 1))) * annuity_payment
+        deferred_total_withdrawn[i] = deferred_total_withdrawn[i - 1]
       }
-      return(p)
+    }
+    buy_later_total = buy_later_total_paid_annuity + buy_later_total_withdrawn
+    deferred_total = deferred_total_paid_annuity + deferred_total_withdrawn
+    
+    table_df = data.frame(years, annuity_total_paid,
+                          drawdown_total_withdrawn, drawdown_average_fund, drawdown_prob_ruin,
+                          buy_later_total, buy_later_average_fund,
+                          deferred_total, deferred_average_fund, deferred_prob_ruin)
+    
+    return(table_df)
+  },
+
+  Partial_Drawdown_Comparison_Table <- function(age_1, age_2, freq, annuity_payment, Drawdown_Paths, Drawdown_Withdrawals, buy_later_average_annuity_payment, BuyLater_Paths, BuyLater_Withdrawals, Deferred_Paths, Deferred_Withdrawals, series = NULL, points = NULL, colour = NULL, lifetable = ILT15_female_reduced){
+    table_df = Partial_Drawdown_DataFrame(age_1 = age_1, age_2 = age_2, freq = freq, annuity_payment = annuity_payment, Drawdown_Paths = Drawdown_Paths, Drawdown_Withdrawals = Drawdown_Withdrawals, buy_later_average_annuity_payment = buy_later_average_annuity_payment, BuyLater_Paths = BuyLater_Paths, BuyLater_Withdrawals = BuyLater_Withdrawals, Deferred_Paths = Deferred_Paths, Deferred_Withdrawals = Deferred_Withdrawals, lifetable = lifetable)
+    if(!is.null(points)){
+      series = sort(unique(c(series, points)))
+    }
+    if(!is.null(series)){
+      table_df = table_df[series, ]
+    }
+  
+    container = htmltools::withTags(table(
+      class = 'display',
+      thead(
+        tr(
+          th(rowspan = 2, 'Year', style = "text-align:center; border-right: solid 1px"),
+          th(colspan = 1, '100% Annuity', style = "text-align:center; border-right: solid 1px"),
+          th(colspan = 3, '100% Drawdown', style = "text-align:center; border-right: solid 1px"),
+          th(colspan = 2, 'Drawdown and Subsequent Annuity Purchase', style = "text-align:center; border-right: solid 1px"),
+          th(colspan = 3, 'Drawdown and Deferred Annuity', style = "text-align:center")
+        ),
+        tr(
+          th('Total Received', style = "border-right: solid 1px;"),
+          th('Total Withdrawn'), th('Average Fund'), th('Prob of Ruin', style = "border-right: solid 1px;"),
+          th('Total Withdrawn / Received'), th('Average Fund', style = "border-right: solid 1px;"),
+          th('Total Withdrawn / Received'), th('Average Fund'), th('Prob of Ruin')
+        )
+      )
+    ))
+    table <- datatable(table_df, container = container, options = list(paging = FALSE, searching = FALSE), rownames= FALSE) %>%
+      formatCurrency(columns = c(2, 3, 4, 6, 7, 8, 9), currency = "€") %>%
+      formatPercentage(columns = c(5, 10), digits = 2) %>%
+      formatStyle(c(1, 2, 5, 7), `border-right` = "solid 1px")
+    if(!is.null(points)){
+      for(i in 1:length(points)){
+        table <- formatStyle(table, 'Years', target = 'row', backgroundColor = styleEqual(points[i], colour[i]))
+      }
+    }
+    return(table)
   }
 )
