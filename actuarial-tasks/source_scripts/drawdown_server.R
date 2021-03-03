@@ -29,8 +29,7 @@ list(
 
   drawdown_life_ex_reactive <- eventReactive(input$drawdown_resim, {
     drawdown_inputs = drawdown_inputs()
-    ex = exn(ILT15_female_reduced, drawdown_inputs$drawdown_retire_age)
-    return(round_to_fraction(ex, p_list[match(drawdown_inputs$drawdown_withdraw_freq, freq_list_drawdown)]))
+    return(round_to_fraction(exn(ILT15_female_reduced, drawdown_inputs$drawdown_retire_age), p_list[match(drawdown_inputs$drawdown_withdraw_freq, freq_list_drawdown)]))
   }, ignoreNULL = FALSE),
 
 # Output Functions --------------------------------------------------------
@@ -62,12 +61,12 @@ list(
   output$drawdown_table <- renderDataTable({
     drawdown_inputs = drawdown_inputs()
     freq = p_list[match(drawdown_inputs$drawdown_withdraw_freq, freq_list_drawdown)]
-    series = c(1, (freq * seq(1, (length(drawdown_paths_reactive()[1, ]) / freq), 1)) + 1)
-    points = c(drawdown_life_ex_reactive())
-    colour = c('yellow')
+    series = list(1, (freq * seq(5, (length(drawdown_paths_reactive()[1, ]) / freq), 5)) + 1)
+    points = list(drawdown_life_ex_reactive())
+    colour = list('yellow')
     return(Drawdown_Table(Drawdown_Paths = drawdown_paths_reactive(),
                           Drawdown_Withdrawals = drawdown_withdrawals_reactive(),
-                          freq = drawdown_inputs$drawdown_withdraw_freq, 
+                          freq = drawdown_inputs$drawdown_withdraw_freq,
                           series = series,
                           points = points,
                           colour = colour))

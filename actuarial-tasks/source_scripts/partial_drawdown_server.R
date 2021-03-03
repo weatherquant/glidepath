@@ -192,20 +192,12 @@ list(
   }),
 
 # Output Functions - Table and Plot ------------------------------------------------
-output$drawdown_table <- renderDataTable({
-  drawdown_inputs = drawdown_inputs()
-  freq = p_list[match(drawdown_inputs$drawdown_withdraw_freq, freq_list_drawdown)]
-  series = c(1, (freq * seq(1, (length(drawdown_paths_reactive()[1, ]) / freq), 1)) + 1)
-  return(Drawdown_Table(Drawdown_Paths = drawdown_paths_reactive(),
-                        Drawdown_Withdrawals = drawdown_withdrawals_reactive(),
-                        freq = drawdown_inputs$drawdown_withdraw_freq, 
-                        series = series))
-}),
-
   output$pd_comparison_table <- renderDataTable({
     pd_inputs = pd_inputs()
     freq = p_list[match(pd_inputs$pd_withdraw_freq, freq_list_drawdown)]
-    series = c(1, (freq * seq(1, (length(pd_paths_drawdown_reactive()[1, ]) / freq), 1)) + 1)
+    series = list(1, (freq * seq(5, (length(pd_paths_drawdown_reactive()[1, ]) / freq), 5)) + 1)
+    points = list(pd_inputs$pd_age[2] - pd_inputs$pd_age[1], pd_life_ex_reactive())
+    colour = list('orange', 'yellow')
     return(Partial_Drawdown_Comparison_Table(age_1 = pd_inputs$pd_age[1], 
                                              age_2 = pd_inputs$pd_age[2], 
                                              freq = pd_inputs$pd_withdraw_freq, 
@@ -218,8 +210,8 @@ output$drawdown_table <- renderDataTable({
                                              Deferred_Paths = pd_paths_deferred_reactive(),
                                              Deferred_Withdrawals = pd_withdrawals_deferred_reactive(),
                                              series = series, 
-                                             points = NULL, 
-                                             colour = NULL))
+                                             points = points, 
+                                             colour = colour))
   }),
 
   output$pd_plot_income_compare <- renderPlotly({
@@ -238,7 +230,7 @@ output$drawdown_table <- renderDataTable({
                                           Deferred_Paths = pd_paths_deferred_reactive(),
                                           Deferred_Withdrawals = pd_withdrawals_deferred_reactive())
 
-    fig <- plot_ly(table_df, x = ~table_df$years, y = ~table_df$annuity_total_paid, name = "100 % Annuity", type = "scatter", mode = "lines", line = list(color = 'blue', width = 4))
+    fig <- plot_ly(table_df, x = ~table_df$years, y = ~table_df$annuity_total_paid, name = "100% Annuity", type = "scatter", mode = "lines", line = list(color = 'blue', width = 4))
     fig <- fig %>% add_trace(y = ~table_df$drawdown_total_withdrawn, name = '100% Drawdown',line = list(color = 'red', width = 4))
     fig <- fig %>% add_trace(y = ~table_df$buy_later_total, name = 'Drawdown and Subsequent Annuity Purchase', line = list(color = 'green', width = 4))
     fig <- fig %>% add_trace(y = ~table_df$deferred_total, name = 'Drawdown and Deferred Annuity', line = list(color = 'orange', width = 4))

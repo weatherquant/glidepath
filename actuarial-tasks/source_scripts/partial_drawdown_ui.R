@@ -7,7 +7,7 @@ list(
       tabsetPanel(type = "tabs",
                   tabPanel("Common Parameters",
                            style = "margin-top:1em",
-                           sliderInput("pd_age", "Drawdown Age and Annuity Age:", value = c(66, 76), min = 55, max = getOmega(ILT15_female_reduced)),
+                           sliderInput("pd_age", "Drawdown Age and Annuity Age:", value = c(66, 76), min = 55, max = getOmega(ILT15_female_reduced), step = 1),
                            awesomeRadio("pd_relationship", "Relationship Status:", choices = list("Single" = 1, "Married" = 2), inline = TRUE),
                            numericInputIcon(inputId = "pd_starting_capital", label = "Starting Capital:", value = 300000, min = 0, icon = icon("euro")),
                            selectInput("pd_withdraw_freq", "Withdrawal Frequency:", freq_list_drawdown),

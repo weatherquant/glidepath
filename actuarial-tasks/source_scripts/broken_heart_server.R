@@ -120,9 +120,9 @@ list(
   output$bh_table <- renderDataTable({
     bh_inputs = bh_inputs()
     freq = p_list[match(bh_inputs$bh_withdraw_freq, freq_list_drawdown)]
-    series = c(1, (freq * seq(1, (length(bh_paths_reactive()[1, ]) / freq), 1)) + 1)
-    points = c(bh_life_ex_widowed_reactive(), bh_life_ex_not_widowed_reactive())
-    colour = c('yellow', 'orange')
+    series = list(1, (freq * seq(5, (length(bh_paths_reactive()[1, ]) / freq), 5)) + 1)
+    points = list(bh_life_ex_widowed_reactive(), bh_life_ex_not_widowed_reactive())
+    colour = list('orange', 'yellow')
     return(Drawdown_Table(Drawdown_Paths = bh_paths_reactive(),
                           Drawdown_Withdrawals = bh_withdrawals_reactive(),
                           freq = bh_inputs$bh_withdraw_freq, 

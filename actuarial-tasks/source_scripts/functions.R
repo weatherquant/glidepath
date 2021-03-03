@@ -335,12 +335,17 @@ list(
   Drawdown_Table <- function(Drawdown_Paths, Drawdown_Withdrawals, freq, series = NULL, points = NULL, colour = NULL, lower = 0.25, upper = 0.75, ruin_value = 0){
     dataframe = Drawdown_DataFrame(Drawdown_Paths = Drawdown_Paths, Drawdown_Withdrawals = Drawdown_Withdrawals, freq = freq, lower = lower, upper = upper, ruin_value = ruin_value)
     freq = p_list[match(freq, freq_list_drawdown)]
+    
     if(!is.null(points)){
-      series = sort(unique(c(series, ((freq * points) + 1))))
+      points = unlist(points)
+      series = list(sort(unique(c(unlist(series), ((freq * points)) + 1))))
+      points = lapply(points, round_2d)
     }
     if(!is.null(series)){
-      dataframe = dataframe[series, ]
+      dataframe = dataframe[unlist(series), ]
     }
+    dataframe$years = lapply(dataframe$years, round_2d)
+    
     colnames(dataframe) = c("Years", "Total Withdrawn", "Average Fund Value", "Probability of Ruin", "25th Percentile", "Median", "75th Percentile")
     table <- datatable(dataframe, options = list(paging = FALSE, searching = FALSE, info = FALSE, columnDefs = list(list(className = 'dt-center', targets = "_all"))), rownames = FALSE)
     table <- formatCurrency(table, columns = c("Total Withdrawn", "Average Fund Value", "25th Percentile", "Median", "75th Percentile"), currency = "€")
@@ -439,18 +444,21 @@ list(
 
   Partial_Drawdown_Comparison_Table <- function(age_1, age_2, freq, annuity_payment, Drawdown_Paths, Drawdown_Withdrawals, buy_later_average_annuity_payment, BuyLater_Paths, BuyLater_Withdrawals, Deferred_Paths, Deferred_Withdrawals, series = NULL, points = NULL, colour = NULL, lifetable = ILT15_female_reduced){
     table_df = Partial_Drawdown_DataFrame(age_1 = age_1, age_2 = age_2, freq = freq, annuity_payment = annuity_payment, Drawdown_Paths = Drawdown_Paths, Drawdown_Withdrawals = Drawdown_Withdrawals, buy_later_average_annuity_payment = buy_later_average_annuity_payment, BuyLater_Paths = BuyLater_Paths, BuyLater_Withdrawals = BuyLater_Withdrawals, Deferred_Paths = Deferred_Paths, Deferred_Withdrawals = Deferred_Withdrawals, lifetable = lifetable)
+    freq = p_list[match(freq, freq_list_drawdown)]
     if(!is.null(points)){
-      series = sort(unique(c(series, points)))
+      points = unlist(points)
+      series = list(sort(unique(c(unlist(series), ((freq * points)) + 1))))
+      points = lapply(points, round_2d)
     }
     if(!is.null(series)){
-      table_df = table_df[series, ]
+      table_df = table_df[unlist(series), ]
     }
-  
+    table_df$years = lapply(table_df$years, round_2d)
     container = htmltools::withTags(table(
       class = 'display',
       thead(
         tr(
-          th(rowspan = 2, 'Year', style = "text-align:center; border-right: solid 1px"),
+          th(rowspan = 2, 'Years', style = "text-align:center; border-right: solid 1px"),
           th(colspan = 1, '100% Annuity', style = "text-align:center; border-right: solid 1px"),
           th(colspan = 3, '100% Drawdown', style = "text-align:center; border-right: solid 1px"),
           th(colspan = 2, 'Drawdown and Subsequent Annuity Purchase', style = "text-align:center; border-right: solid 1px"),
@@ -464,13 +472,13 @@ list(
         )
       )
     ))
-    table <- datatable(table_df, container = container, options = list(paging = FALSE, searching = FALSE), rownames= FALSE) %>%
+    table <- datatable(table_df, container = container, options = list(paging = FALSE, searching = FALSE, columnDefs = list(list(className = 'dt-center', targets = "_all"))), rownames= FALSE) %>%
       formatCurrency(columns = c(2, 3, 4, 6, 7, 8, 9), currency = "€") %>%
       formatPercentage(columns = c(5, 10), digits = 2) %>%
       formatStyle(c(1, 2, 5, 7), `border-right` = "solid 1px")
     if(!is.null(points)){
       for(i in 1:length(points)){
-        table <- formatStyle(table, 'Years', target = 'row', backgroundColor = styleEqual(points[i], colour[i]))
+        table <- formatStyle(table, 'years', target = 'row', backgroundColor = styleEqual(points[i], colour[i]))
       }
     }
     return(table)

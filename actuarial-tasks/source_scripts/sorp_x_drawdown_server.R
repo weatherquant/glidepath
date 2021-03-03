@@ -142,7 +142,6 @@ list(
   sd_life_ex_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4}, {
     sd_inputs = sd_inputs()
     return(round_to_fraction(exn(ILT15_female_reduced, sd_inputs$sd_age[2]), p_list[match(sd_inputs$sd_withdraw_freq, freq_list_drawdown)]))
-    
   }, ignoreNULL = FALSE),
 
 # Output Functions - SORP -------------------------------------------------
@@ -249,11 +248,15 @@ list(
   output$sd_table <- renderDataTable({
     sd_inputs = sd_inputs()
     freq = p_list[match(sd_inputs$sd_withdraw_freq, freq_list_drawdown)]
-    series = c(1, (freq * seq(1, (length(sd_paths_reactive()[1, ]) / freq), 1)) + 1)
+    series = list(1, (freq * seq(5, (length(sd_paths_reactive()[1, ]) / freq), 5)) + 1)
+    points = list(sd_life_ex_reactive())
+    colour = list('yellow')
     return(Drawdown_Table(Drawdown_Paths = sd_paths_reactive(),
                           Drawdown_Withdrawals = sd_withdrawals_reactive(),
                           freq = sd_inputs$sd_withdraw_freq, 
-                          series = series))
+                          series = series,
+                          points = points,
+                          colour = colour))
   }),
 
   output$sd_plot_sims <- renderPlot({
