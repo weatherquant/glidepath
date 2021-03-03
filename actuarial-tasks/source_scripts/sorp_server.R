@@ -40,11 +40,11 @@ list(
 
 # Output Functions --------------------------------------------------------
   output$sorp_text_fundvalue <- renderText({
-    return(c("€", round_2d(sorp_fund_reactive())))
+    return(c("€", round_2d(sorp_fund_reactive(), T)))
   }),
   
   output$sorp_text_pension_payment <- renderText({
-    return(c("€", round_2d(sorp_pension_payment_reactive())))
+    return(c("€", round_2d(sorp_pension_payment_reactive(), T)))
   }),
   
   output$sorp_text_fundvalue_discounted <- renderText({
@@ -52,7 +52,7 @@ list(
                            age_1 = input$sorp_age[1], 
                            age_2 = input$sorp_age[2],
                            discount_rate = input$sorp_discount_rate)
-    return(c("€", round_2d(discounted_fund)))
+    return(c("€", round_2d(discounted_fund, T)))
   }),
   
   output$sorp_text_pension_payment_discounted <- renderText({
@@ -60,7 +60,7 @@ list(
                                       age_1 = input$sorp_age[1], 
                                       age_2 = input$sorp_age[2],
                                       discount_rate = input$sorp_discount_rate)
-    return(c("€", round_2d(discounted_pension_payment)))
+    return(c("€", round_2d(discounted_pension_payment, T)))
   }),
 
   output$sorp_plot_fundvalue <- renderPlot({

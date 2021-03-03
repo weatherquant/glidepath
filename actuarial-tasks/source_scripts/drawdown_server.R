@@ -35,11 +35,7 @@ list(
 # Output Functions --------------------------------------------------------
   output$drawdown_text_life_ex <- renderText({
     drawdown_inputs = drawdown_inputs()
-    if(drawdown_inputs$drawdown_withdraw_freq == "Annually"){
-      return(c(drawdown_life_ex_reactive(), " Years"))
-    } else {
-      return(c(round_2d(drawdown_life_ex_reactive()), " Years"))
-    }
+    return(c(round_2d(drawdown_life_ex_reactive()), " Years"))
   }),
   
   output$drawdown_text_average_fund_life_ex <- renderText({
@@ -47,7 +43,7 @@ list(
     average = Drawdown_Mean_Life_Ex(Drawdown_Paths = drawdown_paths_reactive(),
                                     freq = drawdown_inputs$drawdown_withdraw_freq,
                                     age = drawdown_inputs$drawdown_retire_age)
-    return(c("€", round_2d(average)))
+    return(c("€", round_2d(average, T)))
   }),
   
   output$drawdown_text_ruin_prob_life_ex <- renderText({

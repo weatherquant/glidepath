@@ -43,30 +43,18 @@ list(
 # Output Functions --------------------------------------------------------
   output$bh_text_life_ex_widowed <- renderText({
     bh_inputs = bh_inputs()
-    if(bh_inputs$bh_withdraw_freq == "Annually"){
-      return(c(bh_life_ex_widowed_reactive(), " Years"))
-    } else {
-      return(c(round_2d(bh_life_ex_widowed_reactive()), " Years"))
-    }
+    return(c(round_2d(bh_life_ex_widowed_reactive()), " Years"))
   }),
 
   output$bh_text_life_ex_not_widowed <- renderText({
     bh_inputs = bh_inputs()
-    if(bh_inputs$bh_withdraw_freq == "Annually"){
-      return(c(bh_life_ex_not_widowed_reactive(), " Years"))
-    } else {
-      return(c(round_2d(bh_life_ex_not_widowed_reactive()), " Years"))
-    }
+    return(c(round_2d(bh_life_ex_not_widowed_reactive()), " Years"))
   }),
   
   output$bh_text_life_ex_diff <- renderText({
     bh_inputs = bh_inputs()
     diff = bh_life_ex_not_widowed_reactive() - bh_life_ex_widowed_reactive()
-    if(bh_inputs$bh_withdraw_freq == "Annually"){
-      return(c(diff, " Years"))
-    } else {
-      return(c(round_2d(diff), " Years"))
-    }
+    return(c(round_2d(diff), " Years"))
   }),
   
   output$bh_text_average_fund_life_ex_widowed <- renderText({
@@ -74,7 +62,7 @@ list(
     average = Drawdown_Mean_Life_Ex(Drawdown_Paths = bh_paths_reactive(),
                                     freq = bh_inputs$bh_withdraw_freq,
                                     ex = bh_life_ex_widowed_reactive())
-    return(c("€", round_2d(average)))
+    return(c("€", round_2d(average, T)))
   }),
 
   output$bh_text_average_fund_life_ex_not_widowed <- renderText({
@@ -82,7 +70,7 @@ list(
     average = Drawdown_Mean_Life_Ex(Drawdown_Paths = bh_paths_reactive(),
                                     freq = bh_inputs$bh_withdraw_freq,
                                     ex = bh_life_ex_not_widowed_reactive())
-    return(c("€", round_2d(average)))
+    return(c("€", round_2d(average, T)))
   }),
 
   output$bh_text_ruin_prob_life_ex_widowed <- renderText({
@@ -106,7 +94,7 @@ list(
     total_withdrawals = Drawdown_Total_Withdrawals_Life_Ex(Drawdown_Withdrawals = bh_withdrawals_reactive(),
                                                            freq = bh_inputs$bh_withdraw_freq,
                                                            ex = bh_life_ex_widowed_reactive())
-    return(c("€", round_2d(total_withdrawals)))
+    return(c("€", round_2d(total_withdrawals, T)))
   }),
 
   output$bh_text_total_withdrawals_life_ex_not_widowed <- renderText({
@@ -114,7 +102,7 @@ list(
     total_withdrawals = Drawdown_Total_Withdrawals_Life_Ex(Drawdown_Withdrawals = bh_withdrawals_reactive(),
                                                            freq = bh_inputs$bh_withdraw_freq,
                                                            ex = bh_life_ex_not_widowed_reactive())
-    return(c("€", round_2d(total_withdrawals)))
+    return(c("€", round_2d(total_withdrawals, T)))
   }),
   
   output$bh_table <- renderDataTable({

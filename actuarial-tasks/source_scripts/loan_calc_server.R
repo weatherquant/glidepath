@@ -9,7 +9,7 @@ list(
   output$loan_periodic_repay <- renderText({
     loan_summary = loan_reactive()
     repayment = loan_summary$repay_vect[2]
-    return(c("€", round_2d(repayment)))
+    return(c("€", round_2d(repayment, T)))
   }),
   
   output$loan_schedule <- renderDataTable({

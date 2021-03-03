@@ -73,14 +73,11 @@ freq_list_drawdown = c("Annually", "Semi-Annually", "Quarterly (Slow)", "Bi-Mont
 p_list = c(1, 2, 4, 6, 12, 26, 52, 365)
 
 # Rounding to 2 Decimal Places --------------------------------------------
-round_2d <- function(x){
-    if(x%%1 == 0){
-        return(x)
-    } else if (x%%0.1 == 0){
-        return(x)
-    } else {
-        return(format(round(as.numeric(x), 2), nsmall = 2, big.mark = ",", scientific=FALSE))
+round_2d <- function(x, two_d = F){
+    if(two_d == F) {
+        if(x%%1 == 0 | x%%0.1 == 0){ return(x) } 
     }
+    return(format(round(as.numeric(x), 2), nsmall = 2, big.mark = ",", scientific=FALSE))
 }
 
 # General UI --------------------------------------------------------------

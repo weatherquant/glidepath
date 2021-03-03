@@ -147,7 +147,7 @@ list(
 
 # Output Functions - Annuities --------------------------------------------
   output$pd_text_annuity_payment <- output$pd_text_annuity_payment_deferred <- renderText({
-    return(c("€", round_2d(pd_annuity_payment_reactive())))
+    return(c("€", round_2d(pd_annuity_payment_reactive(), T)))
   }),  
   
   output$pd_text_annuity_cumulative_life_ex <- renderText({
@@ -155,15 +155,15 @@ list(
     freq = p_list[match(pd_inputs$pd_withdraw_freq, freq_list_drawdown)]
     cumulative = SORP_Cumulative_Payments(SORP_Pension_Payment = pd_annuity_payment_reactive(),
                                           time = freq * pd_life_ex_reactive())
-    return(c("€", round_2d(cumulative)))
+    return(c("€", round_2d(cumulative, T)))
   }),
 
   output$pd_text_average_annuity_payment_buylater <- renderText({
-    return(c("€", round_2d(pd_average_annuity_payment_buylater_reactive())))
+    return(c("€", round_2d(pd_average_annuity_payment_buylater_reactive(), T)))
   }),  
 
   output$pd_text_annuity_cost_deferred <- renderText({
-    return(c("€", round_2d(pd_annuity_cost_deferred_reactive())))
+    return(c("€", round_2d(pd_annuity_cost_deferred_reactive(), T)))
   }),
 
 # Output Functions - Drawdowns --------------------------------------------
@@ -172,7 +172,7 @@ list(
     average = Drawdown_Total_Withdrawals_Life_Ex(Drawdown_Withdrawals = pd_withdrawals_drawdown_reactive(),
                                                  freq = pd_inputs$pd_withdraw_freq,
                                                  ex = pd_life_ex_reactive())
-    return(c("€", round_2d(average)))
+    return(c("€", round_2d(average, T)))
   }),
 
   output$pd_text_drawdown_average_fund_life_ex <- renderText({
@@ -180,15 +180,15 @@ list(
     average = Drawdown_Mean_Life_Ex(Drawdown_Paths = pd_paths_drawdown_reactive(),
                                     freq = pd_inputs$pd_withdraw_freq,
                                     ex = pd_life_ex_reactive())
-    return(c("€", round_2d(average)))
+    return(c("€", round_2d(average, T)))
   }),
   
   output$pd_text_buylater_average_fund_end <- renderText({
-    return(c("€", round_2d(pd_average_fund_buylater_end_reactive())))
+    return(c("€", round_2d(pd_average_fund_buylater_end_reactive(), T)))
   }),
 
   output$pd_text_deferred_average_fund_end <- renderText({
-    return(c("€", round_2d(pd_average_fund_deferred_end_reactive())))
+    return(c("€", round_2d(pd_average_fund_deferred_end_reactive(), T)))
   }),
 
 # Output Functions - Table and Plot ------------------------------------------------
