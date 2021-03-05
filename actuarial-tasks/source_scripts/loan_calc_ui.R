@@ -2,19 +2,19 @@ list(
         box(h1("Loan Calculator"), width = 12, background = "light-blue"),
         box(
           title = "Parameters", status = "primary", solidHeader = T,
-          numericInputIcon(inputId = "PV", label = "Loan Amount:", value = 500000, icon = icon("euro")),
-          numericInputIcon(inputId = "int", label = "Interest Rate:", value = 5, icon = list(NULL, icon("percent"))),
-          numericInputIcon(inputId = "n", label = "Term of Loan (in Years):", value = 25, icon = list(NULL, "Years")),
-          selectInput("freq", "Frequency of Repayments:", freq_list),
+          numericInputIcon(inputId = "loan_inital_balance", label = "Loan Amount:", value = 500000, step = 5000, icon = icon("euro")),
+          numericInputIcon(inputId = "loan_interest", label = "Interest Rate:", value = 5, icon = list(NULL, icon("percent"))),
+          numericInputIcon(inputId = "loan_years", label = "Term of Loan (in Years):", value = 25, icon = list(NULL, "Years")),
+          selectInput("loan_freq", "Frequency of Repayments:", freq_list),
           hr(),
           h4(strong("Periodic Repayment Amount:")),
-          h2(textOutput("repay"))
+          h2(textOutput("loan_periodic_repay"))
         ),
         
         box(
           title = "Loan Schedule", status = "primary", solidHeader = T,
-          DT::dataTableOutput("loan_schedule"), style = "height:430px; overflow-y: scroll;overflow-x: scroll;"
+          DT::dataTableOutput("loan_schedule"), style = "height:424px; overflow-y: scroll;overflow-x: scroll;"
         ),
-        box(title = "Loan Outstanding Over Time", status = "primary", solidHeader = T, height = "500px", plotOutput("loan_balance")),
-        box(title = "Interest vs Capital per Payment", status = "primary", solidHeader = T,height = "500px", plotOutput("int_cap"))
+        box(title = "Loan Balance Outstanding Over Time", status = "primary", solidHeader = T, height = "500px", style = "margin-top:1em; margin-right:3em", plotOutput("loan_plot_balance")),
+        box(title = "Interest vs Capital Proportions per Repayment", status = "primary", solidHeader = T,height = "500px", style = "margin-top:1em; margin-right:3em", plotOutput("loan_plot_interest_vs_capital"))
 )  
