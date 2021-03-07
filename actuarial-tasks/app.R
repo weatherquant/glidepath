@@ -5,6 +5,7 @@ library(shinyWidgets)
 library(DT)
 library(tidyverse)
 library(ggthemes)
+library(hrbrthemes)
 library(plotly)
 library(readxl)
 library(writexl)
@@ -150,7 +151,8 @@ ui <- dashboardPage(
             menuItem("Broken Heart", tabName = "broken_heart"),
             menuItem("SORP Import", tabName = "sorp_import"),
             menuItem("Life Expectancy Visualisations", tabName = 'life_ex'),
-            menuItem("Historical Data", tabName = 'hist_data')
+            menuItem("Historical Data", tabName = 'hist_data'),
+            menuItem("Sequencing Risk", tabName = 'sequencing')
         )
     ),
 
@@ -166,7 +168,8 @@ ui <- dashboardPage(
                 tabItem(tabName = 'broken_heart', source("source_scripts/broken_heart_ui.R", local = TRUE)[1]),
                 tabItem(tabName = 'sorp_import', source("source_scripts/sorp_import_ui.R", local = TRUE)[1]),
                 tabItem(tabName = 'life_ex', source("source_scripts/life_ex_ui.R", local = TRUE)[1]),
-                tabItem(tabName = 'hist_data', source("source_scripts/historical_data_ui.R", local = TRUE)[1])
+                tabItem(tabName = 'hist_data', source("source_scripts/historical_data_ui.R", local = TRUE)[1]),
+                tabItem(tabName = 'sequencing', source("source_scripts/sequencing_ui.R", local = TRUE)[1])
             )
         )
     )
@@ -184,6 +187,7 @@ server <- function(input, output, session) {
     source("source_scripts/sorp_import_server.R", local = TRUE)[1]
     source("source_scripts/life_ex_server.R", local = TRUE)[1]
     source("source_scripts/historical_data_server.R", local = TRUE)[1]
+    source("source_scripts/sequencing_server.R", local = TRUE)[1]
 }
 
 # Run the application 
