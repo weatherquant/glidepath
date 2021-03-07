@@ -1,4 +1,19 @@
 list(
+# Intro Pop-Up ------------------------------------------------------------
+  observeEvent("", {
+    showModal(modalDialog(
+      includeHTML("intro_text.html"),
+      easyClose = TRUE,
+      footer = tagList(
+        actionButton(inputId = "intro", label = "Close", icon = NULL)
+      )
+    ))
+  }),
+
+  observeEvent(input$intro,{
+    removeModal()
+  }),
+  
 # Loan Calculator Functions -----------------------------------------------
   loan_summary <- function(inital_balance, interest_rate, term_years, freq_repay){
     interest_rate = interest_rate / 100

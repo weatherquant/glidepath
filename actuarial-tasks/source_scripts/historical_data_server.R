@@ -8,20 +8,6 @@ list(
     return(message)
   }),
   
-  observeEvent("", {
-    showModal(modalDialog(
-      includeHTML("intro_text.html"),
-      easyClose = TRUE,
-      footer = tagList(
-        actionButton(inputId = "intro", label = "Close", icon = icon("info-circle"))
-      )
-    ))
-  }),
-  
-  observeEvent(input$intro,{
-    removeModal()
-  }),
-  
   drawdown_react <- reactive({
     hist_drawdown_index_df()
   }),
