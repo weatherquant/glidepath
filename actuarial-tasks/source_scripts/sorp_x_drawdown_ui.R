@@ -5,7 +5,7 @@ list(
     
     sidebarPanel(
       
-      tabsetPanel(type = "tabs",
+      tabsetPanel(type = "tabs", id = "sd_sidebar",
                   tabPanel("SORP Parameters",
                            style = "margin-top:1em",
                            sliderInput("sd_age", "Current Age and Retirement Age:", value = c(45, 66), min = 16, max = getOmega(ILT15_female_reduced)),
@@ -19,7 +19,7 @@ list(
                            actionButton(inputId = "sd_resim1", label = "Re-Run Simulation", style = "background-color: white", icon("random"))
                   ),
                   
-                  tabPanel(div(id = 'sd_sorp_parameters_spouse', "Spouse SORP Parameters"),
+                  tabPanel("Spouse SORP Parameters",
                            style = "margin-top:1em",
                            numericInputIcon(inputId = "sd_salary_spouse", label = "Current Salary:", value = 50000, min = 0, icon = icon("euro")),
                            numericInputIcon(inputId = "sd_current_fundvalue_spouse", label = "Current Fund Value:", value = 100000, min = 0, icon = icon("euro")),
@@ -36,6 +36,9 @@ list(
                            awesomeRadio("sd_withdraw_type", "Withdrawal Type:", choices = list("Fixed" = F, "Percentage" = T), inline = TRUE),
                            numericInputIcon(inputId = "sd_annual_withdrawals", label = "Total Withdrawals per Annum:", value = 15000, min = 0, icon = icon("euro")),
                            numericInputIcon(inputId = "sd_percent_withdrawal", label = "Percentage Withdrawn per Annum:", value = 4, min = 0, max = 100, icon = list(NULL, icon("percent"))),
+                           h5(strong("Portfolio Suggestion Tool:")),
+                           actionButton(inputId = "sd_surveydisplay", label = "Risk Profiler", style = "background-color: white", icon("poll")),
+                           h6(textOutput("sd_save_results_text")),
                            numericInputIcon(inputId = "sd_annual_mean_return", label = "Mean Annual Return:", value = 5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
                            numericInputIcon(inputId = "sd_annual_ret_std_dev", label = "Standard Deviation of Annual Return:", value = 7, min = 0, max = 100, icon = list(NULL, icon("percent"))),
                            numericInputIcon(inputId = "sd_annual_inflation", label = "Mean Annual Inflation:", value = 2.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
@@ -69,83 +72,8 @@ list(
     ),
       
       mainPanel(
-        
-        tabsetPanel(type = "tabs",
-                    tabPanel("SORP Summary",
-                             style = "margin-top:1em",
-                             box(title = "Future Values", status = "primary", solidHeader = T,
-                                 h4("Fund Value At Retirement:"),
-                                 h3(textOutput("sd_text_fundvalue")),
-                                 hr(),
-                                 h4("Periodic Pension Payment:"),
-                                 h3(textOutput("sd_text_pension_payment"))
-                             ),
-                             box(title = "Current Values", status = "primary", solidHeader = T,
-                                 h4("Fund Value At Retirement:"),
-                                 h3(textOutput("sd_text_fundvalue_discounted")),
-                                 hr(),
-                                 h4("Periodic Pension Payment:"),
-                                 h3(textOutput("sd_text_pension_payment_discounted"))
-                             ),
-                             tabsetPanel(type = "tabs",
-                                         tabPanel("Accumulated Wealth",
-                                                  style = "margin-top:1em",
-                                                  box(title = "Accumulated Wealth", width = 12, status = "primary", solidHeader = T, plotOutput("sd_plot_fundvalue")),                                       
-                                         ),
-                                         tabPanel("SORP Table",
-                                                  style = "margin-top:1em",
-                                                  box(title = "Contributions and Fund Value over Time", width = 12, status = "primary", solidHeader = T, DT::dataTableOutput("sd_table_contributions"), rownames= FALSE, style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
-                                         )
-                             )
-                    ),
-                    
-                    tabPanel(div(id = 'sd_spouse_sorp_summary', "Spouse SORP Summary"),
-                             style = "margin-top:1em",
-                             box(title = "Future Values", status = "primary", solidHeader = T,
-                                 h4("Fund Value At Retirement:"),
-                                 h3(textOutput("sd_text_fundvalue_spouse")),
-                                 hr(),
-                                 h4("Periodic Pension Payment:"),
-                                 h3(textOutput("sd_text_pension_payment_spouse"))
-                             ),
-                             box(title = "Current Values", status = "primary", solidHeader = T,
-                                 h4("Fund Value At Retirement:"),
-                                 h3(textOutput("sd_text_fundvalue_discounted_spouse")),
-                                 hr(),
-                                 h4("Periodic Pension Payment:"),
-                                 h3(textOutput("sd_text_pension_payment_discounted_spouse"))
-                             ),
-                             tabsetPanel(type = "tabs",
-                                         tabPanel("Accumulated Wealth",
-                                                  style = "margin-top:1em",
-                                                  box(title = "Accumulated Wealth", width = 12, status = "primary", solidHeader = T, plotOutput("sd_plot_fundvalue_spouse")),                                       
-                                         ),
-                                         tabPanel("SORP Table",
-                                                  style = "margin-top:1em",
-                                                  box(title = "Contributions and Fund Value over Time", width = 12, status = "primary", solidHeader = T, DT::dataTableOutput("sd_table_contributions_spouse"),rownames= FALSE, style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
-                                         )
-                             )
-                    ),
-                    
-                    tabPanel("Drawdown Simulations",
-                             style = "margin-top:1em",
-                             box(
-                               title = "Life Expectancy", status = 'primary', solidHeader = T, width = 4,
-                               h3(textOutput('sd_text_life_ex'))
-                             ),
-                             box(
-                               title = "Average Fund Value", status = "primary", solidHeader = T, width = 4,
-                               h3(textOutput("sd_text_average_fund_life_ex"))
-                             ),
-                             box(
-                               title = "Probability of Ruin", status = "primary", solidHeader = T, width = 4,
-                               h3(textOutput("sd_text_ruin_prob_life_ex"))
-                             ),
-                             box(title = "Table", width = 12, status = "primary", solidHeader = T, DT::dataTableOutput("sd_table"), rownames= FALSE, style = "height:400px; overflow-y: scroll;overflow-x: scroll;"),
-                             box(title = "Drawdown Simulations", status = "primary", width = 12, solidHeader = T, plotOutput("sd_plot_sims")),
-                             box(title = "Drawdown Percentile Plot", status = "primary", width = 12, solidHeader = T, plotlyOutput("sd_plot_percentiles"))
-                             )
-        )
+        uiOutput("sd_ui"),
+        column(1, actionButton("sd_submit", "Next"))
       )
     )
 )

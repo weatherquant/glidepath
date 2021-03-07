@@ -482,5 +482,82 @@ list(
       }
     }
     return(table)
-  }
+  },
+
+# Risk Profiler Functions -------------------------------------------------
+  save_results <- function(session, submit, survey){
+    if(submit %% (num.quest + 2) > 0 && (submit %% (num.quest + 2) <= num.quest)){
+      try(results[submit %% (num.quest + 2)] <<- survey, silent = T)
+    }
+    return("")
+  },
+
+  portfolio_update <- function(session, input_mean_return, new_mean_return, input_ret_std_dev, new_ret_std_dev){
+    updateNumericInputIcon(session, input_mean_return, value = new_mean_return)
+    updateNumericInputIcon(session, input_ret_std_dev, value = new_ret_std_dev)
+  },
+
+  portfolio <- function(session, input_mean_return, input_ret_std_dev, means = c(3, 5, 7), std_devs = c(1, 7, 15)){
+    if(is.character(results)){
+      results <<- parse_vector(results, col_integer()) 
+    }
+    x = mean(results)
+    if(x < 2.6){
+      portfolio_update(session, input_mean_return, means[1], input_ret_std_dev, std_devs[1])
+      paste0("Low risk appetite: Final score ", x)
+    } else if (x < 4){
+      portfolio_update(session, input_mean_return, means[2], input_ret_std_dev, std_devs[2])
+      paste0("Moderate risk appetite: Final score ", x)
+    } else{
+      portfolio_update(session, input_mean_return, means[3], input_ret_std_dev, std_devs[3])
+      paste0("High risk appetite: Final score ", x)
+    }
+  },
+
+  riskprofilerui <- function(session, surveydisplay, submit, page, input_mean_return, input_ret_std_dev, mainui, means = c(3, 5, 7), std_devs = c(1, 7, 15)){
+    if(surveydisplay %% 2 == 1 && surveydisplay != 0){
+      if(submit %% (num.quest + 2) == 0){
+        return(list(
+            column(1,
+                  img(src='stockmarket.jpeg', height = 200, width = 770)
+            ),
+            br(),
+            br(),
+            box(status = "primary", width = 12, solidHeader = F,
+                h5("The following questions are intended to assess your capcity for loss and help you to choose \n
+                    a suitable portfolio and level of risk"),
+                h5("Click next to begin survey"))
+          ))
+      } else if ((submit %% (num.quest + 2) > 0) && (submit %% (num.quest + 2) <= num.quest)){
+          return(list(
+            box(status = "warning", width = 12, solidHeader = T,
+                h5("Disclaimer: This risk profiler tool is for illustrative purposes,
+                   it is designed to assist you in understanding your attitude towards risk")
+            ),
+            box(status = "primary", width = 12, solidHeader = T,
+                h5(paste0(
+                  "Q", submit %% (num.quest + 2), ": ",
+                  Qlist[submit %% (num.quest + 2), 2]
+                  )),
+                radioButtons(paste0(page,"_survey"), "Please Select:", myLists[[submit %% (num.quest + 2)]])
+                )
+            ))
+      } else {
+          return(list(
+            box(status = "warning", width = 12, solidHeader = T,
+                h5("Disclaimer: This risk profiler tool is for illustrative purposes,
+                   it is designed to assist you in understanding your attitude towards risk")
+            ),
+            box(status = "primary", width = 12, solidHeader = T,
+                h5("Results:"),
+                h5(portfolio(session, input_mean_return, input_ret_std_dev, means, std_devs)),
+                h5("Click the risk profiler button to return to the summary page and apply suitable portfolio changes"),
+                h5("Click next to repeat the profiler")
+                )
+          ))
+        }
+      } else {
+          return(mainui)
+      }
+    }
 )

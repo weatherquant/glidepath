@@ -4,12 +4,17 @@ library(shinyjs)
 library(shinyWidgets)
 library(DT)
 library(tidyverse)
+library(ggthemes)
 library(plotly)
 library(readxl)
 library(writexl)
 library(janitor)
 library(plyr)
+library(tidyquant)
+library(lubridate)
+library(scales)
 library(xkcd)
+
 
 library(lifecontingencies)
 options(scipen=999)
@@ -18,7 +23,7 @@ options(scipen=999)
 cnames <- read_excel("data/ILT15.xlsx", sheet = 1, n_max = 0) %>%
     names()
 
-life_table_female <- read_xlsx("data/ILT15.xlsx", sheet = 1, skip=1, col_names = cnames) %>% 
+life_table_female <- read_xlsx("data/ILT15.xlsx", sheet = 1, skip = 1, col_names = cnames) %>% 
     drop_na()
 
 life_table_male <- read_xlsx("data/ILT15.xlsx", sheet = 2, skip=1, col_names = cnames) %>% 
@@ -67,6 +72,56 @@ BrokenHeart_LifeTable <- function(widowed_status = FALSE, widowed_age = NULL, ge
     return(broken_heart_lifetable)
 }
 
+# Risk Profiler - Question List Import ------------------------------------
+Qlist <- read.csv("data/Qlist.csv")
+num.quest = nrow(Qlist)
+results <- numeric(num.quest)
+myLists = vector("list", nrow(Qlist))
+for(i in(1:nrow(Qlist))){
+    myListX = list()
+    for(j in (1:(ncol(Qlist)-2))){
+        myListX[Qlist[i,j+2]] = ncol(Qlist) - 1 - j
+    }
+    myLists[[i]] = myListX
+}
+
+
+# Historical Data Preamble ------------------------------------------------
+## Load data
+# Create symbol vectors
+symbols <- c("WILL5000INDFC", "BAMLCC0A0CMTRIV", "GOLDPMGBD228NLBM", "CSUSHPINSA", "DGS5", "IRLCPIALLMINMEI")
+sym_names <- c("stock", "bond", "gold", "realt", "rfr")
+
+# Get symbols
+getSymbols(symbols, src="FRED", from = "1970-01-01", to = "2020-12-31")
+
+# Merge xts objects and resample to monthly
+index <- merge(WILL5000INDFC, BAMLCC0A0CMTRIV, GOLDPMGBD228NLBM, CSUSHPINSA, DGS5)
+index <- na.locf(index)
+colnames(index) <- sym_names
+
+inflation <- IRLCPIALLMINMEI
+inflation <- na.locf(inflation)
+colnames(inflation)[1] = "inflation"
+
+idx_mon <- to.monthly(index, indexAt = "lastof", OHLC=FALSE)
+idx_mon <- idx_mon["1987/2020"]
+
+inf_mon <- to.monthly(inflation, indexAt = "lastof", OHLC = FALSE)
+inf_mon <- inf_mon["1987/2020"]
+
+# Create data frame
+index_df <- data.frame(date = index(idx_mon), coredata(idx_mon)) %>%
+  mutate_at(vars(-c(date, rfr)), function(x) x/lag(x)-1) %>%
+  mutate(rfr = effective2Convertible(i=rfr/100,k=60)/60)
+
+index_df_inflation <- data.frame(date = index(inf_mon), coredata((inf_mon)))
+for(i in nrow(index_df_inflation):2){
+  index_df_inflation[i,2] = (index_df_inflation[i,2] - index_df_inflation[i-1,2])/index_df_inflation[i-1,2]
+}
+
+portfolio_list = c("Stocks", "Bonds", "Gold", "Real Estate", "Risk Free Rate")
+
 # Frequencies -------------------------------------------------------------
 freq_list = c("Annually", "Semi-Annually", "Quarterly", "Bi-Monthly", "Monthly", "Fortnightly", "Weekly", "Daily")
 freq_list_drawdown = c("Annually", "Semi-Annually", "Quarterly (Slow)", "Bi-Monthly (Very Slow)", "Monthly (Extremely Slow)")
@@ -94,7 +149,8 @@ ui <- dashboardPage(
             menuItem("Partial Drawdown Simulator", tabName = "partial_drawdown"),
             menuItem("Broken Heart", tabName = "broken_heart"),
             menuItem("SORP Import", tabName = "sorp_import"),
-            menuItem("Life Expectancy Visualisations", tabName = 'life_ex')
+            menuItem("Life Expectancy Visualisations", tabName = 'life_ex'),
+            menuItem("Historical Data", tabName = 'hist_data')
         )
     ),
 
@@ -109,7 +165,8 @@ ui <- dashboardPage(
                 tabItem(tabName = 'partial_drawdown', source("source_scripts/partial_drawdown_ui.R", local = TRUE)[1]),
                 tabItem(tabName = 'broken_heart', source("source_scripts/broken_heart_ui.R", local = TRUE)[1]),
                 tabItem(tabName = 'sorp_import', source("source_scripts/sorp_import_ui.R", local = TRUE)[1]),
-                tabItem(tabName = 'life_ex', source("source_scripts/life_ex_ui.R", local = TRUE)[1])
+                tabItem(tabName = 'life_ex', source("source_scripts/life_ex_ui.R", local = TRUE)[1]),
+                tabItem(tabName = 'hist_data', source("source_scripts/historical_data_ui.R", local = TRUE)[1])
             )
         )
     )
@@ -126,6 +183,7 @@ server <- function(input, output, session) {
     source("source_scripts/broken_heart_server.R", local = TRUE)[1]
     source("source_scripts/sorp_import_server.R", local = TRUE)[1]
     source("source_scripts/life_ex_server.R", local = TRUE)[1]
+    source("source_scripts/historical_data_server.R", local = TRUE)[1]
 }
 
 # Run the application 

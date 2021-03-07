@@ -1,11 +1,11 @@
 list(
 # Input Function ----------------------------------------------------------
-  sd_inputs <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4}, {
+  sd_inputs <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4; input$sd_submit %% (num.quest + 2) > num.quest}, {
     return(reactiveValuesToList(input))
   }, ignoreNULL = FALSE),
 
 # Reactive Functions - SORP ------------------------------------------------------
-  sd_annuity_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4}, {
+  sd_annuity_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4; input$sd_submit %% (num.quest + 2) > num.quest}, {
     sd_inputs = sd_inputs()
     return(SORP_Annuity(age_1 = sd_inputs$sd_age[1], 
                       age_2 = sd_inputs$sd_age[2], 
@@ -16,7 +16,7 @@ list(
                       guaranteed = sd_inputs$sd_guaranteed))
   }, ignoreNULL = FALSE),
 
-  sd_annuity_spouse_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4}, {
+  sd_annuity_spouse_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4; input$sd_submit %% (num.quest + 2) > num.quest}, {
     sd_inputs = sd_inputs()
     if(sd_inputs$sd_relationship == 2){
       return(SORP_Annuity(age_1 = sd_inputs$sd_age[1], 
@@ -31,7 +31,7 @@ list(
     }
   }, ignoreNULL = FALSE),
 
-  sd_contributions_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4}, {
+  sd_contributions_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4; input$sd_submit %% (num.quest + 2) > num.quest}, {
     sd_inputs = sd_inputs()
     return(SORP_Contributions(age_1 = sd_inputs$sd_age[1], 
                             age_2 = sd_inputs$sd_age[2], 
@@ -50,7 +50,7 @@ list(
                             cash_rate = sd_inputs$sd_cash_rate))
   }, ignoreNULL = FALSE),
 
-  sd_contributions_spouse_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4}, {
+  sd_contributions_spouse_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4; input$sd_submit %% (num.quest + 2) > num.quest}, {
     sd_inputs = sd_inputs()
     if(sd_inputs$sd_relationship == 2){
       return(SORP_Contributions(age_1 = sd_inputs$sd_age[1], 
@@ -73,13 +73,13 @@ list(
     }
   }, ignoreNULL = FALSE),
 
-  sd_fund_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4}, {
+  sd_fund_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4; input$sd_submit %% (num.quest + 2) > num.quest}, {
     sd_inputs = sd_inputs()
     return(SORP_Fund(SORP_Contributions = sd_contributions_reactive()))
     
   }, ignoreNULL = FALSE),
 
-  sd_fund_spouse_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4}, {
+  sd_fund_spouse_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4; input$sd_submit %% (num.quest + 2) > num.quest}, {
     sd_inputs = sd_inputs()
     if(sd_inputs$sd_relationship == 2){
       return(SORP_Fund(SORP_Contributions = sd_contributions_spouse_reactive()))
@@ -88,14 +88,14 @@ list(
       }
   }, ignoreNULL = FALSE),
 
-  sd_pension_payment_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4}, {
+  sd_pension_payment_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4; input$sd_submit %% (num.quest + 2) > num.quest}, {
     sd_inputs = sd_inputs()
     return(SORP_Pension_Payment(SORP_Fund = sd_fund_reactive(), 
                                 SORP_Annuity = sd_annuity_reactive(), 
                                 freq = sd_inputs$sd_post_freq))
   }, ignoreNULL = FALSE),
 
-  sd_pension_payment_spouse_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4}, {
+  sd_pension_payment_spouse_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4; input$sd_submit %% (num.quest + 2) > num.quest}, {
     sd_inputs = sd_inputs()
     if(sd_inputs$sd_relationship == 2){
       return(SORP_Pension_Payment(SORP_Fund = sd_fund_spouse_reactive(), 
@@ -107,7 +107,7 @@ list(
   }, ignoreNULL = FALSE),
 
 # Reactive Functions - Drawdown ---------------------------------------
-  sd_starting_capital_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4}, {
+  sd_starting_capital_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4; input$sd_submit %% (num.quest + 2) > num.quest}, {
     sd_inputs = sd_inputs()
     if(sd_inputs$sd_relationship != 1){
       sd_start_capital = sd_fund_reactive() + sd_fund_spouse_reactive()
@@ -116,7 +116,7 @@ list(
     }
   }, ignoreNULL = FALSE),
 
-  sd_simulations_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4}, {
+  sd_simulations_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4; input$sd_submit %% (num.quest + 2) > num.quest}, {
     sd_inputs = sd_inputs()
     return(Drawdown_Simulations(retire_age = sd_inputs$sd_age[2], 
                                 start_capital = sd_starting_capital_reactive(), 
@@ -131,15 +131,15 @@ list(
                                 percent_withdrawal = sd_inputs$sd_percent_withdrawal))
   }, ignoreNULL = FALSE),
 
-  sd_paths_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4}, {
+  sd_paths_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4; input$sd_submit %% (num.quest + 2) > num.quest}, {
     return(Drawdown_Paths(sd_simulations_reactive()))
   }, ignoreNULL = FALSE),
 
-  sd_withdrawals_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4}, {
+  sd_withdrawals_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4; input$sd_submit %% (num.quest + 2) > num.quest}, {
     return(Drawdown_Withdrawals(sd_simulations_reactive()))
   }, ignoreNULL = FALSE),
 
-  sd_life_ex_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4}, {
+  sd_life_ex_reactive <- eventReactive({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4; input$sd_submit %% (num.quest + 2) > num.quest}, {
     sd_inputs = sd_inputs()
     return(round_to_fraction(exn(ILT15_female_reduced, sd_inputs$sd_age[2]), p_list[match(sd_inputs$sd_withdraw_freq, freq_list_drawdown)]))
   }, ignoreNULL = FALSE),
@@ -309,19 +309,138 @@ list(
 
   observeEvent(input$sd_relationship, {
     if(input$sd_relationship != 1) {
-      shinyjs::show(id = "sd_sorp_parameters_spouse")
+      showTab(inputId = "sd_sidebar", target = "Spouse SORP Parameters")
     }
     if(input$sd_relationship == 1){
-      shinyjs::hide(id = "sd_sorp_parameters_spouse")
+      hideTab(inputId = "sd_sidebar", target = "Spouse SORP Parameters")
     }
   }),
 
-  observeEvent({input$sd_resim1; input$sd_resim2; input$sd_resim3; input$sd_resim4},{
-    if(input$sd_relationship != 1) {
-      shinyjs::show(id = "sd_spouse_sorp_summary")
+  observe({
+    shinyjs::hide("sd_submit")
+  
+    if((input$sd_surveydisplay %% 2 == 1 & input$sd_surveydisplay != 0)){
+      shinyjs::show("sd_submit")
     }
-    if(input$sd_relationship == 1){
-      shinyjs::hide(id = "sd_spouse_sorp_summary")
+  }),
+
+
+# UI Functions ------------------------------------------------------------
+  sd_ui_reactive <- reactive({
+    sd_inputs = sd_inputs()
+    mainui = list(
+      tabsetPanel(type = "tabs",
+                  tabPanel("SORP Summary",
+                           style = "margin-top:1em",
+                           box(title = "Future Values", status = "primary", solidHeader = T,
+                               h4("Fund Value At Retirement:"),
+                               h3(textOutput("sd_text_fundvalue")),
+                               hr(),
+                               h4("Periodic Pension Payment:"),
+                               h3(textOutput("sd_text_pension_payment"))
+                           ),
+                           box(title = "Current Values", status = "primary", solidHeader = T,
+                               h4("Fund Value At Retirement:"),
+                               h3(textOutput("sd_text_fundvalue_discounted")),
+                               hr(),
+                               h4("Periodic Pension Payment:"),
+                               h3(textOutput("sd_text_pension_payment_discounted"))
+                           ),
+                           tabsetPanel(type = "tabs",
+                                       tabPanel("Accumulated Wealth",
+                                                style = "margin-top:1em",
+                                                box(title = "Accumulated Wealth", width = 12, status = "primary", solidHeader = T, plotOutput("sd_plot_fundvalue")),                                       
+                                       ),
+                                       tabPanel("SORP Table",
+                                                style = "margin-top:1em",
+                                                box(title = "Contributions and Fund Value over Time", width = 12, status = "primary", solidHeader = T, DT::dataTableOutput("sd_table_contributions"), rownames= FALSE, style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
+                                       )
+                           )
+                  ),
+                  if(sd_inputs$sd_relationship != 1){
+                  tabPanel("Spouse SORP Summary",
+                           style = "margin-top:1em",
+                           box(title = "Future Values", status = "primary", solidHeader = T,
+                               h4("Fund Value At Retirement:"),
+                               h3(textOutput("sd_text_fundvalue_spouse")),
+                               hr(),
+                               h4("Periodic Pension Payment:"),
+                               h3(textOutput("sd_text_pension_payment_spouse"))
+                           ),
+                           box(title = "Current Values", status = "primary", solidHeader = T,
+                               h4("Fund Value At Retirement:"),
+                               h3(textOutput("sd_text_fundvalue_discounted_spouse")),
+                               hr(),
+                               h4("Periodic Pension Payment:"),
+                               h3(textOutput("sd_text_pension_payment_discounted_spouse"))
+                           ),
+                           tabsetPanel(type = "tabs",
+                                       tabPanel("Accumulated Wealth",
+                                                style = "margin-top:1em",
+                                                box(title = "Accumulated Wealth", width = 12, status = "primary", solidHeader = T, plotOutput("sd_plot_fundvalue_spouse")),
+                                       ),
+                                       tabPanel("SORP Table",
+                                                style = "margin-top:1em",
+                                                box(title = "Contributions and Fund Value over Time", width = 12, status = "primary", solidHeader = T, DT::dataTableOutput("sd_table_contributions_spouse"),rownames= FALSE, style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
+                                       )
+                           )
+                  )} else {
+                  tabPanel("Drawdown Simulations",
+                           style = "margin-top:1em",
+                           box(
+                             title = "Life Expectancy", status = 'primary', solidHeader = T, width = 4,
+                             h3(textOutput('sd_text_life_ex'))
+                           ),
+                           box(
+                             title = "Average Fund Value", status = "primary", solidHeader = T, width = 4,
+                             h3(textOutput("sd_text_average_fund_life_ex"))
+                           ),
+                           box(
+                             title = "Probability of Ruin", status = "primary", solidHeader = T, width = 4,
+                             h3(textOutput("sd_text_ruin_prob_life_ex"))
+                           ),
+                           box(title = "Table", width = 12, status = "primary", solidHeader = T, DT::dataTableOutput("sd_table"), rownames= FALSE, style = "height:400px; overflow-y: scroll;overflow-x: scroll;"),
+                           box(title = "Drawdown Simulations", status = "primary", width = 12, solidHeader = T, plotOutput("sd_plot_sims")),
+                           box(title = "Drawdown Percentile Plot", status = "primary", width = 12, solidHeader = T, plotlyOutput("sd_plot_percentiles"))
+                  )},
+                  
+                  if(sd_inputs$sd_relationship != 1){
+                    tabPanel("Drawdown Simulations",
+                             style = "margin-top:1em",
+                             box(
+                               title = "Life Expectancy", status = 'primary', solidHeader = T, width = 4,
+                               h3(textOutput('sd_text_life_ex'))
+                             ),
+                             box(
+                               title = "Average Fund Value", status = "primary", solidHeader = T, width = 4,
+                               h3(textOutput("sd_text_average_fund_life_ex"))
+                             ),
+                             box(
+                               title = "Probability of Ruin", status = "primary", solidHeader = T, width = 4,
+                               h3(textOutput("sd_text_ruin_prob_life_ex"))
+                             ),
+                             box(title = "Table", width = 12, status = "primary", solidHeader = T, DT::dataTableOutput("sd_table"), rownames= FALSE, style = "height:400px; overflow-y: scroll;overflow-x: scroll;"),
+                             box(title = "Drawdown Simulations", status = "primary", width = 12, solidHeader = T, plotOutput("sd_plot_sims")),
+                             box(title = "Drawdown Percentile Plot", status = "primary", width = 12, solidHeader = T, plotlyOutput("sd_plot_percentiles"))
+                    )} else {tabPanel("")}
+      )
+    )
+    return(riskprofilerui(session = session,
+                          surveydisplay = input$sd_surveydisplay,
+                          submit = input$sd_submit, 
+                          page = "sd",
+                          input_mean_return = "sd_annual_mean_return", 
+                          input_ret_std_dev = "sd_annual_ret_std_dev",
+                          mainui = mainui))
+  }),
+
+  output$sd_save_results_text <- renderText({
+    if(input$sd_submit %% (num.quest + 2) > 0 && (input$sd_submit %% (num.quest + 2) <= num.quest)){
+      save_results(session, input$sd_submit, input$sd_survey)
     }
-  }, ignoreNULL = FALSE)
+  }),
+
+  output$sd_ui <- renderUI({
+    sd_ui_reactive()
+  })
 )

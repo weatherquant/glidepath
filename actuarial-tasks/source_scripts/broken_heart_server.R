@@ -1,10 +1,10 @@
 list(
 # Reactive Functions -----------------------------------------------------
-  bh_inputs <- eventReactive(input$bh_resim, {
+  bh_inputs <- eventReactive({input$bh_resim; input$bh_submit %% (num.quest + 2) > num.quest}, {
     return(reactiveValuesToList(input))
   }, ignoreNULL = FALSE),
   
-  bh_simulations_reactive <- eventReactive(input$bh_resim, {
+  bh_simulations_reactive <- eventReactive({input$bh_resim; input$bh_submit %% (num.quest + 2) > num.quest}, {
     bh_inputs = bh_inputs()
     return(Drawdown_Simulations(retire_age = bh_inputs$bh_age_current, 
                                 start_capital = bh_inputs$bh_start_capital, 
@@ -20,21 +20,21 @@ list(
                                 life_table = BrokenHeart_LifeTable(gender = bh_inputs$bh_gender)))
   }, ignoreNULL = FALSE),
   
-  bh_paths_reactive <- eventReactive(input$bh_resim, {
+  bh_paths_reactive <- eventReactive({input$bh_resim; input$bh_submit %% (num.quest + 2) > num.quest}, {
     return(Drawdown_Paths(bh_simulations_reactive()))
   }, ignoreNULL = FALSE),
 
-  bh_withdrawals_reactive <- eventReactive(input$bh_resim, {
+  bh_withdrawals_reactive <- eventReactive({input$bh_resim; input$bh_submit %% (num.quest + 2) > num.quest}, {
     return(Drawdown_Withdrawals(bh_simulations_reactive()))
   }, ignoreNULL = FALSE),
 
-  bh_life_ex_widowed_reactive <- eventReactive(input$bh_resim, {
+  bh_life_ex_widowed_reactive <- eventReactive({input$bh_resim; input$bh_submit %% (num.quest + 2) > num.quest}, {
     bh_inputs = bh_inputs()
     ex = exn(BrokenHeart_LifeTable(widowed_status = TRUE, widowed_age = bh_inputs$bh_age_widowed, gender = bh_inputs$bh_gender), bh_inputs$bh_age_current)
     return(round_to_fraction(ex, p_list[match(bh_inputs$bh_withdraw_freq, freq_list_drawdown)]))
   }, ignoreNULL = FALSE),
 
-  bh_life_ex_not_widowed_reactive <- eventReactive(input$bh_resim, {
+  bh_life_ex_not_widowed_reactive <- eventReactive({input$bh_resim; input$bh_submit %% (num.quest + 2) > num.quest}, {
     bh_inputs = bh_inputs()
     ex = exn(BrokenHeart_LifeTable(widowed_status = FALSE, gender = bh_inputs$bh_gender), bh_inputs$bh_age_current)
     return(round_to_fraction(ex, p_list[match(bh_inputs$bh_withdraw_freq, freq_list_drawdown)]))
@@ -197,5 +197,75 @@ list(
       disable("bh_percent_withdrawal")
       updateNumericInputIcon(session, "bh_percent_withdrawal", value = NA)
     }
+  }),
+
+  observe({
+    shinyjs::hide("bh_submit")
+  
+    if((input$bh_surveydisplay %% 2 == 1 & input$bh_surveydisplay != 0))
+      shinyjs::show("bh_submit")
+  }),
+
+# UI Functions ------------------------------------------------------------
+  bh_ui_reactive <- reactive({
+    mainui = list(
+      box(
+          title = "Difference in Life Expectancy", status = 'primary', solidHeader = T, width = 7,
+          h3(textOutput('bh_text_life_ex_diff'))
+          ),
+
+      box(title = "Not Widowed", status = "primary", solidHeader = T,
+          h4("Life Expectancy"),
+          h3(textOutput('bh_text_life_ex_not_widowed')),
+          hr(),
+          h4("Average Final Fund Value:"),
+          h3(textOutput("bh_text_average_fund_life_ex_not_widowed")),
+          hr(),
+          h4("Probability of Ruin"),
+          h3(textOutput('bh_text_ruin_prob_life_ex_not_widowed')),
+          hr(),
+          h4("Total Drawdown Withdrawals"),
+          h3(textOutput('bh_text_total_withdrawals_life_ex_not_widowed')),
+          ),
+
+      box(title = "Widowed", status = "primary", solidHeader = T,
+          h4("Life Expectancy"),
+          h3(textOutput("bh_text_life_ex_widowed")),
+          hr(),
+          h4("Average Final Fund Value:"),
+          h3(textOutput("bh_text_average_fund_life_ex_widowed")),
+          hr(),
+          h4("Probability of Ruin"),
+          h3(textOutput("bh_text_ruin_prob_life_ex_widowed")),
+          hr(),
+          h4("Total Drawdown Withdrawals"),
+          h3(textOutput('bh_text_total_withdrawals_life_ex_widowed')),
+      ),
+
+      box(title = "Table", width = 12, status = "primary", solidHeader = T, DT::dataTableOutput("bh_table"), rownames = FALSE, style = "height:400px; overflow-y: scroll;overflow-x: scroll;"),
+      tabsetPanel(type = 'tabs',
+        tabPanel("Widowed vs Not-Widowed Death Probabilites", style = "margin-top:1em", box(title = "Comparison of Widowed vs Non-Widowed Death Probabilities", status = "primary", width = 12, solidHeader = T, plotlyOutput("bh_qx_change_plot"))),
+        tabPanel("Short-Term Effect of Widowhood on Mortality", style = "margin-top:1em", box(title = "Short-Term Effect of Widowhood on the Probability of Death", status = "primary", width = 12, solidHeader = T, plotlyOutput("bh_life_ex_change_plot"))),
+        tabPanel("Drawdown Simulations", style = "margin-top:1em", box(title = "Drawdown Simulations", status = "primary", width = 12, solidHeader = T, plotOutput("bh_plot_sims"))),
+        tabPanel("Drawdown Percentile Plot", style = "margin-top:1em", box(title = "Drawdown Percentile Plot", status = "primary", width = 12, solidHeader = T, plotlyOutput("bh_plot_percentiles")))
+      )
+  )
+  return(riskprofilerui(session = session,
+                        surveydisplay = input$bh_surveydisplay,
+                        submit = input$bh_submit, 
+                        page = "drawdown",
+                        input_mean_return = "bh_annual_mean_return", 
+                        input_ret_std_dev = "bh_annual_ret_std_dev",
+                        mainui = mainui))
+  }),
+
+  output$bh_save_results_text <- renderText({
+    if(input$bh_submit %% (num.quest + 2) > 0 && (input$bh_submit %% (num.quest + 2) <= num.quest)){
+      save_results(session, input$bh_submit, input$bh_survey)
+    }
+  }),
+
+  output$bh_ui <- renderUI({
+    bh_ui_reactive()
   })
 )

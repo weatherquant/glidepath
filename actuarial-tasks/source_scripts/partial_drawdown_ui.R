@@ -36,6 +36,9 @@ list(
 
                   tabPanel("Market Parameters",
                           style = "margin-top:1em",
+                          h5(strong("Portfolio Suggestion Tool:")),
+                          actionButton(inputId = "pd_surveydisplay", label = "Risk Profiler", style = "background-color: white", icon("poll")),
+                          h6(textOutput("pd_save_results_text")),
                           numericInputIcon(inputId = "pd_annual_mean_return", label = "Mean Annual Return:", value = 5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
                           numericInputIcon(inputId = "pd_annual_ret_std_dev", label = "Standard Deviation of Annual Return:", value = 7, min = 0, max = 100, icon = list(NULL, icon("percent"))),
                           numericInputIcon(inputId = "pd_annual_inflation", label = "Mean Annual Inflation:", value = 2.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
@@ -45,41 +48,8 @@ list(
       )),
     
     mainPanel(
-
-      box(title = "100% Annuity", status = "primary", solidHeader = T,
-          h4("Periodic Annuity Payment:"),
-          h3(textOutput("pd_text_annuity_payment")),
-          hr(),
-          h4("Total Annuity Payments Received:"),
-          h3(textOutput("pd_text_annuity_cumulative_life_ex"))
-      ),
-
-      box(title = "100% Drawdown", status = "primary", solidHeader = T,
-          h4("Total Payments Received:"),
-          h3(textOutput("pd_text_drawdown_total_withdrawals_life_ex")),
-          hr(),
-          h4("Average Final Fund Value:"),
-          h3(textOutput("pd_text_drawdown_average_fund_life_ex"))
-      ),
-
-      box(title = "Drawdown and Subsequent Annuity Purchase", status = "primary", solidHeader = T,
-          h4("Fund Value At End of Drawdown Period:"),
-          h3(textOutput("pd_text_buylater_average_fund_end")),
-          hr(),
-          h4("Periodic Annuity Payment:"),
-          h3(textOutput("pd_text_average_annuity_payment_buylater"))
-      ),
-
-      box(title = "Drawdown and Deferred Annuity", status = "primary", solidHeader = T,
-          h4("Cost of Deferred Annuity:"),
-          h3(textOutput("pd_text_annuity_cost_deferred")),
-          hr(),
-          h4("Periodic Annuity Payment:"),
-          h3(textOutput("pd_text_annuity_payment_deferred"))
-      ),
-      
-      box(title = "Table", width = 12, status = "primary", solidHeader = T, DT::dataTableOutput("pd_comparison_table"), style = "height:430px; overflow-y: scroll;overflow-x: scroll;"),
-      box(title = "Retirement Income", status = "primary", solidHeader = T, width = 12, plotlyOutput("pd_plot_income_compare"))
+      uiOutput("pd_ui"),
+      column(1, actionButton("pd_submit", "Next"))
       )
   )
 )
