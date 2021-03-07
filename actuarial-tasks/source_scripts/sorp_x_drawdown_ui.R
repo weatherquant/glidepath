@@ -1,0 +1,79 @@
+list(
+  box(h1("SORP Calculator & Drawdown Simulation"), width = 12, background = "light-blue"),
+  
+  sidebarLayout(
+    
+    sidebarPanel(
+      
+      tabsetPanel(type = "tabs", id = "sd_sidebar",
+                  tabPanel("SORP Parameters",
+                           style = "margin-top:1em",
+                           sliderInput("sd_age", "Current Age and Retirement Age:", value = c(45, 66), min = 16, max = getOmega(ILT15_female_reduced)),
+                           awesomeRadio("sd_relationship", "Relationship Status:", choices = list("Single" = 1, "Married" = 2), inline = TRUE),
+                           numericInputIcon(inputId = "sd_salary", label = "Current Salary:", value = 50000, min = 0, icon = icon("euro")),
+                           numericInputIcon(inputId = "sd_current_fundvalue", label = "Current Fund Value:", value = 100000, min = 0, icon = icon("euro")),
+                           selectInput("sd_pre_freq", "Contribution Frequency:", freq_list),
+                           selectInput("sd_post_freq", "Annuity Payment Frequency:", freq_list),
+                           numericInputIcon(inputId = "sd_emp_contri", label = "Employee Contribution Percentage:", value = 5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
+                           numericInputIcon(inputId = "sd_empr_contri", label = "Employer Contribution Percentage:", value = 5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
+                           actionButton(inputId = "sd_resim1", label = "Re-Run Simulation", style = "background-color: white", icon("random"))
+                  ),
+                  
+                  tabPanel("Spouse SORP Parameters",
+                           style = "margin-top:1em",
+                           numericInputIcon(inputId = "sd_salary_spouse", label = "Current Salary:", value = 50000, min = 0, icon = icon("euro")),
+                           numericInputIcon(inputId = "sd_current_fundvalue_spouse", label = "Current Fund Value:", value = 100000, min = 0, icon = icon("euro")),
+                           selectInput("sd_pre_freq_spouse", "Contribution Frequency:", freq_list),
+                           selectInput("sd_post_freq_spouse", "Annuity Payment Frequency:", freq_list),
+                           numericInputIcon(inputId = "sd_emp_contri_spouse", label = "Employee Contribution Percentage:", value = 5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
+                           numericInputIcon(inputId = "sd_empr_contri_spouse", label = "Employer Contribution Percentage:", value = 5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
+                           actionButton(inputId = "sd_resim2", label = "Re-Run Simulation", style = "background-color: white", icon("random"))
+                  ),
+                  
+                  tabPanel("Drawdown Parameters",
+                           style = "margin-top:1em",
+                           selectInput("sd_withdraw_freq", "Withdrawal Frequency:", freq_list_drawdown),
+                           awesomeRadio("sd_withdraw_type", "Withdrawal Type:", choices = list("Fixed" = F, "Percentage" = T), inline = TRUE),
+                           numericInputIcon(inputId = "sd_annual_withdrawals", label = "Total Withdrawals per Annum:", value = 15000, min = 0, icon = icon("euro")),
+                           numericInputIcon(inputId = "sd_percent_withdrawal", label = "Percentage Withdrawn per Annum:", value = 4, min = 0, max = 100, icon = list(NULL, icon("percent"))),
+                           h5(strong("Portfolio Suggestion Tool:")),
+                           actionButton(inputId = "sd_surveydisplay", label = "Risk Profiler", style = "background-color: white", icon("poll")),
+                           h6(textOutput("sd_save_results_text")),
+                           numericInputIcon(inputId = "sd_annual_mean_return", label = "Mean Annual Return:", value = 5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
+                           numericInputIcon(inputId = "sd_annual_ret_std_dev", label = "Standard Deviation of Annual Return:", value = 7, min = 0, max = 100, icon = list(NULL, icon("percent"))),
+                           numericInputIcon(inputId = "sd_annual_inflation", label = "Mean Annual Inflation:", value = 2.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
+                           numericInputIcon(inputId = "sd_annual_inf_std_dev", label = "Standard Inflation of Annual Inflation:", value = 1.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
+                           actionButton(inputId = "sd_resim3", label = "Re-Run Simulation", style = "background-color: white", icon("random"))
+                           
+                           
+                  ), 
+                  
+                  tabPanel("SORP Assumptions",
+                           style = "margin-top:1em",
+                           numericInputIcon(inputId = "sd_salary_esc", label = "Salary Escalation:", value = 1.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
+                           numericInputIcon(inputId = "sd_discount_rate", label = "Discount Rate:", value = 2.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
+                           numericInputIcon(inputId = "sd_annuity_interest", label = "Interest Rate for Annuity:", value = 0.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
+                           numericInputIcon(inputId = "sd_annuity_esc", label = "Annuity Escalation:", value = 1, min = 0, max = 100, icon = list(NULL, icon("percent"))),
+                           numericInputIcon(inputId = "sd_guaranteed", label = "Guarantee Period:", value = 5, min = 0, max = 39, icon = list(NULL, "Years")),
+                           numericInputIcon(inputId = "sd_investment_charges", label = "Investment Charges:", value = 0.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
+                           h4(strong("Equity/Property:")),
+                           numericInputIcon(inputId = "sd_equity_rate", label = "Rate:", value = 4.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
+                           sliderInput("sd_equity_prop", label = "Proportion:", min = 0, max = 100, value = 40, step = 1),
+                           h4(strong("Fixed Interest Securities:")),
+                           numericInputIcon(inputId = "sd_fixed_rate", label = "Rate:", value = 1, min = 0, max = 100, icon = list(NULL, icon("percent"))),
+                           sliderInput("sd_fixed_prop", label = "Proportion:", min = 0, max = 60, value = 30, step = 1),
+                           h4(strong("Cash/Other:")),
+                           numericInputIcon(inputId = "sd_cash_rate", label = "Rate:", value = 0, min = 0, max = 100, icon = list(NULL, icon("percent"))),
+                           sliderInput("sd_cash_prop", label = "Proportion:", min = 0, max = 100, value = 30, step = 1),
+                           actionButton(inputId = "sd_resim4", label = "Re-Run Simulation", style = "background-color: white", icon("random")),
+                           actionButton(inputId = "sd_default", label = "Reset to Default", style = "background-color: white")
+                  )
+      ),
+    ),
+      
+      mainPanel(
+        uiOutput("sd_ui"),
+        column(1, actionButton("sd_submit", "Next"))
+      )
+    )
+)

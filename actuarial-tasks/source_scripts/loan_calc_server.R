@@ -1,76 +1,57 @@
 list(
-  loanSummary <- reactive(
-    {
-      PV = input$PV
-      int = input$int / 100
-      n = input$n
-      freq = input$freq
-      
-      p = p_list[match(input$freq, freq_list)]
-      ip_p = effective2Convertible(int, k = p)/p
-      
-      total_payments = n * p
-      repay = PV/annuity(i = int, n = n, k = p)/p
-      
-      repay_no = seq(0, total_payments)
-      repay_vect = c(0, rep(repay, total_payments))
-      balance = numeric(total_payments + 1)
-      int_paid = numeric(total_payments + 1)
-      cap_paid = numeric(total_payments + 1)
-      int_percent = numeric(total_payments + 1)
-      cap_percent = numeric(total_payments + 1)
-      
-      balance[1] = PV
-      
-      for(i in (1:(total_payments))){
-        int_paid[i + 1] = ip_p * balance[i]
-        cap_paid[i + 1] =  repay - int_paid[i + 1]
-        balance[i + 1] = balance[i] - cap_paid[i + 1]
-        int_percent[i + 1] = (int_paid[i + 1]) / repay 
-        cap_percent[i + 1] = (cap_paid[i + 1]) / repay 
-      }
-      
-      loan_summary <- data.frame(repay_no, balance, int_percent, cap_percent, int_paid, cap_paid, repay_vect)
-      return(loan_summary)
-    }
-  ),
+  loan_reactive <- reactive({
+    return(loan_summary(inital_balance = input$loan_inital_balance, 
+                        interest_rate = input$loan_interest,
+                        term_years = input$loan_years,
+                        freq_repay = input$loan_freq))
+    }),
   
-  output$repay <- renderText({
-    loan_summary = loanSummary()
-    repayment = loan_summary[2, 7]
-    return(c("€", format(round(as.numeric(repayment), 2), nsmall = 2, big.mark = ",", scientific=FALSE)))
-  }),
-  
-  output$repay_box <- renderInfoBox({
-    loan_summary = loanSummary()
-    repayment = paste((c("€", format(round(as.numeric(loan_summary[2, 7]), 2), nsmall = 2, big.mark = ",", scientific=FALSE))), collapse = "")
-    infoBox(
-      "Periodic Repayment Amount", repayment, icon = icon("euro")
-    )
-  }),
-  
-  output$loan_balance <- renderPlot({
-    loan_summary = loanSummary()
-    ggplot(loan_summary, aes(x = repay_no, y = balance, fill="#4A8DBF", color="#4A8DBF")) + geom_bar(stat='identity', color = "#4A8DBF", fill = "#4A8DBF") + labs(x = "Repayment Number", y = "Remaining Balance") + scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(expand = c(0, 0)) + theme(legend.position = "none", panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-                                                                                                                                                                                                                                                                                                         panel.background = element_blank(), axis.line = element_line(colour = "black"))
-  }),
-  
-  output$int_cap <- renderPlot({
-    loan_summary = loanSummary()
-    loan_summary[, 3:4] = 100*loan_summary[, 3:4]
-    colnames(loan_summary) = c("repay_no", 'balance', "Interest", "Capital", 'int_paid', 'cap_paid', 'repay_vect')
-    int_cap <- data.frame(pivot_longer(select(loan_summary, -repay_vect), Interest:Capital, names_to = "int_or_cap", values_to = "value"))
-    ggplot(int_cap, aes(x=repay_no, y=value, fill=int_or_cap)) + geom_bar(stat="identity") + scale_fill_manual(values = c("#4A8DBF", "#BF7C4A")) + labs(x = "Repayment Number", y = "Proportion of Repayment", fill = NULL) + scale_x_continuous(limits = c(0, nrow(loan_summary)), expand = c(0, 0)) + scale_y_continuous(expand = c(0, 0)) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-                                                                                                                                                                                                                                                                                                                                                     panel.background = element_blank(), axis.line = element_line(colour = "black"))
+  output$loan_periodic_repay <- renderText({
+    loan_summary = loan_reactive()
+    repayment = loan_summary$repay_vect[2]
+    return(c("€", round_2d(repayment, T)))
   }),
   
   output$loan_schedule <- renderDataTable({
-    loan_summary = loanSummary()
-    loan_summary_tidy <- data.frame(select(loan_summary, -repay_no, -repay_vect), row.names = loan_summary[,1])
-    colnames(loan_summary_tidy) = c("Balance", "% Interest", "% Capital", "Interest Paid", "Capital Paid")
-    ls <- datatable(loan_summary_tidy, options = list(paging = FALSE)) 
-    ls <- formatCurrency(ls, columns = c(1, 4, 5), currency = "€")
-    ls <- formatPercentage(ls, columns = c(2, 3), digits = 2)
-    return(ls)
+    loan_summary = loan_reactive()
+    loan_summary[loan_summary == 0] <- "-"
+    loan_summary <- data.frame(select(loan_summary, -repay_no, -repay_vect), row.names = loan_summary[,1])
+    colnames(loan_summary) = c("Balance", "% Interest", "% Capital", "Interest Paid", "Capital Paid")
+    loan_summary <- datatable(loan_summary, options = list(paging = FALSE, searching = FALSE, info = FALSE, columnDefs = list(list(className = 'dt-center', targets = "_all")))) 
+    loan_summary <- formatCurrency(loan_summary, columns = c("Balance", "Interest Paid", "Capital Paid"), currency = "€")
+    loan_summary <- formatPercentage(loan_summary, columns = c("% Interest", "% Capital"), digits = 2)
+    return(loan_summary)
+  }),
+  
+  output$loan_plot_balance <- renderPlot({
+    loan_summary = loan_reactive()
+    ggplot(loan_summary, aes(x = repay_no, y = balance, fill="#4A8DBF", color="#4A8DBF")) + 
+      geom_bar(stat = 'identity', color = "#4A8DBF", fill = "#4A8DBF") + 
+      labs(x = "Repayment Number", y = "Remaining Balance") + 
+      scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(labels = scales::dollar_format(prefix = "€"), expand = c(0, 0)) + 
+      theme(legend.position = "none", 
+            axis.text.x = element_text(size = 10), axis.text.y = element_text(size = 10),
+            axis.title.x = element_text(margin = margin(t = 15, r = 0, b = 0, l = 0)),
+            axis.title.y = element_text(margin = margin(t = 0, r = 15, b = 0, l = 0)),
+            panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+            panel.background = element_blank(), axis.line = element_line(colour = "black"))
+  }),
+  
+  output$loan_plot_interest_vs_capital <- renderPlot({
+    loan_summary = loan_reactive()
+    loan_summary = loan_summary[-1, ]
+    colnames(loan_summary)[3:4] = c("Interest", "Capital")
+    int_cap <- data.frame(pivot_longer(select(loan_summary, -repay_vect), Interest:Capital, names_to = "int_or_cap", values_to = "value"))
+    ggplot(int_cap, aes(x=repay_no, y=value, fill = int_or_cap, colour = int_or_cap)) + 
+      geom_bar(stat = "identity") + 
+      scale_fill_manual(values = c("#4A8DBF", "#BF7C4A")) + scale_colour_manual(values = c("#4A8DBF", "#BF7C4A"), guide = FALSE) +
+      labs(x = "Repayment Number", y = "% of Repayment", fill = NULL) + xlim(1, nrow(loan_summary)) +
+      scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(labels = scales::label_percent(), expand = c(0, 0)) +
+      theme(legend.position = "top", legend.text = element_text(size = 11),
+            axis.text.x = element_text(size = 10), axis.text.y = element_text(size = 10),
+            axis.title.x = element_text(margin = margin(t = 15, r = 0, b = 0, l = 0)),
+            axis.title.y = element_text(margin = margin(t = 0, r = 15, b = 0, l = 0)),
+            panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+            panel.background = element_blank(), axis.line = element_line(colour = "black"))
   })
 )
