@@ -138,21 +138,33 @@ round_2d <- function(x, two_d = F){
 
 # General UI --------------------------------------------------------------
 ui <- dashboardPage(
-    dashboardHeader(title = "Actuarial Tasks in R"),
+    dashboardHeader(title = "Actuarial Tasks in R",
+                    dropdownMenu(
+                      type = "notifications", 
+                      headerText = strong("See the code behind the app:"), 
+                      icon = icon("code"), 
+                      badgeStatus = NULL,
+                      notificationItem(
+                        text = "Click here to visit the GitHub Page",
+                        href = "https://github.com/Jimzo123/FYP_MS4090",
+                        icon = icon("github")
+                        )
+                      )
+                    ),
 
     dashboardSidebar(
         
         sidebarMenu(
-            menuItem("Loan Calculator", tabName = "loan_calc"),
-            menuItem("SORP Calculator", tabName = "sorp"),
-            menuItem("Drawdown Simulator", tabName = "drawdown"),
-            menuItem("SORP & Drawdown", tabName = "sorp_x_drawdown"),
-            menuItem("Partial Drawdown Simulator", tabName = "partial_drawdown"),
-            menuItem("Broken Heart", tabName = "broken_heart"),
-            menuItem("SORP Import", tabName = "sorp_import"),
-            menuItem("Life Expectancy Visualisations", tabName = 'life_ex'),
-            menuItem("Historical Data", tabName = 'hist_data'),
-            menuItem("Sequencing Risk", tabName = 'sequencing')
+          menuItem("Loan Calculator", tabName = "loan_calc", icon = icon("landmark")),
+          menuItem("SORP Calculator", tabName = "sorp", icon = icon("calculator")),
+          menuItem("Drawdown Simulator", tabName = "drawdown", icon = icon("chart-line")),
+          menuItem("SORP & Drawdown", tabName = "sorp_x_drawdown", icon = icon("dashboard")),
+          menuItem("Partial Drawdown Simulator", tabName = "partial_drawdown", icon = icon("star-half")),
+          menuItem("Broken Heart", tabName = "broken_heart", icon = icon("heart-broken")),
+          menuItem("SORP Import", tabName = "sorp_import", icon = icon("file-import")),
+          menuItem("Life Expectancy Visualisations", tabName = "life_ex", icon = icon("heartbeat")),
+          menuItem("Historical Data", tabName = "hist_data", icon = icon("history")),
+          menuItem("Sequencing Risk", tabName = "sequencing", icon = icon("sync"))
         )
     ),
 
