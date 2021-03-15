@@ -152,7 +152,7 @@ list(
     p <- ggplot(AgeandFundValue, aes(x = age_exact + (1 / freq), y = FundValue, fill = "#4A8DBF", colour = "#4A8DBF")) +
       geom_bar(stat = "identity", colour = "#4A8DBF", fill = "#4A8DBF") + 
       labs(x = "Age", y = "Fund Value", fill = NULL, color = NULL) +
-      scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(expand = c(0, 0)) + 
+      scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(labels = scales::dollar_format(prefix = "€"), expand = c(0, 0)) + 
       theme(legend.position = "none", panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
             panel.background = element_blank(), axis.line = element_line(colour = "black"))
     return(p)

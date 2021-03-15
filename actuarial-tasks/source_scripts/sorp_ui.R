@@ -41,32 +41,26 @@ list(
     ),
     
     mainPanel(
+      box(title = "Future Values", status = "primary", solidHeader = T,
+          h4("Fund Value At Retirement:"),
+          h3(textOutput("sorp_text_fundvalue")),
+          hr(),
+          h4("Periodic Pension Payment:"),
+          h3(textOutput("sorp_text_pension_payment"))
+      ),
+      box(title = "Discounted Values", status = "primary", solidHeader = T,
+          h4("Fund Value At Retirement:"),
+          h3(textOutput("sorp_text_fundvalue_discounted")),
+          hr(),
+          h4("Periodic Pension Payment:"),
+          h3(textOutput("sorp_text_pension_payment_discounted"))
+      ),
       
-      tabsetPanel(type = "tabs",
-                  tabPanel("Summary",
-                           style = "margin-top:1em",
-                           box(title = "Future Values", status = "primary", solidHeader = T,
-                               h4("Fund Value At Retirement:"),
-                               h3(textOutput("sorp_text_fundvalue")),
-                               hr(),
-                               h4("Periodic Pension Payment:"),
-                               h3(textOutput("sorp_text_pension_payment"))
-                           ),
-                           box(title = "Discounted Values", status = "primary", solidHeader = T,
-                               h4("Fund Value At Retirement:"),
-                               h3(textOutput("sorp_text_fundvalue_discounted")),
-                               hr(),
-                               h4("Periodic Pension Payment:"),
-                               h3(textOutput("sorp_text_pension_payment_discounted"))
-                           ),
-                           box(title = "Accumulated Wealth", width = 12, status = "primary", solidHeader = T, plotOutput("sorp_plot_fundvalue"))
-                  ),
-                  
-                  tabPanel("Table",
-                           style = "margin-top:1em",
-                           box(title = "Contributions and Fund Value over Time", width = 12, status = "primary", solidHeader = T, DT::dataTableOutput("sorp_table_contributions"), style = "height:750px; overflow-y: scroll;overflow-x: scroll;")
-                  )
-      )
+      tabBox(type = "tabs", width = 12,
+             tabPanel("Accumulated Wealth", plotOutput("sorp_plot_fundvalue")),
+             tabPanel("Contributions and Fund Value over Time", DT::dataTableOutput("sorp_table_contributions"),  rownames = FALSE, style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
+      ),
     )
   )
 )
+     

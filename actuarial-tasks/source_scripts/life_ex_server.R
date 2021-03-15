@@ -31,7 +31,7 @@ list(
                                          '<extra></extra>'))
                    
     fig <- fig %>%
-      layout(xaxis = list(title = "Age (Years)"), yaxis = list(title = "% Increase"))
+      layout(xaxis = list(title = "Age"), yaxis = list(title = "% Increase"))
   }),
 
   output$interactive_ex <- renderPlot({
