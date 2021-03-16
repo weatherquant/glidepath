@@ -53,7 +53,7 @@ list(
       scale_color_manual("Gender", values = c('hotpink3', "#4A8DBF")) +
       scale_linetype_manual("Widowhood Status", values = c("Widowed" = 1, "Baseline" = 2)) +
       scale_size_manual("Gender", values = c(1,1)) +
-      theme(legend.title = element_blank(), legend.text = element_text(size = 10), legend.position = 'top', legend.box = "horizontal") +
+      theme(legend.title = element_blank(), legend.text = element_text(size = 10), legend.position = 'top', legend.justification = "right", legend.box = "horizontal") +
       guides(color = guide_legend(override.aes = list(size = .5), shape = guide_legend(override.aes = list(size = 4))))
 
     ggplotly(p, tooltip = c("age", "female_widowed", "female_baseline", "male_widowed", "male_baseline")) %>%

@@ -1,5 +1,5 @@
 list(
-  box(h1("Partial Drawdown Simulator"), width = 12, background = "light-blue"),
+  box(h1("Retirement Products"), width = 12, background = "light-blue"),
   
   sidebarLayout(
     
@@ -45,11 +45,74 @@ list(
                           numericInputIcon(inputId = "pd_annual_inf_std_dev", label = "Standard Inflation of Annual Inflation:", value = 1.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
                           actionButton(inputId = "pd_resim3", label = "Re-Run Simulation", style = "background-color: white", icon("random"))
                           )
-      )),
+      ),
+    ),
+    
     
     mainPanel(
-      uiOutput("pd_ui"),
-      column(1, actionButton("pd_submit", "Next"))
+      
+      box(status = "primary", width = 12, solidHeader = F, 
+          h3("The Four Retirement Products"),
+          h5("1. Purchase an annuity with the inital retirement fund."),
+          h5("2. Drawdown the retirement fund for the remainder of lifetime."),
+          h5("3. The initial fund is drawdown for n years. The fund value at the end of that 
+             that period is used to purchase an annuity."),
+          h5("4. Upon retirement a deferred annuity, with the same periodic payment as the annuity in the 
+             first scenario, is purchased. The remainder of the inital reitrement fund is drawdown for the deferred period.")
+      ),
+      
+      box(title = "100% Annuity", status = "primary", solidHeader = T,
+          h4("Periodic Annuity Payment:"),
+          h3(textOutput("pd_text_annuity_payment")),
+          hr(),
+          h4("Total Annuity Payments Received:"),
+          h3(textOutput("pd_text_annuity_cumulative_life_ex"))
+      ),
+      
+      box(title = "100% Drawdown", status = "primary", solidHeader = T,
+          h4("Total Payments Received:"),
+          h3(textOutput("pd_text_drawdown_total_withdrawals_life_ex")),
+          hr(),
+          h4("Average Final Fund Value:"),
+          h3(textOutput("pd_text_drawdown_average_fund_life_ex"))
+      ),
+      
+      box(title = "Drawdown followed by Annuity Purchase", status = "primary", solidHeader = T,
+          h4("Fund Value At End of Drawdown Period:"),
+          h3(textOutput("pd_text_buylater_average_fund_end")),
+          hr(),
+          h4("Periodic Annuity Payment:"),
+          h3(textOutput("pd_text_average_annuity_payment_buylater"))
+      ),
+      
+      box(title = "Drawdown and Deferred Annuity", status = "primary", solidHeader = T,
+          h4("Cost of Deferred Annuity:"),
+          h3(textOutput("pd_text_annuity_cost_deferred")),
+          hr(),
+          h4("Periodic Annuity Payment:"),
+          h3(textOutput("pd_text_annuity_payment_deferred"))
+      ),
+      
+      tabBox(
+        title = "Partial Drawdown Visuals",
+        id = "tabset1", width = 12,height = "530px",
+        tabPanel("Retirement Income", plotlyOutput("pd_plot_income_compare")),
+        tabPanel("Table",  DT::dataTableOutput("pd_comparison_table"), rownames= FALSE, style = "height:480px; overflow-y: scroll;overflow-x: scroll;")
+      ),
+      
+      # uiOutput("pd_ui"),
+      # column(1, actionButton("pd_submit", "Next"))
+      
+      # box(status = "primary", width = 12, solidHeader = F, 
+      #     h3("The Four Retirement Products"),
+      #     h5("1. Purchase an annuity with the inital retirement fund."),
+      #     h5("2. Drawdown the retirement fund for the remainder of lifetime."),
+      #     h5("3. The starting capital is drawdown for n years. The fund value at the end of that 
+      #        that period is used to purchase an annuity"),
+      #     h5("4. Upon retirement a deferred annuity, with the same periodic payment as the annuity in the 
+      #        first scenario, is purchased. The remainder of the inital reitrement fund is drawdown for the deferred period.")
+      #     )
+      
       )
   )
 )
