@@ -172,7 +172,7 @@ ui <- dashboardPage(
           menuItem("SORP Calculator", tabName = "sorp", icon = icon("calculator")),
           menuItem("Drawdown Simulator", tabName = "drawdown", icon = icon("chart-line")),
           menuItem("SORP & Drawdown", tabName = "sorp_x_drawdown", icon = icon("dashboard")),
-          menuItem("Drawdown Products", tabName = "partial_drawdown", icon = icon("tags")),
+          menuItem("Drawdown Strategies", tabName = "partial_drawdown", icon = icon("tags")),
           menuItem("Broken Heart Effect", tabName = "broken_heart", icon = icon("heart-broken")),
           menuItem("SORP Import", tabName = "sorp_import", icon = icon("file-import")),
           menuItem("Life Expectancy Visualisations", tabName = "life_ex", icon = icon("heartbeat")),

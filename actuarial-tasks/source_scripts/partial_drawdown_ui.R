@@ -1,5 +1,5 @@
 list(
-  box(h1("Drawdown Products"), width = 12, background = "light-blue"),
+  box(h1("Drawdown Strategies"), width = 12, background = "light-blue"),
   
   sidebarLayout(
     
