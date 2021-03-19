@@ -1,7 +1,7 @@
 list(
   life_ex <- reactive({
   current_age = input$current_age_ex
-  if(input$gender_interactive_ex == 1){
+  if(input$gender_ex == 1){
     life_ex = current_age + exn(ILT15_female_reduced, current_age)
   } else {
     life_ex = current_age + exn(ILT15_male_reduced, current_age)
@@ -9,23 +9,27 @@ list(
   return(life_ex)
   }),
   
-  output$text_ex <- renderText({
-    ex <- life_ex()
-    return(c(round_2d(ex), " Years"))
-  }),
-  
   output$percent_increase_ex <- renderPlotly({
-    ages_x <- unlist(life_table_female[,1])
-    age_death = numeric(length(ages_x))
-    for(i in 1:length(ages_x)){
-      age_death[i] = ages_x[i] + exn(ILT15_female_reduced, ages_x[i])
+    if(input$gender_ex == 1){
+      ages_x <- unlist(life_table_female[,1])
+      age_death = numeric(length(ages_x))
+      for(i in 1:length(ages_x)){
+        age_death[i] = ages_x[i] + exn(ILT15_female_reduced, ages_x[i])
+      }
+    } else {
+      ages_x <- unlist(life_table_male[,1])
+      age_death = numeric(length(ages_x))
+      for(i in 1:length(ages_x)){
+        age_death[i] = ages_x[i] + exn(ILT15_male_reduced, ages_x[i])
+      }
     }
+
     percent_increase_ex = numeric(length(ages_x))
     for(i in 1:length(ages_x)){
       percent_increase_ex[i] = ((age_death[i+1] - age_death[i])/age_death[i])*100
     }
    
-    fig <- plot_ly(type = "scatter", x = ages_x, y = percent_increase_ex, mode = "markers",
+    fig <- plot_ly(type = "scatter", x = ages_x, y = percent_increase_ex, color = if(input$gender_ex == 1){I('#f112be')}else{I('#4A8DBF')}, mode = "markers",
                    hovertemplate = paste("%{xaxis.title.text}: %{x}<br>",
                                          "%{yaxis.title.text}: %{y}<br>",
                                          '<extra></extra>'))
@@ -81,7 +85,7 @@ list(
   output$comparison_ex <- renderPlot({
     ages = input$ages_ex
     deaths = numeric(length(ages))
-    if(input$gender_comparison_ex == 1){table = ILT15_female_reduced} else {table = ILT15_male_reduced}
+    if(input$gender_ex == 1){table = ILT15_female_reduced} else {table = ILT15_male_reduced}
     for(i in 1:length(ages)){
       deaths[i] = ages[i] + exn(table, ages[i])
     }
@@ -124,6 +128,6 @@ list(
                           color=c("A", "B", "A", "B"))
     
     p + xkcdman(mapping, dataman) + 
-      geom_label(x = c(ages, deaths, mean(c(getOmega(table) + 5, 50))), y = c(rep(3.4, 4), 4), label = c(ages, round_2d(deaths), paste0("Difference in Lifespan = ", round_2d(deaths[2] - deaths[1]), " Years")), label.padding = unit(0.4, "lines"), size = c(rep(4, 4), 6.5))
+      geom_label(x = c(ages, deaths, mean(c(getOmega(table) + 5, 50))), y = c(rep(3.4, 4), 4), label = c(ages, lapply(deaths, round_2d), paste0("Difference in Lifespan = ", round_2d(deaths[2] - deaths[1]), " Years")), label.padding = unit(0.4, "lines"), size = c(rep(4, 4), 6.5))
   })
 )

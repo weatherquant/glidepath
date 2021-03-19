@@ -4,7 +4,7 @@ list(
     validate(
       need(input$import_database != '', "Please Upload a Database")
     )
-      database <- input$import_database
+    database <- input$import_database
     cnames <- read_excel(database$datapath, sheet = 1, n_max = 0) %>% names()
     database <- read_xlsx(database$datapath, sheet = 1, skip = 1, col_names = cnames)
     database <- data.frame(database)
@@ -48,7 +48,7 @@ list(
 # Output Functions --------------------------------------------------------
   output$import_calcs_table <- renderDataTable({
     database = import_calcs_reactive()
-    database <- datatable(database[, 10:length(database[1, ])], options = list(paging = FALSE, searching = FALSE, info = FALSE, columnDefs = list(list(className = 'dt-center', targets = "_all"))), rownames= TRUE)
+    database <- datatable(database[, 10:length(database[1, ])], options = list(scrollX = TRUE, scrollY = "430px", paging = FALSE, searching = FALSE, info = FALSE, columnDefs = list(list(className = 'dt-center', targets = "_all"))), rownames = TRUE)
     database <- formatCurrency(database, columns = 1:4, currency = "€")
     return(database)
   }),
@@ -104,7 +104,7 @@ list(
     updateSliderInput(session, "import_cash_prop", value = 100 - input$import_equity_prop - input$import_fixed_prop)
   }),
 
-  observeEvent(input$import_database,{
+  observeEvent(import_calcs_reactive(),{
     shinyjs::show(id = "import_calcs_download_button")
   })
 )

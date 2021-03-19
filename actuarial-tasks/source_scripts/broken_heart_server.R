@@ -12,16 +12,21 @@ list(
 
 # Output Functions --------------------------------------------------------
   output$bh_text_life_ex_widowed <- renderText({
-    return(c(round_2d(bh_life_ex_widowed_reactive()), " Years"))
+    return(c(round(bh_life_ex_widowed_reactive(), digits = 2), " Years"))
   }),
 
   output$bh_text_life_ex_not_widowed <- renderText({
-    return(c(round_2d(bh_life_ex_not_widowed_reactive()), " Years"))
+    return(c(round(bh_life_ex_not_widowed_reactive(), digits = 2), " Years"))
   }),
   
-  output$bh_text_life_ex_diff <- renderText({
+  output$bh_text_life_ex_diff_female <- renderText({
     diff = bh_life_ex_not_widowed_reactive() - bh_life_ex_widowed_reactive()
-    return(c(round_2d(diff), " Years"))
+    return(c(round(diff, digits = 2), " Years"))
+  }),
+
+  output$bh_text_life_ex_diff_male <- renderText({
+    diff = bh_life_ex_not_widowed_reactive() - bh_life_ex_widowed_reactive()
+    return(c(round(diff, digits = 2), " Years"))
   }),
 
   output$bh_qx_change_plot <- renderPlotly({
@@ -40,24 +45,27 @@ list(
     
     df = data.frame(age = (input$bh_age_widowed - 1):(input$bh_age_widowed + 4), 
                     female_widowed = bh_w_f_qx[(input$bh_age_widowed):(input$bh_age_widowed + 5)],
-                    female_baseline = bh_no_f_qx[(input$bh_age_widowed):(input$bh_age_widowed + 5)],
+                    female_not_widowed = bh_no_f_qx[(input$bh_age_widowed):(input$bh_age_widowed + 5)],
                     male_widowed = bh_w_m_qx[(input$bh_age_widowed):(input$bh_age_widowed + 5)],
-                    male_baseline = bh_no_m_qx[(input$bh_age_widowed):(input$bh_age_widowed + 5)]
+                    male_not_widowed = bh_no_m_qx[(input$bh_age_widowed):(input$bh_age_widowed + 5)]
     )
   
     p <- ggplot(df, aes(x = age)) + xlab("Age") + ylab("Probability of Death (qx rate)") +
       geom_line(aes(y = female_widowed, colour = 'Female', linetype = 'Widowed', size = "Female")) + 
-      geom_line(aes(y = female_baseline, colour = 'Female', linetype = 'Baseline',size = "Female")) + 
+      geom_line(aes(y = female_not_widowed, colour = 'Female', linetype = 'Not Widowed', size = "Female")) + 
       geom_line(aes(y = male_widowed, colour = "Male", linetype = 'Widowed', size = "Male")) + 
-      geom_line(aes(y = male_baseline, colour = "Male", linetype = "Baseline", size = "Male")) +
-      scale_color_manual("Gender", values = c('hotpink3', "#4A8DBF")) +
-      scale_linetype_manual("Widowhood Status", values = c("Widowed" = 1, "Baseline" = 2)) +
-      scale_size_manual("Gender", values = c(1,1)) +
-      theme(legend.title = element_blank(), legend.text = element_text(size = 10), legend.position = 'top', legend.box = "horizontal") +
-      guides(color = guide_legend(override.aes = list(size = .5), shape = guide_legend(override.aes = list(size = 4))))
+      geom_line(aes(y = male_not_widowed, colour = "Male", linetype = "Not Widowed", size = "Male")) +
+      scale_color_manual("Gender", values = c('#f112be', "#4A8DBF")) +
+      scale_linetype_manual("Widowhood Status", values = c("Widowed" = 1, "Not Widowed" = 2)) +
+      scale_size_manual("Gender", values = c(1, 1)) +
+      theme(panel.background = element_blank(), axis.line = element_line(colour = "black"),
+            # panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+            panel.grid.major = element_line(colour = "grey"), panel.grid.minor = element_line(colour = "grey")
+            )
 
-    ggplotly(p, tooltip = c("age", "female_widowed", "female_baseline", "male_widowed", "male_baseline")) %>%
-      layout(legend = list(orientation = "h", y = 1.2))
+    ggplotly(p, tooltip = c("age", "female_widowed", "female_not_widowed", "male_widowed", "male_not_widowed")) %>%
+      layout(legend = list(orientation = "h", xanchor = "center", yanchor = "bottom", x = 0.5, y = 1.2)) %>%
+      layout(xaxis = list(title = "Age"), yaxis = list(title = list(text = "Probability of Death (qx rate)", standoff = 15)))  
   }),
 
   output$bh_life_ex_change_plot <- renderPlotly({
@@ -70,11 +78,23 @@ list(
     }
     diff_qx = ((bh_widowed_qx - bh_not_widowed_qx) * 100)/bh_not_widowed_qx
     df = data.frame(age = input$bh_age_widowed:(input$bh_age_widowed + 4), diff_qx = diff_qx[(input$bh_age_widowed + 1):(input$bh_age_widowed + 5)])
-    fig <- plot_ly(df, x = ~age, y = ~diff_qx, type = 'bar',
+    
+    fig <- plot_ly(df, x = ~age, y = ~diff_qx, type = 'bar', color = if(input$bh_gender == 1){I('#f112be')}else{I('#4A8DBF')},
                    hovertemplate = paste("%{xaxis.title.text}: %{x}<br>",
                                          "%{yaxis.title.text}: %{y}<br>",
                                          '<extra></extra>'))
-    fig <- fig %>%
-      layout(xaxis = list(title = "Age"), yaxis = list(title = "% increase in qx rate"))
-  })
+    fig <- fig %>% layout(xaxis = list(title = "Age"), yaxis = list(title = "% increase in qx rate"))
+  }),
+
+# Observe Event Functions -------------------------------------------------
+  observeEvent(input$bh_gender,{
+    if(input$bh_gender == 1) {
+      shinyjs::hide("bh_infobox_male")
+      shinyjs::show("bh_infobox_female")
+    } else {
+      shinyjs::hide("bh_infobox_female")
+      shinyjs::show("bh_infobox_male")
+    }
+  }
+  )
 )

@@ -8,13 +8,13 @@ list(
           selectInput("loan_freq", "Frequency of Repayments:", freq_list),
           hr(),
           h4(strong("Periodic Repayment Amount:")),
-          h2(textOutput("loan_periodic_repay"))
+          h3(textOutput("loan_periodic_repay"))
         ),
         
         box(
           title = "Loan Schedule", status = "primary", solidHeader = T,
-          DT::dataTableOutput("loan_schedule"), style = "height:424px; overflow-y: scroll;overflow-x: scroll;"
+          DT::dataTableOutput("loan_schedule"), style = "height:424px"
         ),
         box(title = "Loan Balance Outstanding Over Time", status = "primary", solidHeader = T, height = "500px", style = "margin-top:1em; margin-right:3em", plotOutput("loan_plot_balance")),
-        box(title = "Interest vs Capital Proportions per Repayment", status = "primary", solidHeader = T,height = "500px", style = "margin-top:1em; margin-right:3em", plotOutput("loan_plot_interest_vs_capital"))
+        box(title = "Interest vs Capital Proportions per Repayment", status = "primary", solidHeader = T, height = "500px", style = "margin-top:1em; margin-right:3em", plotOutput("loan_plot_interest_vs_capital"))
 )  

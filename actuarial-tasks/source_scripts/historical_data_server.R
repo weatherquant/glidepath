@@ -1,19 +1,24 @@
 list(
+  historical_inputs <- eventReactive({input$hist_resim1; input$hist_resim2; input$hist_resim3}, {
+    return(reactiveValuesToList(input))
+  }, ignoreNULL = FALSE),
+  
   output$finalfundtime <- renderText({
-    #wts.timelimit = input$wts_timelimit
-    #time.period = as.integer((input$date_end-input$date_start)/365)*12 + round((as.double(input$date_end-input$date_start)%%365)/30,0)
-    #m = format( as.Date(input$date_start) %m+% months(time.taken + offset_check()))
-    #message = paste0(min(wts.timelimit, time.period), " months")
     message = get_date()
     return(message)
   }),
   
-  drawdown_react <- reactive({
-    hist_drawdown_index_df()
-  }),
+  
+  historical_reactive <- eventReactive({input$hist_resim1; input$hist_resim2; input$hist_resim3}, {
+    #historical_inputs = historical_inputs()
+    return(hist_drawdown_index_df())
+  }, ignoreNULL = FALSE),
+  
+  # drawdown_react <- reactive({
+  #   hist_drawdown_index_df()
+  # }),
   
   hist_drawdown_index_df <- function(){
-    
     validate(
       need(input$date_start < input$date_end, "Please ensure the start date does not exceed the end date")
     )
@@ -39,6 +44,15 @@ list(
            "Please ensure portfolio allocations will never go below 0 or exceed 100")
     )
     
+    validate(
+      need((as.integer((input$date_end-input$date_start)/365)*12 + round((as.double(input$date_end-input$date_start)%%365)/30,0)) > input$offset,
+           "Please ensure that the adjustments start date is within the selected time period")
+    )
+    
+    validate(
+      need(input$annual_withdrawals/12 < input$start_capital,
+           "Please ensure that the starting capital is high enough to make a withdrawal")
+    )
     
     index_df.date = index_df %>% dplyr::filter(date >= input$date_start & date < input$date_end)
     index_df.returns = index_df.date[,-1]
@@ -48,36 +62,63 @@ list(
     wts_increase = c(input$stock_inc,input$bond_inc,input$gold_inc,input$realt_inc,input$rfr_inc)/100 #must add up to 0
     wts.timelimit = input$wts_timelimit #must not be so long as to allow any weights to be <0
     #need code in rshiny to calculate one from the other - time from value & value from time
+    
     start.capital = input$start_capital
     n_obs = nrow(index_df.returns) #no. months (time periods)
     n_weights = length(wts)
-    index_df_weighted = matrix(0,n_obs,n_weights)
+    index_df_weighted = matrix(0,n_obs-1,n_weights)
     index_df_weighted[1,] = t(wts*t(index_df.returns[1,]))
-    weighted_returns = numeric(n_obs)
+    weighted_returns = numeric(n_obs-1)
     weighted_returns[1] = sum(index_df_weighted[1,])
-    Spaths = matrix(0, n_weights+1, n_obs+1)
-    periodic_withdrawals = numeric(n_obs)
-    Spaths[,1] = c(wts*start.capital,start.capital)
+    
+    Spaths = matrix(0, n_weights+1, n_obs)
+    periodic_withdrawals = numeric(n_obs-1)
     #periodic.inflation.returns = numeric(n_obs) #use real data
     periodic.inflation = index_df_inflation #use real data
     periodic.withdrawals = input$annual_withdrawals/12
     offset = input$offset
     
+    Spaths[,1] = c(wts*(start.capital-periodic.withdrawals), start.capital-periodic.withdrawals)
+    
     #time moves from left to right in Spaths!
-    for(j in 1:n_obs){
-      if (Spaths[n_weights+1,j]*(1+weighted_returns[j]-periodic.inflation[j])-periodic.withdrawals <= 0) {
+    #j=1
+    if (Spaths[n_weights+1,1]*(1+weighted_returns[1])-periodic.withdrawals*(1+periodic.inflation[1]) <= 0) {
+      time_date = seq(as.Date(input$date_start), as.Date(input$date_end), by="month")
+      Spaths_array = round(c(Spaths[n_weights+1,]),2)
+      index_df_plot = data.frame(time = time_date, capital = Spaths_array)
+      return(index_df_plot)
+    }
+    else {
+      Spaths[n_weights+1,2] = Spaths[n_weights+1,1]*(1+weighted_returns[1])-periodic.withdrawals*(1+periodic.inflation[1])
+      #periodic_withdrawals[1] = periodic.withdrawals*(1+periodic.inflation[1])
+      for(k in 1:n_weights){
+        Spaths[k,2] = wts[k]*Spaths[n_weights+1,2]
+      }
+      if(1 <= wts.timelimit + offset && (1 > offset && wts.timelimit !=0)){
+        wts = wts + wts_increase
+      }
+      if(1 < n_obs){
+        #find weighted returns with new weights for next year
+        index_df_weighted[2,] = t(wts*t(index_df.returns[2,]))
+        for(i in 1:n_weights){
+          weighted_returns[2] = sum(index_df_weighted[2,])}
+      }
+    }
+    #j=2,3,...
+    for(j in 2:(n_obs-1)){
+      if (Spaths[n_weights+1,j]*(1+weighted_returns[j])-periodic.withdrawals*prod(1+periodic.inflation[1:j]) <= 0) {
         break
       }
       else {
-        Spaths[n_weights+1,j+1] = Spaths[n_weights+1,j]*(1+weighted_returns[j]-periodic.inflation[j])-periodic.withdrawals
-        periodic_withdrawals[j] = periodic.withdrawals
+        Spaths[n_weights+1,j+1] = Spaths[n_weights+1,j]*(1+weighted_returns[j])-periodic.withdrawals*prod(1+periodic.inflation[1:j])
+        #periodic_withdrawals[j] = periodic.withdrawals*prod(1+periodic.inflation[1:j])
         for(k in 1:n_weights){
           Spaths[k,j+1] = wts[k]*Spaths[n_weights+1,j+1]
         }
         if(j <= wts.timelimit + offset && (j > offset && wts.timelimit !=0)){
           wts = wts + wts_increase
         }
-        if(j < n_obs){
+        if(j < (n_obs-1)){
           #find weighted returns with new weights for next year
           index_df_weighted[j+1,] = t(wts*t(index_df.returns[j+1,]))
           for(i in 1:n_weights){
@@ -85,18 +126,20 @@ list(
         }
       }
     }
-    time_date = seq(as.Date(input$date_start), as.Date(input$date_end), by="month")
+    time_date = seq(as.Date(input$date_start), as.Date(input$date_end)%m-%months(1), by="month")
     Spaths_array = round(c(Spaths[n_weights+1,]),2)
-    index_df_plot = data.frame(time = time_date, capital = Spaths_array)
+    index_df_plot = data.frame(Time = time_date, Capital = Spaths_array)
     return(index_df_plot)
   },
   
-  output$hist_drawdown <- renderPlot({
-    index_df_plot = hist_drawdown_index_df()
-    g <- ggplot(data = index_df_plot, aes(x = time, y = capital) ) +
+  output$hist_drawdown <- renderPlotly({
+    index_df_plot = historical_reactive()
+    g <- ggplot(data = index_df_plot, aes(x = Time, y = Capital) ) +
       geom_line() +
+      scale_y_continuous(labels = dollar_format(suffix = "", prefix = "€"), limits=c(0,NA)) + 
       theme_economist()
-    return(g)
+    fig <- ggplotly(g)
+    return(fig)
   }),
   
   offset_check <- function(){
@@ -112,61 +155,108 @@ list(
     wts_perc = c(input$stock,input$bond,input$gold,input$realt,input$rfr)
     wts_increase_perc = c(input$stock_inc,input$bond_inc,input$gold_inc,input$realt_inc,input$rfr_inc)
     wts.timelimit = input$wts_timelimit
+    wts.offset = offset_check()
     time.period = as.integer((input$date_end-input$date_start)/365)*12 + round((as.double(input$date_end-input$date_start)%%365)/30,0)
-    if(wts.timelimit < time.period){
+    if(wts.timelimit + wts.offset < time.period){
       final.fund = wts_perc + wts_increase_perc*wts.timelimit
       time.taken = wts.timelimit
     }
     else{
-      final.fund = wts_perc + wts_increase_perc*time.period
-      time.taken = time.period
+      final.fund = wts_perc + wts_increase_perc*(time.period - wts.offset)
+      time.taken = time.period - wts.offset
     }
     
-    m = format( as.Date(input$date_start) %m+% months(time.taken + offset_check()))
+    m = format( as.Date(input$date_start) %m+% months(time.taken + wts.offset))
     return(m)
   },
   
-  output$final_fund <- renderPlot(final_fund_index_df()),
+  output$final_fund <- renderPlot({
+    historical_inputs = historical_inputs()
+    return(final_fund_index_df(historical_inputs$date_start, 
+                               historical_inputs$date_end, 
+                               historical_inputs$stock, 
+                               historical_inputs$bond, 
+                               historical_inputs$gold, 
+                               historical_inputs$realt, 
+                               historical_inputs$rfr, 
+                               historical_inputs$stock_inc, 
+                               historical_inputs$bond_inc, 
+                               historical_inputs$gold_inc, 
+                               historical_inputs$realt_inc, 
+                               historical_inputs$rfr_inc, 
+                               historical_inputs$wts_timelimit,
+                               historical_inputs$offset, 
+                               historical_inputs$annual_withdrawals, 
+                               historical_inputs$start_capital))
+  }),
   
-  final_fund_index_df <- function(){
+  final_fund_index_df <- function(date_start, date_end, stock, bond, gold, realt, rfr, 
+                                  stock_inc, bond_inc, gold_inc, realt_inc, rfr_inc, wts_timelimit,
+                                  offset, annual_withdrawals, start_capital){
     
     validate(
-      need(input$date_start < input$date_end, "Please ensure the start date does not exceed the end date")
+      need(date_start < date_end, 
+           "Please ensure the start date does not exceed the end date")
     )
     validate(
-      need(input$stock+input$bond+input$gold+input$realt+input$rfr == 100,
+      need(stock+bond+gold+realt+rfr == 100,
            "Please ensure portfolio allocations add up to 100%")
     )
     validate(
-      need(input$stock_inc+input$bond_inc+input$gold_inc+input$realt_inc+input$rfr_inc == 0,
+      need(stock_inc+bond_inc+gold_inc+realt_inc+rfr_inc == 0,
            "Please ensure future changes in portfolio allocations add up to 0")
     )
     validate(
-      need(0 <= input$stock + input$stock_inc*input$wts_timelimit &&
-             input$stock + input$stock_inc*input$wts_timelimit <= 100 &&
-             0 <= input$bond + input$bond_inc*input$wts_timelimit &&
-             input$bond + input$bond_inc*input$wts_timelimit <= 100 &&
-             0 <= input$gold + input$gold_inc*input$wts_timelimit &&
-             input$gold + input$gold_inc*input$wts_timelimit <= 100 &&
-             0 <= input$realt + input$realt_inc*input$wts_timelimit &&
-             input$realt + input$realt_inc*input$wts_timelimit <= 100 &&
-             0 <= input$rfr + input$rfr_inc*input$wts_timelimit &&
-             input$rfr + input$rfr_inc*input$wts_timelimit <= 100,
+      need(0 <= stock + stock_inc*wts_timelimit &&
+             stock + stock_inc*wts_timelimit <= 100 &&
+             0 <= bond + bond_inc*wts_timelimit &&
+             bond + bond_inc*wts_timelimit <= 100 &&
+             0 <= gold + gold_inc*wts_timelimit &&
+             gold + gold_inc*wts_timelimit <= 100 &&
+             0 <= realt + realt_inc*wts_timelimit &&
+             realt + realt_inc*wts_timelimit <= 100 &&
+             0 <= rfr + rfr_inc*wts_timelimit &&
+             rfr + rfr_inc*wts_timelimit <= 100,
            "Please ensure portfolio allocations will never go below 0 or exceed 100")
     )
     
-    wts_perc = c(input$stock,input$bond,input$gold,input$realt,input$rfr)
-    wts_increase_perc = c(input$stock_inc,input$bond_inc,input$gold_inc,input$realt_inc,input$rfr_inc)
-    wts.timelimit = input$wts_timelimit
-    time.period = as.integer((input$date_end-input$date_start)/365)*12 + round((as.double(input$date_end-input$date_start)%%365)/30,0)
-    if(wts.timelimit < time.period){
+    validate(
+      need((as.integer((date_end-date_start)/365)*12 + round((as.double(date_end-date_start)%%365)/30,0)) > offset,
+           "Please ensure that the adjustments start date is within the selected time period")
+    )
+    
+    validate(
+      need(annual_withdrawals/12 < start_capital,
+           "Please ensure that the starting capital is high enough to make a withdrawal")
+    )
+    
+    wts_perc = c(stock, bond, gold, realt, rfr)
+    wts_increase_perc = c(stock_inc, bond_inc, gold_inc, realt_inc, rfr_inc)
+    wts.timelimit = wts_timelimit
+    wts.offset = offset_check()
+    time.period = as.integer((date_end-date_start)/365)*12 + round((as.double(date_end-date_start)%%365)/30,0)
+    if(wts.timelimit + wts.offset < time.period){
       final.fund = wts_perc + wts_increase_perc*wts.timelimit
       time.taken = wts.timelimit
     }
     else{
-      final.fund = wts_perc + wts_increase_perc*time.period
-      time.taken = time.period
+      final.fund = wts_perc + wts_increase_perc*(time.period - wts.offset)
+      time.taken = time.period - wts.offset
     }
+    
+    
+    # wts_perc = c(input$stock,input$bond,input$gold,input$realt,input$rfr)
+    # wts_increase_perc = c(input$stock_inc,input$bond_inc,input$gold_inc,input$realt_inc,input$rfr_inc)
+    # wts.timelimit = input$wts_timelimit
+    # time.period = as.integer((input$date_end-input$date_start)/365)*12 + round((as.double(input$date_end-input$date_start)%%365)/30,0)
+    # if(wts.timelimit < time.period){
+    #   final.fund = wts_perc + wts_increase_perc*wts.timelimit
+    #   time.taken = wts.timelimit
+    # }
+    # else{
+    #   final.fund = wts_perc + wts_increase_perc*time.period
+    #   time.taken = time.period
+    # }
     
     data <- data.frame(
       Category=c("Stocks", "Bonds", "Gold", "Real Estate", "Risk-free Rate"),

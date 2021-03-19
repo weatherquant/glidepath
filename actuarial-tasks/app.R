@@ -13,10 +13,10 @@ library(janitor)
 library(plyr)
 library(tidyquant)
 library(lubridate)
+library(toOrdinal)
 library(scales)
 library(xkcd)
-
-
+library(shinyBS)
 library(lifecontingencies)
 options(scipen=999)
 
@@ -131,9 +131,22 @@ p_list = c(1, 2, 4, 6, 12, 26, 52, 365)
 # Rounding to 2 Decimal Places --------------------------------------------
 round_2d <- function(x, two_d = F){
     if(two_d == F) {
-        if(x%%1 == 0 | x%%0.1 == 0){ return(x) } 
+        if(round(as.numeric(x), 1)%%1 == 0){
+          return(format(round(as.numeric(x), 0), nsmall = 0, big.mark = ",", scientific=FALSE))
+        } else if ((10*round(as.numeric(x), 2))%%1 == 0){
+          return(format(round(as.numeric(x), 1), nsmall = 1, big.mark = ",", scientific=FALSE))
+        } 
     }
     return(format(round(as.numeric(x), 2), nsmall = 2, big.mark = ",", scientific=FALSE))
+}
+
+# Plotly - Horizontal & Vertical Lines ------------------------------------
+plotly_hline <- function(y = 0, colour = "blue") {
+  list(type = "line", x0 = 0, x1 = 1, xref = "paper", y0 = y, y1 = y, line = list(color = colour, width = 3, dash = 'dash'))
+}
+
+plotly_vline <- function(x = 0, colour = "red") {
+  list(type = "line", y0 = 0, y1 = 1, yref = "paper", x0 = x, x1 = x, line = list(color = colour, width = 3, dash = 'dash'))
 }
 
 # General UI --------------------------------------------------------------
@@ -159,16 +172,19 @@ ui <- dashboardPage(
           menuItem("SORP Calculator", tabName = "sorp", icon = icon("calculator")),
           menuItem("Drawdown Simulator", tabName = "drawdown", icon = icon("chart-line")),
           menuItem("SORP & Drawdown", tabName = "sorp_x_drawdown", icon = icon("dashboard")),
-          menuItem("Partial Drawdown Simulator", tabName = "partial_drawdown", icon = icon("star-half")),
-          menuItem("Broken Heart", tabName = "broken_heart", icon = icon("heart-broken")),
+          menuItem("Drawdown Products", tabName = "partial_drawdown", icon = icon("tags")),
+          menuItem("Broken Heart Effect", tabName = "broken_heart", icon = icon("heart-broken")),
           menuItem("SORP Import", tabName = "sorp_import", icon = icon("file-import")),
           menuItem("Life Expectancy Visualisations", tabName = "life_ex", icon = icon("heartbeat")),
-          menuItem("Historical Data", tabName = "hist_data", icon = icon("history")),
+          menuItem("Historical Simulation", tabName = "hist_data", icon = icon("history")),
           menuItem("Sequencing Risk", tabName = "sequencing", icon = icon("sync"))
         )
     ),
 
     dashboardBody(
+        tags$style(".well {background-color:white; border-color:#3C8DBC; margin-left:1em;}
+                   .nav-tabs-custom {border: 1px solid #3C8DBC}
+                   .box {border: 1px solid #3C8DBC}"),
         useShinyjs(),
         fluidRow(
             tabItems(

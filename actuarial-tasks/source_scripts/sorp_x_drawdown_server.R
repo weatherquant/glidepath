@@ -225,12 +225,12 @@ list(
     return(c(round_2d(sd_life_ex_reactive()), " Years"))
   }),
 
-  output$sd_text_average_fund_life_ex <- renderText({
+  output$sd_text_median_fund_life_ex <- renderText({
     sd_inputs = sd_inputs()
-    average = Drawdown_Mean_Life_Ex(Drawdown_Paths = sd_paths_reactive(),
-                                    freq = sd_inputs$sd_withdraw_freq,
-                                    ex = sd_life_ex_reactive())
-    return(c("€", round_2d(average, T)))
+    median = Drawdown_Percentile_Life_Ex(Drawdown_Paths = sd_paths_reactive(),
+                                         freq = sd_inputs$sd_withdraw_freq,
+                                         ex = sd_life_ex_reactive())
+    return(c("€", round_2d(median, T)))
   }),
   
   output$sd_text_ruin_prob_life_ex <- renderText({
@@ -256,22 +256,36 @@ list(
   }),
 
   output$sd_plot_sims <- renderPlot({
-    return(Drawdown_Plot_Sims(Drawdown_Paths = sd_paths_reactive(), n_sims = 25))
+    sd_inputs = sd_inputs()
+    return(Drawdown_Plot_Sims(Drawdown_Paths = sd_paths_reactive(),
+                              freq = sd_inputs$sd_withdraw_freq,
+                              n_sims = 25,
+                              points = list(sd_life_ex_reactive()),
+                              colour = list('black')))
   }),
 
   output$sd_plot_percentiles <- renderPlotly({
     sd_inputs = sd_inputs()
-    return(Drawdown_Plot_Percentile(Drawdown_Paths = sd_paths_reactive(), Drawdown_Withdrawals = sd_withdrawals_reactive(), freq = sd_inputs$sd_withdraw_freq, lower = 0.25, upper = 0.75))
+    return(Drawdown_Plot_Percentile(Drawdown_Paths = sd_paths_reactive(), 
+                                    Drawdown_Withdrawals = sd_withdrawals_reactive(), 
+                                    freq = sd_inputs$sd_withdraw_freq, 
+                                    lower = 0.25, upper = 0.75,
+                                    points = list(sd_life_ex_reactive()),
+                                    colour = list('black')))
   }),
 
 # Observe Event Functions -------------------------------------------------
   observeEvent(input$sd_withdraw_type, {
     if(input$sd_withdraw_type == T) {
+      shinyjs::hide("sd_annual_withdrawals_input")
+      shinyjs::show("sd_percent_withdrawal_input")
       updateNumericInputIcon(session, "sd_percent_withdrawal", value = 4)
       enable("sd_percent_withdrawal")
       disable("sd_annual_withdrawals")
       updateNumericInputIcon(session, "sd_annual_withdrawals", value = NA)
     } else {
+      shinyjs::show("sd_annual_withdrawals_input")
+      shinyjs::hide("sd_percent_withdrawal_input")
       updateNumericInputIcon(session, "sd_annual_withdrawals", value = 15000)
       enable("sd_annual_withdrawals")
       disable("sd_percent_withdrawal")
@@ -346,17 +360,11 @@ list(
                                h4("Periodic Pension Payment:"),
                                h3(textOutput("sd_text_pension_payment_discounted"))
                            ),
-                           tabsetPanel(type = "tabs",
-                                       tabPanel("Accumulated Wealth",
-                                                style = "margin-top:1em",
-                                                box(title = "Accumulated Wealth", width = 12, status = "primary", solidHeader = T, plotOutput("sd_plot_fundvalue")),                                       
-                                       ),
-                                       tabPanel("SORP Table",
-                                                style = "margin-top:1em",
-                                                box(title = "Contributions and Fund Value over Time", width = 12, status = "primary", solidHeader = T, DT::dataTableOutput("sd_table_contributions"), rownames= FALSE, style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
-                                       )
-                           )
-                  ),
+                           tabBox(type = "tabs", width = 12,
+                                       tabPanel("Accumulated Wealth", plotOutput("sd_plot_fundvalue")),                                       
+                                       tabPanel("Contributions and Fund Value over Time", DT::dataTableOutput("sd_table_contributions"), rownames= FALSE)
+                                  )
+                           ),
                   if(sd_inputs$sd_relationship != 1){
                   tabPanel("Spouse SORP Summary",
                            style = "margin-top:1em",
@@ -374,16 +382,10 @@ list(
                                h4("Periodic Pension Payment:"),
                                h3(textOutput("sd_text_pension_payment_discounted_spouse"))
                            ),
-                           tabsetPanel(type = "tabs",
-                                       tabPanel("Accumulated Wealth",
-                                                style = "margin-top:1em",
-                                                box(title = "Accumulated Wealth", width = 12, status = "primary", solidHeader = T, plotOutput("sd_plot_fundvalue_spouse")),
-                                       ),
-                                       tabPanel("SORP Table",
-                                                style = "margin-top:1em",
-                                                box(title = "Contributions and Fund Value over Time", width = 12, status = "primary", solidHeader = T, DT::dataTableOutput("sd_table_contributions_spouse"),rownames= FALSE, style = "height:400px; overflow-y: scroll;overflow-x: scroll;")
+                           tabBox(type = "tabs", width = 12,
+                                       tabPanel("Accumulated Wealth", plotOutput("sd_plot_fundvalue_spouse")),
+                                       tabPanel("Contributions and Fund Value over Time", DT::dataTableOutput("sd_table_contributions_spouse"), rownames= FALSE)
                                        )
-                           )
                   )} else {
                   tabPanel("Drawdown Simulations",
                            style = "margin-top:1em",
@@ -392,16 +394,18 @@ list(
                              h3(textOutput('sd_text_life_ex'))
                            ),
                            box(
-                             title = "Average Fund Value", status = "primary", solidHeader = T, width = 4,
-                             h3(textOutput("sd_text_average_fund_life_ex"))
+                             title = "Median Fund Value", status = "primary", solidHeader = T, width = 4,
+                             h3(textOutput("sd_text_median_fund_life_ex"))
                            ),
                            box(
                              title = "Probability of Ruin", status = "primary", solidHeader = T, width = 4,
                              h3(textOutput("sd_text_ruin_prob_life_ex"))
                            ),
-                           box(title = "Table", width = 12, status = "primary", solidHeader = T, DT::dataTableOutput("sd_table"), rownames= FALSE, style = "height:400px; overflow-y: scroll;overflow-x: scroll;"),
-                           box(title = "Drawdown Simulations", status = "primary", width = 12, solidHeader = T, plotOutput("sd_plot_sims")),
-                           box(title = "Drawdown Percentile Plot", status = "primary", width = 12, solidHeader = T, plotlyOutput("sd_plot_percentiles"))
+                           tabBox(type = "tabs", width = 12,
+                                  tabPanel("Summary", plotlyOutput("sd_plot_percentiles")),
+                                  tabPanel("Simulations", plotOutput("sd_plot_sims")),
+                                  tabPanel("Table", DT::dataTableOutput("sd_table"), rownames = FALSE)
+                           )
                   )},
                   
                   if(sd_inputs$sd_relationship != 1){
@@ -412,16 +416,18 @@ list(
                                h3(textOutput('sd_text_life_ex'))
                              ),
                              box(
-                               title = "Average Fund Value", status = "primary", solidHeader = T, width = 4,
-                               h3(textOutput("sd_text_average_fund_life_ex"))
+                               title = "Median Fund Value", status = "primary", solidHeader = T, width = 4,
+                               h3(textOutput("sd_text_median_fund_life_ex"))
                              ),
                              box(
                                title = "Probability of Ruin", status = "primary", solidHeader = T, width = 4,
                                h3(textOutput("sd_text_ruin_prob_life_ex"))
                              ),
-                             box(title = "Table", width = 12, status = "primary", solidHeader = T, DT::dataTableOutput("sd_table"), rownames= FALSE, style = "height:400px; overflow-y: scroll;overflow-x: scroll;"),
-                             box(title = "Drawdown Simulations", status = "primary", width = 12, solidHeader = T, plotOutput("sd_plot_sims")),
-                             box(title = "Drawdown Percentile Plot", status = "primary", width = 12, solidHeader = T, plotlyOutput("sd_plot_percentiles"))
+                             tabBox(type = "tabs", width = 12,
+                                    tabPanel("Summary", plotlyOutput("sd_plot_percentiles")),
+                                    tabPanel("Simulations", plotOutput("sd_plot_sims")),
+                                    tabPanel("Table", DT::dataTableOutput("sd_table"), rownames = FALSE)
+                             )
                     )} else {tabPanel("")}
       )
     )

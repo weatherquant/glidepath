@@ -38,12 +38,12 @@ list(
     return(c(round_2d(drawdown_life_ex_reactive()), " Years"))
   }),
   
-  output$drawdown_text_average_fund_life_ex <- renderText({
+  output$drawdown_text_median_fund_life_ex <- renderText({
     drawdown_inputs = drawdown_inputs()
-    average = Drawdown_Mean_Life_Ex(Drawdown_Paths = drawdown_paths_reactive(),
-                                    freq = drawdown_inputs$drawdown_withdraw_freq,
-                                    age = drawdown_inputs$drawdown_retire_age)
-    return(c("€", round_2d(average, T)))
+    median = Drawdown_Percentile_Life_Ex(Drawdown_Paths = drawdown_paths_reactive(),
+                                         freq = drawdown_inputs$drawdown_withdraw_freq,
+                                         age = drawdown_inputs$drawdown_retire_age)
+    return(c("€", round_2d(median, T)))
   }),
   
   output$drawdown_text_ruin_prob_life_ex <- renderText({
@@ -57,7 +57,7 @@ list(
   output$drawdown_table <- renderDataTable({
     drawdown_inputs = drawdown_inputs()
     freq = p_list[match(drawdown_inputs$drawdown_withdraw_freq, freq_list_drawdown)]
-    series = list(1, (freq * seq(5, (length(drawdown_paths_reactive()[1, ]) / freq), 5)) + 1)
+    series = list(1, (freq * seq(5, (length(drawdown_paths_reactive()[1, ]) / freq), 5) + 1))
     points = list(drawdown_life_ex_reactive())
     colour = list('yellow')
     return(Drawdown_Table(Drawdown_Paths = drawdown_paths_reactive(),
@@ -69,22 +69,36 @@ list(
   }),
   
   output$drawdown_plot_sims <- renderPlot({
-    return(Drawdown_Plot_Sims(Drawdown_Paths = drawdown_paths_reactive(), n_sims = 25))
+    drawdown_inputs = drawdown_inputs()
+    return(Drawdown_Plot_Sims(Drawdown_Paths = drawdown_paths_reactive(), 
+                              freq = drawdown_inputs$drawdown_withdraw_freq, 
+                              n_sims = 25, 
+                              points = list(drawdown_life_ex_reactive()),
+                              colour = list('black')))
   }),
 
   output$drawdown_plot_percentiles <- renderPlotly({
     drawdown_inputs = drawdown_inputs()
-    return(Drawdown_Plot_Percentile(Drawdown_Paths = drawdown_paths_reactive(), Drawdown_Withdrawals = drawdown_withdrawals_reactive(), freq = drawdown_inputs$drawdown_withdraw_freq, lower = 0.25, upper = 0.75))
+    return(Drawdown_Plot_Percentile(Drawdown_Paths = drawdown_paths_reactive(),
+                                    Drawdown_Withdrawals = drawdown_withdrawals_reactive(),
+                                    freq = drawdown_inputs$drawdown_withdraw_freq,
+                                    lower = 0.05, upper = 0.95,
+                                    points = list(drawdown_life_ex_reactive()),
+                                    colour = list('black')))
   }),
 
 # Observe Event Functions -------------------------------------------------
   observeEvent(input$drawdown_withdraw_type,{
     if(input$drawdown_withdraw_type == T) {
+      shinyjs::hide("drawdown_annual_withdrawals_input")
+      shinyjs::show("drawdown_percent_withdrawal_input")
       updateNumericInputIcon(session, "drawdown_percent_withdrawal", value = 4)
       enable("drawdown_percent_withdrawal")
       disable("drawdown_annual_withdrawals")
       updateNumericInputIcon(session, "drawdown_annual_withdrawals", value = NA)
     } else {
+      shinyjs::show("drawdown_annual_withdrawals_input")
+      shinyjs::hide("drawdown_percent_withdrawal_input")
       updateNumericInputIcon(session, "drawdown_annual_withdrawals", value = 15000)
       enable("drawdown_annual_withdrawals")
       disable("drawdown_percent_withdrawal")
@@ -107,17 +121,19 @@ list(
         h3(textOutput('drawdown_text_life_ex'))
       ),
       box(
-        title = "Average Fund Value", status = "primary", solidHeader = T, width = 4,
-        h3(textOutput("drawdown_text_average_fund_life_ex"))
+        title = "Median Fund Value", status = "primary", solidHeader = T, width = 4,
+        h3(textOutput("drawdown_text_median_fund_life_ex"))
       ),
       box(
         title = "Probability of Ruin", status = "primary", solidHeader = T, width = 4,
         h3(textOutput("drawdown_text_ruin_prob_life_ex"))
       ),
-      box(title = "Table", width = 12, status = "primary", solidHeader = T, DT::dataTableOutput("drawdown_table"), rownames= FALSE, style = "height:400px; overflow-y: scroll;overflow-x: scroll;"),
-      box(title = "Drawdown Simulations", status = "primary", width = 12, solidHeader = T, plotOutput("drawdown_plot_sims")),
-      box(title = "Drawdown Percentile Plot", status = "primary", width = 12, solidHeader = T, plotlyOutput("drawdown_plot_percentiles"))
-    )
+      tabBox(type = "tabs", width = 12,
+             tabPanel("Summary", plotlyOutput("drawdown_plot_percentiles")),
+             tabPanel("Simulations", plotOutput("drawdown_plot_sims")),
+             tabPanel("Table", DT::dataTableOutput("drawdown_table"), rownames = FALSE)
+             )
+      )
     return(riskprofilerui(session = session,
                           surveydisplay = input$drawdown_surveydisplay,
                           submit = input$drawdown_submit, 
