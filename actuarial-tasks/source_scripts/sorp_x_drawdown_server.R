@@ -269,7 +269,7 @@ list(
     return(Drawdown_Plot_Percentile(Drawdown_Paths = sd_paths_reactive(), 
                                     Drawdown_Withdrawals = sd_withdrawals_reactive(), 
                                     freq = sd_inputs$sd_withdraw_freq, 
-                                    lower = 0.25, upper = 0.75,
+                                    lower = 0.05, upper = 0.95,
                                     points = list(sd_life_ex_reactive()),
                                     colour = list('black')))
   }),
