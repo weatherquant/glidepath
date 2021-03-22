@@ -604,7 +604,7 @@ list(
       } else if ((submit %% (num.quest + 2) > 0) && (submit %% (num.quest + 2) <= num.quest)){
         return(list(
           box(status = "warning", width = 12, solidHeader = T,
-              h5("Disclaimer: This risk profiler tool is for illustrative purposes.
+              h5("Disclaimer: This risk profiler tool is for illustrative purposes only.
                      It is designed to assist you in understanding your attitude towards risk.")
           ),
           box(status = "primary", width = 12, solidHeader = T,
@@ -618,14 +618,17 @@ list(
       } else {
         return(list(
           box(status = "warning", width = 12, solidHeader = T,
-              h5("Disclaimer: This risk profiler tool is for illustrative purposes.
+              h5("Disclaimer: This risk profiler tool is for illustrative purposes only.
                      It is designed to assist you in understanding your attitude towards risk.")
           ),
           box(status = "primary", width = 12, solidHeader = T,
               h5(portfolio(session, input_mean_return, input_ret_std_dev, means, std_devs)),
               hr(),
-              h5("Click the risk profiler button (in the sidebar) to return to the summary page and apply suitable portfolio changes."),
-              h5("Click next to repeat the survey.")
+              h4("Suitable changes have been applied to the mean return and standard deviation of returns."),
+              h4("These changes are intended to reflect your risk appetite, but may be changed at any time."),
+              hr(),
+              h4("Click the risk profiler button (in the sidebar) to return to the summary page."),
+              h4("Click next to repeat the survey.")
           )
         ))
       }

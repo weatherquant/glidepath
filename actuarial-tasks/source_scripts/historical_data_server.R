@@ -23,12 +23,23 @@ list(
       need(input$date_start < input$date_end, "Please ensure the start date does not exceed the end date")
     )
     validate(
+      need(length(seq(as.Date(input$date_start), as.Date(input$date_end)%m-%months(1), by="month")) > 1, "Please ensure the simulation lasts for more than one month")
+    )
+    validate(
       need(input$stock+input$bond+input$gold+input$realt+input$rfr == 100,
            "Please ensure portfolio allocations add up to 100%")
     )
     validate(
       need(input$stock_inc+input$bond_inc+input$gold_inc+input$realt_inc+input$rfr_inc == 0,
            "Please ensure future changes in portfolio allocations add up to 0")
+    )
+    validate(
+      need(input$offset != "",
+           "Please provide a time to offset adjustments by (if you do not want adjustments to occur, please input 0)")
+    )
+    validate(
+      need(input$wts_timelimit != "",
+           "Please provide a time limit for adjustments to take effect for (if you do not want adjustments to occur, please input 0)")
     )
     validate(
       need(0 <= input$stock + input$stock_inc*input$wts_timelimit &&
@@ -50,7 +61,7 @@ list(
     )
     
     validate(
-      need(input$annual_withdrawals/12 < input$start_capital,
+      need(input$annual_withdrawals/12 <= input$start_capital,
            "Please ensure that the starting capital is high enough to make a withdrawal")
     )
     
@@ -83,9 +94,9 @@ list(
     #time moves from left to right in Spaths!
     #j=1
     if (Spaths[n_weights+1,1]*(1+weighted_returns[1])-periodic.withdrawals*(1+periodic.inflation[1]) <= 0) {
-      time_date = seq(as.Date(input$date_start), as.Date(input$date_end), by="month")
+      time_date = seq(as.Date(input$date_start), as.Date(input$date_end)%m-%months(1), by="month")
       Spaths_array = round(c(Spaths[n_weights+1,]),2)
-      index_df_plot = data.frame(time = time_date, capital = Spaths_array)
+      index_df_plot = data.frame(Time = time_date, Capital = Spaths_array)
       return(index_df_plot)
     }
     else {
@@ -97,13 +108,15 @@ list(
       if(1 <= wts.timelimit + offset && (1 > offset && wts.timelimit !=0)){
         wts = wts + wts_increase
       }
-      if(1 < n_obs){
+      if(1 < (n_obs-1)){
         #find weighted returns with new weights for next year
         index_df_weighted[2,] = t(wts*t(index_df.returns[2,]))
         for(i in 1:n_weights){
           weighted_returns[2] = sum(index_df_weighted[2,])}
       }
     }
+    
+    if(length(seq(as.Date(input$date_start), as.Date(input$date_end)%m-%months(1), by="month")) > 2){
     #j=2,3,...
     for(j in 2:(n_obs-1)){
       if (Spaths[n_weights+1,j]*(1+weighted_returns[j])-periodic.withdrawals*prod(1+periodic.inflation[1:j]) <= 0) {
@@ -126,6 +139,7 @@ list(
         }
       }
     }
+    }
     time_date = seq(as.Date(input$date_start), as.Date(input$date_end)%m-%months(1), by="month")
     Spaths_array = round(c(Spaths[n_weights+1,]),2)
     index_df_plot = data.frame(Time = time_date, Capital = Spaths_array)
@@ -142,6 +156,15 @@ list(
     return(fig)
   }),
   
+  # timelimit_check <- function(){
+  #   if(input$wts_timelimit == FALSE){
+  #     timelimit_check = 0
+  #   }
+  #   else{
+  #     timelimit_check = input$wts_timelimit
+  #   }
+  # },
+  
   offset_check <- function(){
     if(input$wts_timelimit == 0){
       offset_check = 0
@@ -152,21 +175,40 @@ list(
   },
   
   get_date <- function(){
+    req(input$wts_timelimit, input$offset, input$date_start, input$date_end)
+    req(input$stock,input$bond,input$gold,input$realt,input$rfr,input$stock_inc,input$bond_inc,input$gold_inc,input$realt_inc,input$rfr_inc,
+        cancelOutput = TRUE)
     wts_perc = c(input$stock,input$bond,input$gold,input$realt,input$rfr)
     wts_increase_perc = c(input$stock_inc,input$bond_inc,input$gold_inc,input$realt_inc,input$rfr_inc)
     wts.timelimit = input$wts_timelimit
     wts.offset = offset_check()
     time.period = as.integer((input$date_end-input$date_start)/365)*12 + round((as.double(input$date_end-input$date_start)%%365)/30,0)
-    if(wts.timelimit + wts.offset < time.period){
+    if(input$stock_inc ==0 && input$bond_inc ==0 && input$gold_inc ==0 && input$realt_inc ==0 && input$rfr_inc ==0){
+      final.fund = wts_perc
+      time.taken = 0
+    }
+    else if(0 > input$stock + input$stock_inc*wts.timelimit ||
+            input$stock + input$stock_inc*wts.timelimit > 100 ||
+            0 > input$bond + input$bond_inc*wts.timelimit ||
+            input$bond + input$bond_inc*wts.timelimit > 100 ||
+            0 > input$gold + input$gold_inc*wts.timelimit ||
+            input$gold + input$gold_inc*wts.timelimit > 100 ||
+            0 > input$realt + input$realt_inc*wts.timelimit ||
+            input$realt + input$realt_inc*wts.timelimit > 100 ||
+            0 > input$rfr + input$rfr_inc*wts.timelimit ||
+            input$rfr + input$rfr_inc*wts.timelimit > 100){
+      return("")
+    }
+    else if(wts.timelimit + wts.offset < time.period){
       final.fund = wts_perc + wts_increase_perc*wts.timelimit
-      time.taken = wts.timelimit
+      time.taken = wts.timelimit + wts.offset
     }
     else{
       final.fund = wts_perc + wts_increase_perc*(time.period - wts.offset)
-      time.taken = time.period - wts.offset
+      time.taken = time.period
     }
     
-    m = format( as.Date(input$date_start) %m+% months(time.taken + wts.offset))
+    m = format( as.Date(input$date_start) %m+% months(time.taken))
     return(m)
   },
   
@@ -199,12 +241,23 @@ list(
            "Please ensure the start date does not exceed the end date")
     )
     validate(
+      need(length(seq(as.Date(date_start), as.Date(date_end)%m-%months(1), by="month")) > 1, "Please ensure the simulation lasts for more than one month")
+    )
+    validate(
       need(stock+bond+gold+realt+rfr == 100,
            "Please ensure portfolio allocations add up to 100%")
     )
     validate(
       need(stock_inc+bond_inc+gold_inc+realt_inc+rfr_inc == 0,
            "Please ensure future changes in portfolio allocations add up to 0")
+    )
+    validate(
+      need(offset != "",
+      "Please provide a time to offset adjustments by (if you do not want adjustments to occur, please input 0)")
+    )
+    validate(
+      need(wts_timelimit != "",
+      "Please provide a time limit for adjustments to take effect for (if you do not want adjustments to occur, please input 0)")
     )
     validate(
       need(0 <= stock + stock_inc*wts_timelimit &&
@@ -233,7 +286,7 @@ list(
     wts_perc = c(stock, bond, gold, realt, rfr)
     wts_increase_perc = c(stock_inc, bond_inc, gold_inc, realt_inc, rfr_inc)
     wts.timelimit = wts_timelimit
-    wts.offset = offset_check()
+    wts.offset = offset
     time.period = as.integer((date_end-date_start)/365)*12 + round((as.double(date_end-date_start)%%365)/30,0)
     if(wts.timelimit + wts.offset < time.period){
       final.fund = wts_perc + wts_increase_perc*wts.timelimit

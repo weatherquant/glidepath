@@ -53,7 +53,7 @@ list(
                                          
                                   ),
                                   column(6, offset = 3,
-                                         sliderInput("rfr", "Risk Free Rate", min = 0, max = 100, value = 10)
+                                         sliderInput("rfr", "Risk-Free Rate", min = 0, max = 100, value = 10)
                                   )
                                   
                                 )
@@ -75,20 +75,20 @@ list(
                                          numericInputIcon("gold_inc", "Change in Gold:",  min = -100, max = 100, value = 0, icon = list(NULL, icon("percent")))),
                                   
                                   column(width = 4, offset = 1,
-                                         numericInputIcon("realt_inc", "Change in RE:", min = -100, max = 100, value = 0, icon = list(NULL, icon("percent")))),
+                                         numericInputIcon("realt_inc", "Change in Real Estate:", min = -100, max = 100, value = 0, icon = list(NULL, icon("percent")))),
                                   
                                   column(width = 4, offset = 1,
-                                         numericInputIcon("rfr_inc", "Change in RFR:", min = -100, max = 100, value = 0, icon = list(NULL, icon("percent")))),
+                                         numericInputIcon("rfr_inc", "Change in Risk-Free Rate:", min = -100, max = 100, value = 0, icon = list(NULL, icon("percent")))),
                                   
                                   column(width = 4, offset = 1,
-                                         numericInputIcon("offset", "Begin Adjustments:", min = 0, value = 0, )),
+                                         numericInputIcon("offset", "Offset Adjustments By:", min = 0, value = 0, icon = list(NULL, "Months"))),
                                   
                                   column(width = 4, offset = 1,
-                                         numericInputIcon("wts_timelimit", "Number of Periods for Which Portfolio Changes Will Take Effect:", min = 0, #max = nrow(df.returns)-1,
+                                         numericInputIcon("wts_timelimit", "Portfolio Changes Take Effect For:", min = 0, #max = nrow(df.returns)-1,
                                                           value = 0, icon = list(NULL, "Months"))),
                                   
                                   column(width = 4, offset = 1,
-                                         strong("Final Fund Allocation Will Be Reached On:", HTML('<br><br>')),
+                                         strong("Final Fund Allocation Will Be Reached On:", HTML('<br>')),
                                          
                                          textOutput("finalfundtime")) 
                                 )
