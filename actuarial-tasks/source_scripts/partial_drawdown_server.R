@@ -300,9 +300,10 @@ list(
   
     if((input$pd_surveydisplay %% 2 == 1 & input$pd_surveydisplay != 0))
       shinyjs::show("pd_submit")
-  }),
+  })
 
 # UI Functions ------------------------------------------------------------
+<<<<<<< HEAD
 pd_ui_reactive <- reactive({
   mainui = list(
     box(title = "The Four Drawdown Strategies", status = "primary", width = 12, solidHeader = T, 
@@ -369,5 +370,62 @@ pd_ui_reactive <- reactive({
   output$pd_ui <- renderUI({
     pd_ui_reactive()
   })
+=======
+# pd_ui_reactive <- reactive({
+#   mainui = list(
+#     box(title = "100% Annuity", status = "primary", solidHeader = T,
+#             h4("Periodic Annuity Payment:"),
+#             h3(textOutput("pd_text_annuity_payment")),
+#             hr(),
+#             h4("Total Annuity Payments Received:"),
+#             h3(textOutput("pd_text_annuity_cumulative_life_ex"))
+#         ),
+# 
+#         box(title = "100% Drawdown", status = "primary", solidHeader = T,
+#             h4("Total Payments Received:"),
+#             h3(textOutput("pd_text_drawdown_total_withdrawals_life_ex")),
+#             hr(),
+#             h4("Average Final Fund Value:"),
+#             h3(textOutput("pd_text_drawdown_average_fund_life_ex"))
+#         ),
+# 
+#         box(title = "Drawdown and Subsequent Annuity Purchase", status = "primary", solidHeader = T,
+#             h4("Fund Value At End of Drawdown Period:"),
+#             h3(textOutput("pd_text_buylater_average_fund_end")),
+#             hr(),
+#             h4("Periodic Annuity Payment:"),
+#             h3(textOutput("pd_text_average_annuity_payment_buylater"))
+#         ),
+# 
+#         box(title = "Drawdown and Deferred Annuity", status = "primary", solidHeader = T,
+#             h4("Cost of Deferred Annuity:"),
+#             h3(textOutput("pd_text_annuity_cost_deferred")),
+#             hr(),
+#             h4("Periodic Annuity Payment:"),
+#             h3(textOutput("pd_text_annuity_payment_deferred"))
+#         ),
+# 
+#         box(title = "Table", width = 12, status = "primary", solidHeader = T, DT::dataTableOutput("pd_comparison_table"), style = "height:430px; overflow-y: scroll;overflow-x: scroll;"),
+#         box(title = "Retirement Income", status = "primary", solidHeader = T, width = 12, plotlyOutput("pd_plot_income_compare"))
+#   )
+#   return(riskprofilerui(session = session,
+#                         surveydisplay = input$pd_surveydisplay,
+#                         submit = input$pd_submit, 
+#                         page = "pd",
+#                         input_mean_return = "pd_annual_mean_return", 
+#                         input_ret_std_dev = "pd_annual_ret_std_dev",
+#                         mainui = mainui))
+#   }),
+# 
+#   output$pd_save_results_text <- renderText({
+#     if(input$pd_submit %% (num.quest + 2) > 0 && (input$pd_submit %% (num.quest + 2) <= num.quest)){
+#       save_results(session, input$pd_submit, input$pd_survey)
+#     }
+#   }),
+# 
+#   output$pd_ui <- renderUI({
+#     pd_ui_reactive()
+#   })
+>>>>>>> 6d738a6aafc03681fe70ab8a9ec37aff05a28588
 
 )

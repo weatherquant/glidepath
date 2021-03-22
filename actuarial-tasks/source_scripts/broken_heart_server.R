@@ -54,6 +54,7 @@ list(
       geom_line(aes(y = female_widowed, colour = 'Female', linetype = 'Widowed', size = "Female")) + 
       geom_line(aes(y = female_not_widowed, colour = 'Female', linetype = 'Not Widowed', size = "Female")) + 
       geom_line(aes(y = male_widowed, colour = "Male", linetype = 'Widowed', size = "Male")) + 
+<<<<<<< HEAD
       geom_line(aes(y = male_not_widowed, colour = "Male", linetype = "Not Widowed", size = "Male")) +
       scale_color_manual("Gender", values = c('#f112be', "#4A8DBF")) +
       scale_linetype_manual("Widowhood Status", values = c("Widowed" = 1, "Not Widowed" = 2)) +
@@ -62,6 +63,14 @@ list(
             # panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
             panel.grid.major = element_line(colour = "grey"), panel.grid.minor = element_line(colour = "grey")
             )
+=======
+      geom_line(aes(y = male_baseline, colour = "Male", linetype = "Baseline", size = "Male")) +
+      scale_color_manual("Gender", values = c('hotpink3', "#4A8DBF")) +
+      scale_linetype_manual("Widowhood Status", values = c("Widowed" = 1, "Baseline" = 2)) +
+      scale_size_manual("Gender", values = c(1,1)) +
+      theme(legend.title = element_blank(), legend.text = element_text(size = 10), legend.position = 'top', legend.justification = "right", legend.box = "horizontal") +
+      guides(color = guide_legend(override.aes = list(size = .5), shape = guide_legend(override.aes = list(size = 4))))
+>>>>>>> 6d738a6aafc03681fe70ab8a9ec37aff05a28588
 
     ggplotly(p, tooltip = c("age", "female_widowed", "female_not_widowed", "male_widowed", "male_not_widowed")) %>%
       layout(legend = list(orientation = "h", xanchor = "center", yanchor = "bottom", x = 0.5, y = 1.2)) %>%
