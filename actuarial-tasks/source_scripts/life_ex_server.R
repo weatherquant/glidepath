@@ -12,21 +12,26 @@ list(
   output$percent_increase_ex <- renderPlotly({
     if(input$gender_ex == 1){
       ages_x <- unlist(life_table_female[,1])
-      age_death = numeric(length(ages_x))
+      age_death = ex= numeric(length(ages_x))
       for(i in 1:length(ages_x)){
+        ex[i] = round(exn(ILT15_female_reduced, ages_x[i]),2)
         age_death[i] = ages_x[i] + exn(ILT15_female_reduced, ages_x[i])
+        
       }
     } else {
       ages_x <- unlist(life_table_male[,1])
-      age_death = numeric(length(ages_x))
+      age_death = ex= numeric(length(ages_x))
       for(i in 1:length(ages_x)){
+        ex[i] = round(exn(ILT15_male_reduced, ages_x[i]),2)
         age_death[i] = ages_x[i] + exn(ILT15_male_reduced, ages_x[i])
       }
     }
 
-    percent_increase_ex = numeric(length(ages_x))
+    percent_increase_ex = percent_increase_lifespan = numeric(length(ages_x))
     for(i in 1:length(ages_x)){
-      percent_increase_ex[i] = ((age_death[i+1] - age_death[i])/age_death[i])*100
+      percent_increase_ex[i] = round(((ex[i+1] - (ex[i] - 1))/(ex[i]-1))*100,2)
+      percent_increase_lifespan[i] = round(((age_death[i+1] - age_death[i])/age_death[i])*100,2)
+      
     }
    
     fig <- plot_ly(type = "scatter", x = ages_x, y = percent_increase_ex, color = if(input$gender_ex == 1){I('#f112be')}else{I('#4A8DBF')}, mode = "markers",
@@ -35,8 +40,9 @@ list(
                                          '<extra></extra>'))
                    
     fig <- fig %>%
-      layout(xaxis = list(title = "Age"), yaxis = list(title = "% Increase"))
+      layout(xaxis = list(title = "Age", range = c(55,100)), yaxis = list(title = "% Increase", range = c(0,40)))
   }),
+  
 
   output$interactive_ex <- renderPlot({
     life_ex <- life_ex()
@@ -77,9 +83,9 @@ list(
                            angleleftleg = 3*pi/2  + pi / 12,
                            anglerightleg = 3*pi/2  - pi / 12,
                            angleofneck = -pi/2,
-                           color=c("A","B"))
+                           color=c("A", "B"))
     p + xkcdman(mapping, dataman) + 
-      geom_label(x = c(input$current_age_ex - 10, life_ex + 10, mean(c(input$current_age_ex, life_ex))), y = c(3, 3, 3.75), label = c(input$current_age_ex, life_ex_text, paste0("Life Expectancy = ", round_2d(life_ex - input$current_age_ex))), label.padding = unit(0.4, "lines"), size = c(rep(4, 2), 6.5))
+      geom_label(x = c(input$current_age_ex - 10, life_ex + 10, mean(c(input$current_age_ex, life_ex))), y = c(3, 3, 3.75), label = c(input$current_age_ex, life_ex_text, paste0("Life Expectancy = ", round_2d(life_ex - input$current_age_ex))), label.padding = unit(0.4, "lines"), size = c(rep(4, 2), 6.5)) + scale_color_manual(values = c('forestgreen', "darkred"))
   }),
 
   output$comparison_ex <- renderPlot({
@@ -128,6 +134,8 @@ list(
                           color=c("A", "B", "A", "B"))
     
     p + xkcdman(mapping, dataman) + 
-      geom_label(x = c(ages, deaths, mean(c(getOmega(table) + 5, 50))), y = c(rep(3.4, 4), 4), label = c(ages, lapply(deaths, round_2d), paste0("Difference in Lifespan = ", round_2d(deaths[2] - deaths[1]), " Years")), label.padding = unit(0.4, "lines"), size = c(rep(4, 4), 6.5))
+      geom_label(x = c(ages, deaths, mean(c(getOmega(table) + 5, 50))), y = c(rep(3.4, 4), 4), label = c(ages, lapply(deaths, round_2d), paste0("Difference in Lifespan = ", round_2d(deaths[2] - deaths[1]), " Years")), label.padding = unit(0.4, "lines"), size = c(rep(4, 4), 6.5)) +
+      scale_color_manual(values = c("forestgreen", "darkred")) 
+  
   })
 )

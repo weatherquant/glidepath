@@ -305,13 +305,11 @@ list(
 # UI Functions ------------------------------------------------------------
 pd_ui_reactive <- reactive({
   mainui = list(
-    box(title = "The Four Drawdown Strategies", status = "primary", width = 12, solidHeader = T, 
-        h5("1. Purchase an annuity with the inital retirement fund."),
-        h5("2. Drawdown the retirement fund for the remainder of lifetime."),
-        h5("3. The initial fund is drawn down for n years. The fund value at the end of that 
-             that period is used to purchase an annuity."),
-        h5("4. Upon retirement a deferred annuity, with the same periodic payment as the annuity in the 
-             first scenario, is purchased. The remainder of the inital reitrement fund is drawn down for the deferred period.")
+    box(title = "The Four Retirement Strategies", status = "primary", width = 12, solidHeader = T, 
+        h5(strong("100% Annuity:"), "An annuity is purchased with the retirement fund."),
+        h5(strong("100% Drawdown:"), "The retirement fund is drawn down for remainder of retiree's life."),
+        h5(strong("Drawdown and Annuity Purchase:"), "The initial fund is drawn down for a specified period. The resulting fund value is used to purchase an annuity."),
+        h5(strong("Drawdown and Deferred Annuity:"), "A deferred annuity is purchased at retirement. It gives the same payment as the 100% Annuity strategy. The remainder of the reitrement fund is drawn down for the deferred period.")
     ),
     
     box(title = "100% Annuity", status = "primary", solidHeader = T,
