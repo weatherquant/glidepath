@@ -99,7 +99,7 @@ list(
     } else {
       shinyjs::show("drawdown_annual_withdrawals_input")
       shinyjs::hide("drawdown_percent_withdrawal_input")
-      updateNumericInputIcon(session, "drawdown_annual_withdrawals", value = 15000)
+      updateNumericInputIcon(session, "drawdown_annual_withdrawals", value = 12000)
       enable("drawdown_annual_withdrawals")
       disable("drawdown_percent_withdrawal")
       updateNumericInputIcon(session, "drawdown_percent_withdrawal", value = NA)

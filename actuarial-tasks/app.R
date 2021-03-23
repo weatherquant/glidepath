@@ -170,11 +170,11 @@ ui <- dashboardPage(
         sidebarMenu(
           menuItem("Loan Calculator", tabName = "loan_calc", icon = icon("landmark")),
           menuItem("SORP Calculator", tabName = "sorp", icon = icon("calculator")),
+          menuItem("SORP Import", tabName = "sorp_import", icon = icon("file-import")),
           menuItem("Drawdown Simulator", tabName = "drawdown", icon = icon("chart-line")),
           menuItem("SORP & Drawdown", tabName = "sorp_x_drawdown", icon = icon("dashboard")),
           menuItem("Retirement Strategies", tabName = "partial_drawdown", icon = icon("tags")),
           menuItem("Broken Heart Effect", tabName = "broken_heart", icon = icon("heart-broken")),
-          menuItem("SORP Import", tabName = "sorp_import", icon = icon("file-import")),
           menuItem("Life Expectancy Visualisations", tabName = "life_ex", icon = icon("heartbeat")),
           menuItem("Sequencing Risk", tabName = "sequencing", icon = icon("sync")),
           menuItem("Historical Simulation", tabName = "hist_data", icon = icon("history"))
@@ -191,11 +191,11 @@ ui <- dashboardPage(
             tabItems(
                 tabItem(tabName = 'loan_calc', source("source_scripts/loan_calc_ui.R", local = TRUE)[1]),
                 tabItem(tabName = 'sorp', source("source_scripts/sorp_ui.R", local = TRUE)[1]),
+                tabItem(tabName = 'sorp_import', source("source_scripts/sorp_import_ui.R", local = TRUE)[1]),
                 tabItem(tabName = 'drawdown', source("source_scripts/drawdown_ui.R", local = TRUE)[1]),
                 tabItem(tabName = 'sorp_x_drawdown', source("source_scripts/sorp_x_drawdown_ui.R", local = TRUE)[1]),
                 tabItem(tabName = 'partial_drawdown', source("source_scripts/partial_drawdown_ui.R", local = TRUE)[1]),
                 tabItem(tabName = 'broken_heart', source("source_scripts/broken_heart_ui.R", local = TRUE)[1]),
-                tabItem(tabName = 'sorp_import', source("source_scripts/sorp_import_ui.R", local = TRUE)[1]),
                 tabItem(tabName = 'life_ex', source("source_scripts/life_ex_ui.R", local = TRUE)[1]),
                 tabItem(tabName = 'sequencing', source("source_scripts/sequencing_ui.R", local = TRUE)[1]),
                 tabItem(tabName = 'hist_data', source("source_scripts/historical_data_ui.R", local = TRUE)[1])
@@ -210,11 +210,11 @@ server <- function(input, output, session) {
     source("source_scripts/functions.R", local = TRUE)[1]
     source("source_scripts/loan_calc_server.R", local = TRUE)[1]
     source("source_scripts/sorp_server.R", local = TRUE)[1]
+    source("source_scripts/sorp_import_server.R", local = TRUE)[1]
     source("source_scripts/drawdown_server.R", local = TRUE)[1]
     source("source_scripts/sorp_x_drawdown_server.R", local = TRUE)[1]
     source("source_scripts/partial_drawdown_server.R", local = TRUE)[1]
     source("source_scripts/broken_heart_server.R", local = TRUE)[1]
-    source("source_scripts/sorp_import_server.R", local = TRUE)[1]
     source("source_scripts/life_ex_server.R", local = TRUE)[1]
     source("source_scripts/sequencing_server.R", local = TRUE)[1]
     source("source_scripts/historical_data_server.R", local = TRUE)[1]
