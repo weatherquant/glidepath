@@ -40,7 +40,7 @@ list(
                                          '<extra></extra>'))
                    
     fig <- fig %>%
-      layout(xaxis = list(title = "Age", range = c(55,100)), yaxis = list(title = "% Increase", range = c(0,40)))
+      layout(xaxis = list(title = "Age", range = c(59.5,105)), yaxis = list(title = "% Increase", range = c(0,40)))
   }),
   
 
@@ -85,7 +85,8 @@ list(
                            angleofneck = -pi/2,
                            color=c("A", "B"))
     p + xkcdman(mapping, dataman) + 
-      geom_label(x = c(input$current_age_ex - 10, life_ex + 10, mean(c(input$current_age_ex, life_ex))), y = c(3, 3, 3.75), label = c(input$current_age_ex, life_ex_text, paste0("Life Expectancy = ", round_2d(life_ex - input$current_age_ex))), label.padding = unit(0.4, "lines"), size = c(rep(4, 2), 6.5)) + scale_color_manual(values = c('forestgreen', "darkred"))
+      geom_label(x = c(input$current_age_ex - 10, life_ex + 10, mean(c(input$current_age_ex, life_ex))), y = c(3, 3, 3.75), label = c(input$current_age_ex, life_ex_text, paste0("Life Expectancy = ", round_2d(life_ex - input$current_age_ex))), label.padding = unit(0.4, "lines"), size = c(rep(4, 2), 6.5)) + 
+      scale_color_manual(values = c('chartreuse4', "firebrick1"))
   }),
 
   output$comparison_ex <- renderPlot({
@@ -135,7 +136,7 @@ list(
     
     p + xkcdman(mapping, dataman) + 
       geom_label(x = c(ages, deaths, mean(c(getOmega(table) + 5, 50))), y = c(rep(3.4, 4), 4), label = c(ages, lapply(deaths, round_2d), paste0("Difference in Lifespan = ", round_2d(deaths[2] - deaths[1]), " Years")), label.padding = unit(0.4, "lines"), size = c(rep(4, 4), 6.5)) +
-      scale_color_manual(values = c("forestgreen", "darkred")) 
+      scale_color_manual(values = c("chartreuse4", "firebrick1")) 
   
   })
 )

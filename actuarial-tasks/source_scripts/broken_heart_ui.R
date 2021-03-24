@@ -25,6 +25,6 @@ list(
   
   tabBox(type = 'tabs', width = 12,
               tabPanel("Widowed vs Not-Widowed Death Probabilites", plotlyOutput("bh_qx_change_plot")),
-              tabPanel("Short-Term Effect of Widowhood on Mortality", plotlyOutput("bh_life_ex_change_plot"))
+              tabPanel("Percentage Increase in Death Probabilites for Widowed Life", plotlyOutput("bh_life_ex_change_plot"))
               )
   )

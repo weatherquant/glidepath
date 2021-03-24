@@ -1,7 +1,7 @@
 list(
   box(h1("Life Expectancy Visualisations"), width = 12, background = "light-blue"),
   box(title = "Gender", awesomeRadio("gender_ex", label = NULL, choices = list("Male" = 2, "Female" = 1), inline = TRUE)),
-  box(title = "Percentage Increase in Life Expectancy per Year Survived", status = "primary", solidHeader = T, width = 12, plotlyOutput("percent_increase_ex")),
+  box(title = "Percentage Increase in Life Expectancy for every Year Survived", status = "primary", solidHeader = T, width = 12, plotlyOutput("percent_increase_ex")),
 
   
   
