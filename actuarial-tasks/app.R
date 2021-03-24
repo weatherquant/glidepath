@@ -166,8 +166,8 @@ ui <- dashboardPage(
                     ),
 
     dashboardSidebar(
-        
-        sidebarMenu(
+        collapsed = T,
+        sidebarMenu(id = 'tabs',
           menuItem("Loan Calculator", tabName = "loan_calc", icon = icon("landmark")),
           menuItem("SORP Calculator", tabName = "sorp", icon = icon("calculator")),
           menuItem("SORP Import", tabName = "sorp_import", icon = icon("file-import")),
@@ -218,6 +218,10 @@ server <- function(input, output, session) {
     source("source_scripts/life_ex_server.R", local = TRUE)[1]
     source("source_scripts/sequencing_server.R", local = TRUE)[1]
     source("source_scripts/historical_data_server.R", local = TRUE)[1]
+    
+    observeEvent(input$tabs, {
+      addClass(selector = "body", class = "sidebar-collapse")
+    })
 }
 
 # Run the application 
