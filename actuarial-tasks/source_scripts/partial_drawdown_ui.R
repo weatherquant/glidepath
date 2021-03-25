@@ -47,7 +47,7 @@ list(
           h5(strong("100% Annuity:"), "An annuity is purchased with the retirement fund."),
           h5(strong("100% Drawdown:"), "The retirement fund is drawn down for remainder of retiree's life."),
           h5(strong("Drawdown and Annuity Purchase:"), "The initial fund is drawn down for a specified period. The resulting fund value is used to purchase an annuity."),
-          h5(strong("Drawdown and Deferred Annuity:"), "A deferred annuity is purchased at retirement. It gives the same payment as the 100% Annuity strategy. The remainder of the reitrement fund is drawn down for the deferred period.")
+          h5(strong("Drawdown and Deferred Annuity:"), "A deferred annuity is purchased at retirement. It gives the same payment as the 100% Annuity strategy. The remainder of the retirement fund is drawn down for the deferment period.")
       ),
       
       box(title = "100% Annuity", status = "primary", solidHeader = T,
