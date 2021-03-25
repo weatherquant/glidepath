@@ -85,7 +85,7 @@ list(
                            angleofneck = -pi/2,
                            color=c("A", "B"))
     p + xkcdman(mapping, dataman) + 
-      geom_label(x = c(input$current_age_ex - 10, life_ex + 10, mean(c(input$current_age_ex, life_ex))), y = c(3, 3, 3.75), label = c(input$current_age_ex, life_ex_text, paste0("Life Expectancy = ", round_2d(life_ex - input$current_age_ex))), label.padding = unit(0.4, "lines"), size = c(rep(4, 2), 6.5)) + 
+      geom_label(x = c(input$current_age_ex - 9, life_ex + 10, mean(c(input$current_age_ex, life_ex))), y = c(3, 3, 3.75), label = c(input$current_age_ex, life_ex_text, paste0("Life Expectancy = ", round_2d(life_ex - input$current_age_ex))), label.padding = unit(0.4, "lines"), size = c(rep(4, 2), 6.5)) + 
       scale_color_manual(values = c('chartreuse4', "firebrick1"))
   }),
 
