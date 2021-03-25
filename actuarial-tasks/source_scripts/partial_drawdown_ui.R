@@ -62,7 +62,7 @@ list(
           h4("Mean Payments Received:"),
           h3(textOutput("pd_text_drawdown_mean_withdrawals_life_ex")),
           hr(),
-          h4("Mean Fund Value:"),
+          h4("Mean Final Fund Value:"),
           h3(textOutput("pd_text_drawdown_mean_fund_life_ex"))
       ),
       
