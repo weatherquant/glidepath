@@ -89,38 +89,40 @@ for(i in(1:nrow(Qlist))){
 
 # Historical Data Preamble ------------------------------------------------
 ## Load data
-# Create symbol vectors
-symbols <- c("WILL5000INDFC", "BAMLCC0A0CMTRIV", "GOLDPMGBD228NLBM", "CSUSHPINSA", "DGS5", "IRLCPIALLMINMEI")
-sym_names <- c("stock", "bond", "gold", "realt", "rfr")
+## Create symbol vectors
+# symbols <- c("WILL5000INDFC", "BAMLCC0A0CMTRIV", "GOLDPMGBD228NLBM", "CSUSHPINSA", "DGS5", "IRLCPIALLMINMEI")
+# sym_names <- c("stock", "bond", "gold", "realt", "rfr")
+# 
+## Get symbols
+# getSymbols(symbols, src="FRED", from = "1970-01-01", to = "2020-12-31")
+# 
+## Merge xts objects and resample to monthly
+# index <- merge(WILL5000INDFC, BAMLCC0A0CMTRIV, GOLDPMGBD228NLBM, CSUSHPINSA, DGS5)
+# index <- na.locf(index)
+# colnames(index) <- sym_names
+# 
+# inflation <- IRLCPIALLMINMEI
+# inflation <- na.locf(inflation)
+# colnames(inflation)[1] = "inflation"
+# 
+# idx_mon <- to.monthly(index, indexAt = "lastof", OHLC=FALSE)
+# idx_mon <- idx_mon["1987/2020"]
+# 
+# inf_mon <- to.monthly(inflation, indexAt = "lastof", OHLC = FALSE)
+# inf_mon <- inf_mon["1987/2020"]
 
-# Get symbols
-getSymbols(symbols, src="FRED", from = "1970-01-01", to = "2020-12-31")
+## Create data frame
+# index_df <- data.frame(date = index(idx_mon), coredata(idx_mon)) %>%
+#   mutate_at(vars(-c(date, rfr)), function(x) x/lag(x)-1) %>%
+#   mutate(rfr = effective2Convertible(i=rfr/100,k=60)/60)
+# 
+# index_df_inflation <- data.frame(date = index(inf_mon), coredata((inf_mon)))
+# for(i in nrow(index_df_inflation):2){
+#   index_df_inflation[i,2] = (index_df_inflation[i,2] - index_df_inflation[i-1,2])/index_df_inflation[i-1,2]
+# }
 
-# Merge xts objects and resample to monthly
-index <- merge(WILL5000INDFC, BAMLCC0A0CMTRIV, GOLDPMGBD228NLBM, CSUSHPINSA, DGS5)
-index <- na.locf(index)
-colnames(index) <- sym_names
-
-inflation <- IRLCPIALLMINMEI
-inflation <- na.locf(inflation)
-colnames(inflation)[1] = "inflation"
-
-idx_mon <- to.monthly(index, indexAt = "lastof", OHLC=FALSE)
-idx_mon <- idx_mon["1987/2020"]
-
-inf_mon <- to.monthly(inflation, indexAt = "lastof", OHLC = FALSE)
-inf_mon <- inf_mon["1987/2020"]
-
-# Create data frame
-index_df <- data.frame(date = index(idx_mon), coredata(idx_mon)) %>%
-  mutate_at(vars(-c(date, rfr)), function(x) x/lag(x)-1) %>%
-  mutate(rfr = effective2Convertible(i=rfr/100,k=60)/60)
-
-index_df_inflation <- data.frame(date = index(inf_mon), coredata((inf_mon)))
-for(i in nrow(index_df_inflation):2){
-  index_df_inflation[i,2] = (index_df_inflation[i,2] - index_df_inflation[i-1,2])/index_df_inflation[i-1,2]
-}
-
+index_df = read.csv("data/index.csv")
+index_df_inflation = read.csv("data/inlation.csv")
 portfolio_list = c("Stocks", "Bonds", "Gold", "Real Estate", "Risk Free Rate")
 
 # Frequencies -------------------------------------------------------------
@@ -161,7 +163,12 @@ ui <- dashboardPage(
                         text = "Click here to visit the GitHub Page",
                         href = "https://github.com/Jimzo123/FYP_MS4090",
                         icon = icon("github")
-                        )
+                        ),
+                      tags$li(
+                        actionLink("Disclaimer", "DISCLAIMER", class = "my_class"),
+                        icon = icon("info"),
+                        class = "dropdown"
+                      )
                       )
                     ),
 
@@ -218,7 +225,15 @@ server <- function(input, output, session) {
     source("source_scripts/life_ex_server.R", local = TRUE)[1]
     source("source_scripts/sequencing_server.R", local = TRUE)[1]
     source("source_scripts/historical_data_server.R", local = TRUE)[1]
-    
+  
+    observeEvent(input$Disclaimer, {
+      showModal(modalDialog(
+        title = "Important Message",
+        "This application is for demonstration purposes only. While this application has been developed with all due care,
+        we do not warrant or represent that it is free from errors or omission."
+      ))
+    })
+  
     observeEvent(input$tabs, {
       addClass(selector = "body", class = "sidebar-collapse")
     })
