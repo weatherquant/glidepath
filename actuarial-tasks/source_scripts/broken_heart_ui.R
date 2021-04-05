@@ -7,7 +7,7 @@ list(
       numericInputIcon(inputId = "bh_age_widowed", label = "Age Widowed:", value = 66, min = 66, max = getOmega(BrokenHeart_LifeTable()), icon = list(NULL, "Years"))
       ),
   
-  box(title = "Life Expectancy", status = "primary", solidHeader = T, height = "269px",
+  box(title = "Life Expectancies", status = "primary", solidHeader = T, height = "269px",
       h4("Widowed:"),
       h3(textOutput("bh_text_life_ex_widowed")),
       hr(),

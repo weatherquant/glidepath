@@ -173,7 +173,7 @@ ui <- dashboardPage(
                     ),
 
     dashboardSidebar(
-        collapsed = T,
+        # collapsed = T,
         sidebarMenu(id = 'tabs',
           menuItem("Loan Calculator", tabName = "loan_calc", icon = icon("landmark")),
           menuItem("SORP Calculator", tabName = "sorp", icon = icon("calculator")),
@@ -206,7 +206,6 @@ ui <- dashboardPage(
                 tabItem(tabName = 'life_ex', source("source_scripts/life_ex_ui.R", local = TRUE)[1]),
                 tabItem(tabName = 'sequencing', source("source_scripts/sequencing_ui.R", local = TRUE)[1]),
                 tabItem(tabName = 'hist_data', source("source_scripts/historical_data_ui.R", local = TRUE)[1])
-                
             )
         )
     )
@@ -233,10 +232,10 @@ server <- function(input, output, session) {
         we do not warrant or represent that it is free from errors or omission."
       ))
     })
-  
-    observeEvent(input$tabs, {
-      addClass(selector = "body", class = "sidebar-collapse")
-    })
+    
+    # observeEvent(input$tabs, {
+    #   addClass(selector = "body", class = "sidebar-collapse")
+    # })
 }
 
 # Run the application 
