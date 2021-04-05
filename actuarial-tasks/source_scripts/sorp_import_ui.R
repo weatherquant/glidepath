@@ -15,6 +15,7 @@ list(
   ),
   
   box(title = "SORP Assumptions", status = "primary", solidHeader = T, width = 12, collapsible = T, collapsed = T,
+      column(6,
       h4(strong("General Assumptions:")),
       numericInputIcon(inputId = "import_salary_esc", label = "Salary Escalation:", value = 1.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
       numericInputIcon(inputId = "import_discount_rate", label = "Discount Rate:", value = 2.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
@@ -22,7 +23,9 @@ list(
       numericInputIcon(inputId = "import_annuity_esc", label = "Annuity Escalation:", value = 1, min = 0, max = 100, icon = list(NULL, icon("percent"))),
       numericInputIcon(inputId = "import_guaranteed", label = "Guarantee Period:", value = 5, min = 0, max = 39, icon = list(NULL, "Years")),
       numericInputIcon(inputId = "import_investment_charges", label = "Investment Charges:", value = 0.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
-      hr(),
+      actionButton(inputId = "import_default", label = "Reset to Default", style = "background-color: white")
+      ),
+      column(6,
       h4(strong("Equity/Property:")),
       numericInputIcon(inputId = "import_equity_rate", label = "Rate:", value = 4.5, min = 0, max = 100, icon = list(NULL, icon("percent"))),
       sliderInput("import_equity_prop", label = "Proportion:", min = 0, max = 100, value = 40, step = 1),
@@ -31,7 +34,7 @@ list(
       sliderInput("import_fixed_prop", label = "Proportion:", min = 0, max = 60, value = 30, step = 1),
       h4(strong("Cash/Other:")),
       numericInputIcon(inputId = "import_cash_rate", label = "Rate:", value = 0, min = 0, max = 100, icon = list(NULL, icon("percent"))),
-      sliderInput("import_cash_prop", label = "Proportion:", min = 0, max = 100, value = 30, step = 1),
-      actionButton(inputId = "import_default", label = "Reset to Default", style = "background-color: white")
+      sliderInput("import_cash_prop", label = "Proportion:", min = 0, max = 100, value = 30, step = 1)
+      )
   )
 )
