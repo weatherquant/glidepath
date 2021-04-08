@@ -1,4 +1,5 @@
 library(shiny)
+library(shinyBS)
 library(shinydashboard)
 library(shinyjs)
 library(shinyWidgets)
@@ -16,7 +17,6 @@ library(lubridate)
 library(toOrdinal)
 library(scales)
 library(xkcd)
-library(shinyBS)
 library(lifecontingencies)
 options(scipen=999)
 
