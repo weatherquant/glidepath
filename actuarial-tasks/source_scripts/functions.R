@@ -570,7 +570,7 @@ list(
     updateNumericInputIcon(session, input_ret_std_dev, value = new_ret_std_dev)
   },
 
-  portfolio <- function(session, input_mean_return, input_ret_std_dev, means = c(2, 3, 5), std_devs = c(1, 4, 7)){
+  portfolio <- function(session, input_mean_return, input_ret_std_dev, means = c(2.5, 3, 3.5), std_devs = c(2, 4, 7)){
     if(is.character(results)){
       results <<- parse_vector(results, col_integer()) 
     }
@@ -587,7 +587,7 @@ list(
     }
   },
 
-  riskprofilerui <- function(session, surveydisplay, submit, page, input_mean_return, input_ret_std_dev, mainui, means = c(2, 3, 5), std_devs = c(1, 4, 7)){
+  riskprofilerui <- function(session, surveydisplay, submit, page, input_mean_return, input_ret_std_dev, mainui, means = c(2.5, 3, 3.5), std_devs = c(2, 4, 7)){
     if(surveydisplay %% 2 == 1 && surveydisplay != 0){
       if(submit %% (num.quest + 2) == 0){
         return(list(
