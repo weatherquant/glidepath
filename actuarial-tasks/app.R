@@ -65,7 +65,9 @@ BrokenHeart_LifeTable <- function(widowed_status = FALSE, widowed_age = NULL, ge
             } else if (76 <= i && i <= 85){
                 qx[i + 1] = band_2[i + 1 - widowed_age]
             } else {
-                qx[i + 1] = band_3[i + 1 - widowed_age]
+                if(i <= 95){
+                  qx[i + 1] = band_3[i + 1 - widowed_age]
+                }
             }
     }
     
