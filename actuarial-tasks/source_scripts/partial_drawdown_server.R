@@ -147,7 +147,7 @@ list(
 
 # Output Functions - Annuities --------------------------------------------
   output$pd_text_annuity_payment <- output$pd_text_annuity_payment_deferred <- renderText({
-    return(c("€", round_2d(pd_annuity_payment_reactive(), T)))
+    return(c("$", round_2d(pd_annuity_payment_reactive(), T)))
   }),  
   
   output$pd_text_annuity_cumulative_life_ex <- renderText({
@@ -155,15 +155,15 @@ list(
     freq = p_list[match(pd_inputs$pd_withdraw_freq, freq_list_drawdown)]
     cumulative = SORP_Cumulative_Payments(SORP_Pension_Payment = pd_annuity_payment_reactive(),
                                           time = freq * pd_life_ex_reactive())
-    return(c("€", round_2d(cumulative, T)))
+    return(c("$", round_2d(cumulative, T)))
   }),
 
   output$pd_text_mean_annuity_payment_buylater <- renderText({
-    return(c("€", round_2d(pd_mean_annuity_payment_buylater_reactive(), T)))
+    return(c("$", round_2d(pd_mean_annuity_payment_buylater_reactive(), T)))
   }),  
 
   output$pd_text_annuity_cost_deferred <- renderText({
-    return(c("€", round_2d(pd_annuity_cost_deferred_reactive(), T)))
+    return(c("$", round_2d(pd_annuity_cost_deferred_reactive(), T)))
   }),
 
 # Output Functions - Drawdowns --------------------------------------------
@@ -172,7 +172,7 @@ list(
     mean = Drawdown_Mean_Withdrawals_Life_Ex(Drawdown_Withdrawals = pd_withdrawals_drawdown_reactive(),
                                                  freq = pd_inputs$pd_withdraw_freq,
                                                  ex = pd_life_ex_reactive())
-    return(c("€", round_2d(mean, T)))
+    return(c("$", round_2d(mean, T)))
   }),
 
   output$pd_text_drawdown_mean_fund_life_ex <- renderText({
@@ -180,15 +180,15 @@ list(
     mean = Drawdown_Mean_Life_Ex(Drawdown_Paths = pd_paths_drawdown_reactive(),
                                     freq = pd_inputs$pd_withdraw_freq,
                                     ex = pd_life_ex_reactive())
-    return(c("€", round_2d(mean, T)))
+    return(c("$", round_2d(mean, T)))
   }),
   
   output$pd_text_buylater_mean_fund_end <- renderText({
-    return(c("€", round_2d(pd_mean_fund_buylater_end_reactive(), T)))
+    return(c("$", round_2d(pd_mean_fund_buylater_end_reactive(), T)))
   }),
 
   output$pd_text_deferred_mean_fund_end <- renderText({
-    return(c("€", round_2d(pd_mean_fund_deferred_end_reactive(), T)))
+    return(c("$", round_2d(pd_mean_fund_deferred_end_reactive(), T)))
   }),
 
 # Output Functions - Table and Plot ------------------------------------------------
@@ -235,7 +235,7 @@ list(
     fig <- fig %>% add_trace(y = ~round(table_df$buy_later_total), name = 'Drawdown and Annuity Purchase', line = list(color = '#5f3787', width = 4))
     fig <- fig %>% add_trace(y = ~round(table_df$deferred_total), name = 'Drawdown and Deferred Annuity', line = list(color = '#59B252', width = 4))
     fig <- fig %>% layout(shapes = list(plotly_vline(x = pd_inputs$pd_age[2] - pd_inputs$pd_age[1], colour = 'orange'), plotly_vline(x = pd_life_ex_reactive(), colour = 'black')))
-    fig <- fig %>% layout(xaxis = list(title = "Years Since Retirement"), yaxis = list(title = list(text = "Retirement Income", standoff = 15), tickprefix = '€', tickformat = ",.", ticklabelposition = "inside"))  
+    fig <- fig %>% layout(xaxis = list(title = "Years Since Retirement"), yaxis = list(title = list(text = "Retirement Income", standoff = 15), tickprefix = '$', tickformat = ",.", ticklabelposition = "inside"))  
     fig <- fig %>% layout(legend = list(orientation = "h", xanchor = "center", yanchor = "bottom", x = 0.5, y = 1.2))
     fig <- fig %>% layout(hovermode = "x unified")
   }),

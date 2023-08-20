@@ -151,7 +151,7 @@ list(
     p <- ggplot(AgeandFundValue, aes(x = age_exact + (1 / freq), y = FundValue, fill = "#4A8DBF", colour = "#4A8DBF")) +
       geom_bar(stat = "identity", colour = "#4A8DBF", fill = "#4A8DBF") + 
       labs(x = "Age", y = "Fund Value", fill = NULL, color = NULL) +
-      scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(labels = scales::dollar_format(prefix = "€"), expand = c(0, 0)) + 
+      scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(labels = scales::dollar_format(prefix = "$"), expand = c(0, 0)) + 
       theme(legend.position = "none", panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
             axis.text.x = element_text(size = 10), axis.text.y = element_text(size = 10),
             axis.title.x = element_text(margin = margin(t = 15, r = 0, b = 0, l = 0)),
@@ -171,7 +171,7 @@ list(
       colnames(SORP_Contributions) = c("Age", "Period", "Employee Contribution", "Employer Contribution", "Total Contribution", "Interest on Fund", "Fund Value at End of Period")
     }
     SORP_Contributions <- datatable(SORP_Contributions, options = list(scrollX = TRUE, scrollY = "300px", paging = FALSE, searching = FALSE, info = FALSE, columnDefs = list(list(className = 'dt-center', targets = "_all"))), rownames= FALSE)
-    SORP_Contributions <- formatCurrency(SORP_Contributions, columns = c("Employee Contribution", "Employer Contribution", "Total Contribution", "Interest on Fund", "Fund Value at End of Period"), currency = "€")
+    SORP_Contributions <- formatCurrency(SORP_Contributions, columns = c("Employee Contribution", "Employer Contribution", "Total Contribution", "Interest on Fund", "Fund Value at End of Period"), currency = "$")
     return(SORP_Contributions)
   },
 
@@ -385,7 +385,7 @@ list(
     
     colnames(dataframe) = c("Years", "Mean Withdrawals", "Mean Fund Value", "Probability of Ruin", paste(toOrdinal(100*lower), 'Percentile'), "Median", paste(toOrdinal(100*upper), 'Percentile'))
     table <- datatable(dataframe, options = list(paging = FALSE, searching = FALSE, info = FALSE, columnDefs = list(list(className = 'dt-center', targets = "_all"))), rownames = FALSE)
-    table <- formatCurrency(table, columns = c("Mean Withdrawals", "Mean Fund Value", paste(toOrdinal(100*lower), 'Percentile'), "Median", paste(toOrdinal(100*upper), 'Percentile')), currency = "€")
+    table <- formatCurrency(table, columns = c("Mean Withdrawals", "Mean Fund Value", paste(toOrdinal(100*lower), 'Percentile'), "Median", paste(toOrdinal(100*upper), 'Percentile')), currency = "$")
     table <- formatPercentage(table, columns = "Probability of Ruin", digits = 2)
     table <- formatStyle(table, c(1, 4), `border-right` = "solid 1px")
     if(!is.null(points) && !is.null(colour)){
@@ -412,7 +412,7 @@ list(
     }
     p <- p + 
       labs(x = "Years", y = "Fund Value") +
-      scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(labels = scales::dollar_format(prefix = "€"), expand = c(0, 0)) +
+      scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(labels = scales::dollar_format(prefix = "$"), expand = c(0, 0)) +
       theme(legend.position = "none", 
             axis.text.x = element_text(size = 10), axis.text.y = element_text(size = 10),
             axis.title.x = element_text(margin = margin(t = 15, r = 0, b = 0, l = 0)),
@@ -438,7 +438,7 @@ list(
       }
       fig <- fig %>% layout(shapes = vline_list)
     }
-    fig <- fig %>% layout(xaxis = list(title = "Years"), yaxis = list(title = list(text = "Fund Value", standoff = 15), tickprefix = '€', tickformat = ",.", ticklabelposition = "inside"))  
+    fig <- fig %>% layout(xaxis = list(title = "Years"), yaxis = list(title = list(text = "Fund Value", standoff = 15), tickprefix = '$', tickformat = ",.", ticklabelposition = "inside"))  
     fig <- fig %>% layout(legend = list(orientation = "h", xanchor = "center", x = 0.5, y = 1.05))
     fig <- fig %>% layout(hovermode = "x unified")
   },
@@ -546,7 +546,7 @@ list(
       )
     ))
     table <- datatable(table_df, container = container, options = list(scrollX = TRUE, info = FALSE, paging = FALSE, searching = FALSE, columnDefs = list(list(className = 'dt-center', targets = "_all"))), rownames = FALSE) %>%
-      formatCurrency(columns = c(2, 3, 4, 6, 7, 8, 9), currency = "€") %>%
+      formatCurrency(columns = c(2, 3, 4, 6, 7, 8, 9), currency = "$") %>%
       formatPercentage(columns = c(5, 10), digits = 2) %>%
       formatStyle(c(1, 2, 5, 7), `border-right` = "solid 1px")
     if(!is.null(points)){

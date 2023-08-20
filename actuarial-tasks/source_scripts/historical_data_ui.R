@@ -25,10 +25,10 @@ list(
                                 ),
                                 
                                 column(width = 8, offset = 2,
-                                       numericInputIcon(inputId = "start_capital", label = "Starting Capital:", value = 750000, min = 0, icon = icon("euro"))
+                                       numericInputIcon(inputId = "start_capital", label = "Starting Capital:", value = 750000, min = 0, icon = icon("dollar"))
                                 ),
                                 column(width = 8, offset = 2,
-                                       numericInputIcon(inputId = "annual_withdrawals", label = "Total Withdrawals per Annum:", value = 45000, min = 0, icon = icon("euro"))
+                                       numericInputIcon(inputId = "annual_withdrawals", label = "Total Withdrawals per Annum:", value = 45000, min = 0, icon = icon("dollar"))
                                 )
  
                        ),

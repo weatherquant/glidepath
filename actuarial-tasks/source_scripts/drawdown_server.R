@@ -43,7 +43,7 @@ list(
     median = Drawdown_Percentile_Life_Ex(Drawdown_Paths = drawdown_paths_reactive(),
                                          freq = drawdown_inputs$drawdown_withdraw_freq,
                                          age = drawdown_inputs$drawdown_retire_age)
-    return(c("€", round_2d(median, T)))
+    return(c("$", round_2d(median, T)))
   }),
   
   output$drawdown_text_ruin_prob_life_ex <- renderText({

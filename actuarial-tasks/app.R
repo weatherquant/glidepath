@@ -18,6 +18,7 @@ library(toOrdinal)
 library(scales)
 library(xkcd)
 library(lifecontingencies)
+# needs marvovchain package in background
 options(scipen=999)
 
 # ILT15 Life Tables -------------------------------------------------------
@@ -158,13 +159,16 @@ ui <- dashboardPage(
     dashboardHeader(title = "Actuarial Tasks in R",
                     dropdownMenu(
                       type = "notifications", 
-                      headerText = strong("See the code behind the app:"), 
-                      icon = icon("code"), 
+                      headerText = strong("Contact us:"), 
+                      icon = icon("globe"), 
                       badgeStatus = NULL,
                       notificationItem(
-                        text = "Click here to visit the GitHub Page",
-                        href = "https://github.com/Jimzo123/FYP_MS4090",
-                        icon = icon("github")
+                        text = "Click here to visit our web page",
+                        href = "https://www.fourierfinance.com/",
+                        icon = icon("globe")
+                        # text = "Click here to visit the GitHub Page",
+                        # href = "https://github.com/Jimzo123/FYP_MS4090",
+                        # icon = icon("github")
                         ),
                       tags$li(
                         actionLink("Disclaimer", "DISCLAIMER", class = "my_class"),
@@ -230,8 +234,8 @@ server <- function(input, output, session) {
     observeEvent(input$Disclaimer, {
       showModal(modalDialog(
         title = "Important Message",
-        "This application is for demonstration purposes only. While this application has been developed with all due care,
-        we do not warrant or represent that it is free from errors or omission."
+        "This application is for demonstration purposes. Note that it may need to be adapted to your situation
+        in line with changes to tax laws, investment regulations, social security settings, and region."
       ))
     })
     

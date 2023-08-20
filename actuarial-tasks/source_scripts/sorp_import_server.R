@@ -49,7 +49,7 @@ list(
   output$import_calcs_table <- renderDataTable({
     database = import_calcs_reactive()
     database <- datatable(database[, 10:length(database[1, ])], options = list(scrollX = TRUE, scrollY = "334px", paging = FALSE, searching = FALSE, info = FALSE, columnDefs = list(list(className = 'dt-center', targets = "_all"))), rownames = TRUE)
-    database <- formatCurrency(database, columns = 1:4, currency = "€")
+    database <- formatCurrency(database, columns = 1:4, currency = "$")
     return(database)
   }),
 

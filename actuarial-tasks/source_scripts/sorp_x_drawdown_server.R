@@ -146,19 +146,19 @@ list(
 
 # Output Functions - SORP -------------------------------------------------
   output$sd_text_fundvalue <- renderText({
-    return(c("€", round_2d(sd_fund_reactive(), T)))
+    return(c("$", round_2d(sd_fund_reactive(), T)))
   }),
 
   output$sd_text_fundvalue_spouse <- renderText({
-    return(c("€", round_2d(sd_fund_spouse_reactive(), T)))
+    return(c("$", round_2d(sd_fund_spouse_reactive(), T)))
   }),
 
   output$sd_text_pension_payment <- renderText({
-    return(c("€", round_2d(sd_pension_payment_reactive(), T)))
+    return(c("$", round_2d(sd_pension_payment_reactive(), T)))
   }),
 
   output$sd_text_pension_payment_spouse <- renderText({
-    return(c("€", round_2d(sd_pension_payment_spouse_reactive(), T)))
+    return(c("$", round_2d(sd_pension_payment_spouse_reactive(), T)))
   }),
 
   output$sd_text_fundvalue_discounted <- renderText({
@@ -167,7 +167,7 @@ list(
                                     age_1 = sd_inputs$sd_age[1], 
                                     age_2 = sd_inputs$sd_age[2],
                                     discount_rate = sd_inputs$sd_discount_rate)
-    return(c("€", round_2d(discounted_fund, T)))
+    return(c("$", round_2d(discounted_fund, T)))
   }),
 
   output$sd_text_fundvalue_discounted_spouse <- renderText({
@@ -176,7 +176,7 @@ list(
                                     age_1 = sd_inputs$sd_age[1], 
                                     age_2 = sd_inputs$sd_age[2],
                                     discount_rate = sd_inputs$sd_discount_rate)
-    return(c("€", round_2d(discounted_fund_spouse, T)))
+    return(c("$", round_2d(discounted_fund_spouse, T)))
   }),
 
   output$sd_text_pension_payment_discounted <- renderText({
@@ -185,7 +185,7 @@ list(
                                                age_1 = sd_inputs$sd_age[1], 
                                                age_2 = sd_inputs$sd_age[2],
                                                discount_rate = sd_inputs$sd_discount_rate)
-    return(c("€", round_2d(discounted_pension_payment, T)))
+    return(c("$", round_2d(discounted_pension_payment, T)))
   }),
 
   output$sd_text_pension_payment_discounted_spouse <- renderText({
@@ -194,7 +194,7 @@ list(
                                                       age_1 = sd_inputs$sd_age[1], 
                                                       age_2 = sd_inputs$sd_age[2],
                                                       discount_rate = sd_inputs$sd_discount_rate)
-    return(c("€", round_2d(discounted_pension_payment_spouse, T)))
+    return(c("$", round_2d(discounted_pension_payment_spouse, T)))
   }),
 
   output$sd_plot_fundvalue <- renderPlot({
@@ -230,7 +230,7 @@ list(
     median = Drawdown_Percentile_Life_Ex(Drawdown_Paths = sd_paths_reactive(),
                                          freq = sd_inputs$sd_withdraw_freq,
                                          ex = sd_life_ex_reactive())
-    return(c("€", round_2d(median, T)))
+    return(c("$", round_2d(median, T)))
   }),
   
   output$sd_text_ruin_prob_life_ex <- renderText({

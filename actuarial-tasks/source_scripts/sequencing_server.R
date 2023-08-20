@@ -170,7 +170,7 @@ list(
       #geom_point(aes(color = Market)) +
       scale_colour_manual(values = c("#00A7FA", "#FF3B28", "#48EB12")) +
       ylab("Capital") +
-      scale_y_continuous(labels = dollar_format(suffix = "", prefix = "€"), expand = c(0, 0), limits = c(0,max(Spaths)*1.1)) +
+      scale_y_continuous(labels = dollar_format(suffix = "", prefix = "$"), expand = c(0, 0), limits = c(0,max(Spaths)*1.1)) +
       scale_x_continuous(expand = c(0, 0), limits = c(0,NA)) +
       theme(
         # legend.position = c(.95, .50),
@@ -202,7 +202,7 @@ list(
     
     colnames(df.table) = c("Time", "Bad Early Years", "Average Early Years", "Good Early Years")
     table <- datatable(df.table, options = list(scrollX = TRUE, scrollY = "400px", paging = FALSE, searching = FALSE, info = FALSE, columnDefs = list(list(className = 'dt-center', targets = "_all"))), rownames = FALSE)
-    table <- formatCurrency(table, columns = c("Bad Early Years", "Average Early Years", "Good Early Years"), currency = "€")
+    table <- formatCurrency(table, columns = c("Bad Early Years", "Average Early Years", "Good Early Years"), currency = "$")
     table <- formatStyle(table, 1, `border-right` = "solid 1px")
     table <- formatStyle(table, c(2,3), `border-right` = "dotted 1px")
     ?formatStyle

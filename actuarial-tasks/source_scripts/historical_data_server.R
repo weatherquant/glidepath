@@ -150,7 +150,7 @@ list(
     index_df_plot = historical_reactive()
     g <- ggplot(data = index_df_plot, aes(x = Time, y = Capital) ) +
       geom_line() +
-      scale_y_continuous(labels = dollar_format(suffix = "", prefix = "€"), limits=c(0,NA)) + 
+      scale_y_continuous(labels = dollar_format(suffix = "", prefix = "$"), limits=c(0,NA)) + 
       theme_economist()
     fig <- ggplotly(g)
     return(fig)

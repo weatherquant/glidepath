@@ -9,7 +9,7 @@ list(
   output$loan_periodic_repay <- renderText({
     loan_summary = loan_reactive()
     repayment = loan_summary$repay_vect[2]
-    return(c("€", round_2d(repayment, T)))
+    return(c("$", round_2d(repayment, T)))
   }),
   
   output$loan_schedule <- renderDataTable({
@@ -18,7 +18,7 @@ list(
     loan_summary <- data.frame(select(loan_summary, -repay_no, -repay_vect), row.names = loan_summary[,1])
     colnames(loan_summary) = c("Balance", "% Interest", "% Capital", "Interest Paid", "Capital Paid")
     loan_summary <- datatable(loan_summary, options = list(scrollX = TRUE, scrollY = "350px", paging = FALSE, searching = FALSE, info = FALSE, columnDefs = list(list(className = 'dt-center', targets = "_all")))) 
-    loan_summary <- formatCurrency(loan_summary, columns = c("Balance", "Interest Paid", "Capital Paid"), currency = "€")
+    loan_summary <- formatCurrency(loan_summary, columns = c("Balance", "Interest Paid", "Capital Paid"), currency = "$")
     loan_summary <- formatPercentage(loan_summary, columns = c("% Interest", "% Capital"), digits = 2)
     return(loan_summary)
   }),
@@ -28,7 +28,7 @@ list(
     ggplot(loan_summary, aes(x = repay_no, y = balance, fill="#4A8DBF", color="#4A8DBF")) + 
       geom_bar(stat = 'identity', color = "#4A8DBF", fill = "#4A8DBF") + 
       labs(x = "Repayment Number", y = "Remaining Balance") + 
-      scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(labels = scales::dollar_format(prefix = "€"), expand = c(0, 0)) + 
+      scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(labels = scales::dollar_format(prefix = "$"), expand = c(0, 0)) + 
       theme(legend.position = "none", 
             axis.text.x = element_text(size = 10), axis.text.y = element_text(size = 10),
             axis.title.x = element_text(margin = margin(t = 15, r = 0, b = 0, l = 0)),

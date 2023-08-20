@@ -2,7 +2,7 @@ list(
         box(h1("Loan Calculator"), width = 12, background = "light-blue"),
         box(
           title = "Parameters", status = "primary", solidHeader = T,
-          numericInputIcon(inputId = "loan_inital_balance", label = "Loan Amount:", value = 500000, step = 5000, icon = icon("euro")),
+          numericInputIcon(inputId = "loan_inital_balance", label = "Loan Amount:", value = 500000, step = 5000, icon = icon("dollar")),
           numericInputIcon(inputId = "loan_interest", label = "Interest Rate:", value = 5, icon = list(NULL, icon("percent"))),
           numericInputIcon(inputId = "loan_years", label = "Term of Loan (in Years):", value = 25, icon = list(NULL, "Years")),
           selectInput("loan_freq", "Frequency of Repayments:", freq_list),
